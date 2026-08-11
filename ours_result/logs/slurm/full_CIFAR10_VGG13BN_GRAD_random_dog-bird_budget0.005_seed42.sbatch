@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --account=aip-boyuwang
+#SBATCH --partition=gpubase_bygpu_b2
+#SBATCH --gpus=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
+#SBATCH --time=05:30:00
+#SBATCH --output=/home/mmoslem3/scratch/attack_if/ours_result/logs/slurm/full_CIFAR10_VGG13BN_GRAD_random_dog-bird_budget0.005_seed42.log
+#SBATCH --job-name=ful_VGG1_GR
+set -e
+source /home/mmoslem3/ENV/bin/activate
+cd /home/mmoslem3/scratch/attack_if
+python main_new.py --model VGG13BN --attack GRAD --base random \
+    --class_pair dog-bird --budget 0.005 \
+    --dataset CIFAR10 --seed 42 --num_victims 6 --num_targets 10 \
+    --victim_epochs 60 --victim_lr 0.1 --victim_bs 256 --victim_decay 35 45 --no_augmentation \
+    --num_surrogate 5 --coef 1.0 --epsilon 0.0313 --craft_steps 250 --craft_lr 0.01 \
+    --ref_model ResNet20BN --target_margin_low 0.05 --target_margin_high 0.5 \
+    --cache_dir /home/mmoslem3/scratch/attack_if/cache --data_path /home/mmoslem3/scratch/data --out_dir /home/mmoslem3/scratch/attack_if/ours_result

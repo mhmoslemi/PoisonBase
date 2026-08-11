@@ -1,0 +1,818 @@
+"""
+main.py
+
+Clean-label poisoning experiment driver.
+
+Compares two downstream perturbation-crafting objectives (Feature Collision /
+"FC" and Gradient Matching / "GRAD", i.e. Witches' Brew-style) crossed with two
+base-selection strategies ("random" and "ours", the target-conditioned
+s_i = B_i + coef * R_i score from the paper), across three architectures
+(ConvNetBN, VGG13BN, ResNet20BN) and two standard CIFAR-10 class pairs
+(dog-bird, frog-airplane).
+
+This file only depends on networks.py and utils.py (assumed to sit next to
+this file, exactly as uploaded). models.py (SimpleConvNet / PerturbationGenerator)
+is not used here: the three required architectures already come from
+networks.py via a from-scratch build_network() below, and both attacks craft
+delta directly in pixel space rather than through a generator network. If the
+generator-based route is actually wanted, that is a separate change.
+
+Important gotcha in the existing utils.py: get_network() calls
+torch.random.manual_seed(int(time.time() * 1000) % 100000) internally, which
+makes network initialization time-dependent and NOT reproducible across runs.
+Since targets, surrogates, and victims all need to be reproducible given
+--seed, this file builds networks directly from networks.py's classes
+(build_network below) and seeds explicitly right before each construction,
+bypassing utils.get_network's internal reseed. VGG13BN is also not one of
+utils.get_network's branches, so it is built directly here either way.
+
+Usage (single run):
+    python main.py --dataset CIFAR10 --model ResNet20BN --attack GRAD \
+        --base ours --num_surrogate 5 --coef 1.0 --class_pair dog-bird
+
+See run_experiments.sh for a full sweep.
+"""
+
+import argparse
+import csv
+import json
+import logging
+import os
+import random
+from collections import defaultdict
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from networks import ConvNet, VGG, ResNet20BN
+from utils import get_dataset, TensorDataset, epoch as run_epoch
+
+
+SUPPORTED_MODELS = ['ConvNetBN', 'VGG13BN', 'ResNet20BN']
+SUPPORTED_ATTACKS = ['FC', 'GRAD']
+SUPPORTED_BASES = ['random', 'ours']
+
+# target-class -> poison/adversarial-class. Targets are drawn from the first
+# class (their true label); poison bases are drawn from the second class
+# (the adversarial class 'a' the target should be misclassified as). This
+# matches the "target_class-poison_class-target_id" convention used by the
+# Witches' Brew kettle.py deterministic_construction triplet.
+CLASS_PAIRS = {
+    'dog-bird': ('dog', 'bird'),
+    'frog-airplane': ('frog', 'airplane'),
+}
+
+
+# --------------------------------------------------------------------------- #
+# Setup / args
+# --------------------------------------------------------------------------- #
+
+def parse_args():
+    p = argparse.ArgumentParser()
+
+    p.add_argument('--dataset', type=str, default='CIFAR10')
+    p.add_argument('--data_path', type=str, default='./data')
+
+    p.add_argument('--model', type=str, required=True, choices=SUPPORTED_MODELS)
+    p.add_argument('--attack', type=str, default=None, choices=SUPPORTED_ATTACKS,
+                    help="Required unless --baseline_only.")
+    p.add_argument('--base', type=str, default=None, choices=SUPPORTED_BASES,
+                    help="Required unless --baseline_only.")
+    p.add_argument('--class_pair', type=str, default=None, choices=list(CLASS_PAIRS.keys()),
+                    help="Required unless --baseline_only.")
+
+    # 'ours' base-selection hyperparameters
+    p.add_argument('--num_surrogate', type=int, default=5,
+                    help="Ensemble size K used ONLY for --base ours base-selection scoring "
+                         "(s_i = B_i + coef * R_i). Ignored (fixed to 1) when --base random. "
+                         "Does NOT affect crafting: both FC and GRAD always craft against a "
+                         "single surrogate matching the victim architecture, matching the "
+                         "standard Bullseye Polytope / Witches' Brew white-box setting "
+                         "(ensembling in those papers is for black-box transfer to an unknown "
+                         "victim architecture, which doesn't apply here since --model IS the "
+                         "victim architecture).")
+    p.add_argument('--coef', type=float, default=1.0,
+                    help="lambda: weight of the target-relevance term R_i relative to the "
+                         "boundary-proximity term B_i in s_i = B_i + coef * R_i. Only used "
+                         "when --base ours.")
+
+    # poisoning / crafting hyperparameters
+    p.add_argument('--budget', type=float, default=None,
+                    help="Poison budget as a fraction of the full training set size (Witches' "
+                         "Brew / poisoning-benchmark convention), e.g. 0.01 = 1%% of the train "
+                         "set. Converted internally to num_poisons = round(budget * "
+                         "len(full_train_set)) once the dataset is loaded. Required unless "
+                         "--baseline_only.")
+    p.add_argument('--num_poisons', type=int, default=25,
+                    help="Poison budget m per target. DERIVED from --budget once the dataset "
+                         "is loaded in normal-mode runs (see --budget); this default is only "
+                         "a placeholder before that point / when --baseline_only is set.")
+    p.add_argument('--epsilon', type=float, default=8 / 255,
+                    help="L_inf perturbation bound in raw [0,1] pixel space.")
+    p.add_argument('--craft_steps', type=int, default=250)
+    p.add_argument('--craft_lr', type=float, default=0.01)
+
+    # target / victim protocol
+    p.add_argument('--num_targets', type=int, default=10)
+    p.add_argument('--num_victims', type=int, default=6)
+    p.add_argument('--victim_epochs', type=int, default=60)
+    p.add_argument('--victim_lr', type=float, default=0.1)
+    p.add_argument('--victim_bs', type=int, default=256)
+    p.add_argument('--victim_decay', type=int, nargs='+', default=[35, 45])
+    p.add_argument('--no_augmentation', action='store_true', default=True,
+                    help="Kept for logging/CLI parity with the requested protocol. Augmentation "
+                         "is not wired up in this script at all (the protocol calls for none), "
+                         "so this flag does not currently toggle anything.")
+
+    # target-difficulty band ("target easiness"): filters candidate targets by
+    # the clean reference model's confidence gap between the true class and
+    # the adversarial class, p_true(x_t) - p_adv(x_t). A gap near 0 means the
+    # clean model is already nearly fooled (trivial / degenerate); a gap near
+    # 1 means the clean model is extremely confident and correct (near the
+    # ceiling for any attack). Restricting to a moderate band avoids floor and
+    # ceiling effects; it does NOT bias the comparison between FC/GRAD or
+    # random/ours, since the same fixed target set (cached to disk) is reused
+    # for every model / attack / base combination.
+    p.add_argument('--ref_model', type=str, default='ResNet20BN', choices=SUPPORTED_MODELS,
+                    help="Architecture used only to score target difficulty and pick the fixed "
+                         "target set. Deliberately decoupled from --model so the target set "
+                         "does not depend on which architecture is currently being tested.")
+    p.add_argument('--target_margin_low', type=float, default=0.05)
+    p.add_argument('--target_margin_high', type=float, default=0.5)
+
+    p.add_argument('--seed', type=int, default=42)
+    p.add_argument('--cache_dir', type=str, default='./cache')
+    p.add_argument('--out_dir', type=str, default='./runs')
+
+    p.add_argument('--save_victim_ckpts', action='store_true', default=False)
+    p.add_argument('--recompute_reference', action='store_true', default=False)
+    p.add_argument('--recompute_targets', action='store_true', default=False)
+    p.add_argument('--recompute_surrogates', action='store_true', default=False)
+    p.add_argument('--recompute_deltas', action='store_true', default=False)
+
+    p.add_argument('--baseline_only', action='store_true', default=False,
+                    help="Train (or verify cached) exactly ONE clean pre-attack baseline "
+                         "checkpoint for --model / --baseline_victim_id, then exit -- skips "
+                         "the reference model, target selection, surrogates, and attack loop "
+                         "entirely. Meant to be launched once per (model, victim_id), e.g. one "
+                         "process per GPU, so the num_victims baseline checkpoints for all "
+                         "models can be trained in parallel instead of sequentially inside the "
+                         "normal run.")
+    p.add_argument('--baseline_victim_id', type=int, default=None,
+                    help="Which of the 0..num_victims-1 baseline checkpoints to (re)train. "
+                         "Required when --baseline_only is set.")
+
+    args = p.parse_args()
+    if not args.baseline_only:
+        missing = [name for name, val in [('--attack', args.attack), ('--base', args.base),
+                                           ('--class_pair', args.class_pair),
+                                           ('--budget', args.budget)] if val is None]
+        if missing:
+            p.error(f"the following arguments are required unless --baseline_only is set: "
+                     f"{', '.join(missing)}")
+    args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    return args
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
+# --------------------------------------------------------------------------- #
+# Networks (bypasses utils.get_network's time-based reseed; see module docstring)
+# --------------------------------------------------------------------------- #
+
+def build_network(model_name, channel, num_classes, im_size, seed):
+    """Deterministically construct one of the three supported architectures.
+
+    Caller controls reproducibility entirely via `seed`; nothing in here
+    touches the global RNG except via this explicit call.
+    """
+    set_seed(seed)
+    if model_name == 'ConvNetBN':
+        net = ConvNet(channel=channel, num_classes=num_classes, net_width=128, net_depth=3,
+                       net_act='relu', net_norm='batchnorm', net_pooling='avgpooling', im_size=im_size)
+    elif model_name == 'VGG13BN':
+        net = VGG('VGG13', channel=channel, num_classes=num_classes, norm='batchnorm')
+    elif model_name == 'ResNet20BN':
+        net = ResNet20BN(channel=channel, num_classes=num_classes)
+    else:
+        raise ValueError(f'Unsupported model {model_name}, choose from {SUPPORTED_MODELS}')
+    return net
+
+
+# --------------------------------------------------------------------------- #
+# Data materialization: raw [0,1] pixel tensors for the training set (needed
+# so perturbations / epsilon-ball clipping happen in physically meaningful
+# pixel space), plus a normalize() applied right before any network forward
+# pass. Test set is kept normalized throughout (it is never perturbed).
+#
+# NOTE: this fast path assumes a CIFAR-style dataset object with .data
+# (uint8 NHWC) and .targets (list), which covers CIFAR10 / CIFAR100 / SVHN /
+# MNIST / FashionMNIST from utils.get_dataset. It does NOT cover TinyImageNet
+# (already pre-normalized tensors there with no raw form retained) -- not a
+# concern for this experiment since the dog/bird/frog/airplane class names
+# only exist in CIFAR10 anyway.
+# --------------------------------------------------------------------------- #
+
+def normalize(x, mean, std, device):
+    mean_t = torch.tensor(mean, device=device).view(1, -1, 1, 1)
+    std_t = torch.tensor(std, device=device).view(1, -1, 1, 1)
+    return (x - mean_t) / std_t
+
+
+def materialize_raw_train(dst_train):
+    """Returns (images in [0,1], NCHW, float32), (labels, long)."""
+    if hasattr(dst_train, 'data'):
+        data = dst_train.data
+        imgs = torch.from_numpy(np.asarray(data)).float()
+        if imgs.dim() == 3:
+            imgs = imgs.unsqueeze(1)          # grayscale N,H,W -> N,1,H,W
+        elif imgs.dim() == 4 and imgs.shape[-1] in (1, 3):
+            imgs = imgs.permute(0, 3, 1, 2)   # NHWC -> NCHW
+        imgs = imgs / 255.0
+        if hasattr(dst_train, 'targets'):
+            labels = torch.tensor(dst_train.targets).long()
+        elif hasattr(dst_train, 'labels'):
+            labels = torch.tensor(dst_train.labels).long()
+        else:
+            raise AttributeError('Could not find labels on training dataset object.')
+        return imgs, labels
+    # Slow fallback for dataset objects without .data (e.g. already-tensor datasets).
+    imgs, labels = [], []
+    for i in range(len(dst_train)):
+        x, y = dst_train[i]
+        imgs.append(x)
+        labels.append(y)
+    return torch.stack(imgs), torch.tensor(labels).long()
+
+
+def materialize_normalized_test(dst_test):
+    """Returns (images already normalized, NCHW), (labels, long), by reading
+    through the dataset's own __getitem__ (so it exactly matches whatever
+    transform get_dataset attached)."""
+    imgs, labels = [], []
+    for i in range(len(dst_test)):
+        x, y = dst_test[i]
+        imgs.append(x)
+        labels.append(y)
+    return torch.stack(imgs), torch.tensor(labels).long()
+
+
+# --------------------------------------------------------------------------- #
+# Training loop (shared by reference model / surrogates / victims -- they are
+# procedurally identical, only the data and the random seed differ)
+# --------------------------------------------------------------------------- #
+
+def train_from_scratch(net, images_norm, labels, testloader, epochs, lr, batch_size, decay_epochs, args):
+    net = net.to(args.device)
+    optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=decay_epochs, gamma=0.1)
+    criterion = nn.CrossEntropyLoss()
+
+    train_ds = TensorDataset(images_norm, labels)
+    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0)
+
+    for ep in range(epochs):
+        run_epoch('train', train_loader, net, optimizer, criterion, args, aug=False)
+        scheduler.step()
+
+    _, acc_test = run_epoch('test', testloader, net, optimizer, criterion, args, aug=False)
+    return net, acc_test
+
+
+def evaluate_clean_accuracy(net, images_norm, labels, exclude_idx, device, batch_size=512):
+    """Test accuracy on images_norm/labels, skipping indices in exclude_idx (e.g. the
+    current target set), so target examples don't leak into the reported CTA."""
+    net.eval()
+    keep = [i for i in range(images_norm.shape[0]) if i not in exclude_idx]
+    correct, total = 0, 0
+    with torch.no_grad():
+        for start in range(0, len(keep), batch_size):
+            idx = keep[start:start + batch_size]
+            x = images_norm[idx].to(device)
+            y = labels[idx].to(device)
+            pred = net(x).argmax(dim=1)
+            correct += (pred == y).sum().item()
+            total += len(idx)
+    return correct / max(total, 1)
+
+
+def evaluate_test_acc(net, testloader, device):
+    """Plain test accuracy, used to re-score a checkpoint loaded from cache
+    (train_from_scratch already returns acc_test for freshly-trained nets)."""
+    net.eval()
+    correct, total = 0, 0
+    with torch.no_grad():
+        for img, lab in testloader:
+            img = img.float().to(device)
+            lab = lab.long().to(device)
+            pred = net(img).argmax(dim=1)
+            correct += (pred == lab).sum().item()
+            total += lab.shape[0]
+    return correct / max(total, 1)
+
+
+# --------------------------------------------------------------------------- #
+# Reference model + target selection ("target easiness")
+# --------------------------------------------------------------------------- #
+
+def get_reference_model(args, channel, num_classes, im_size, images_train_norm, labels_train, testloader):
+    cache_path = os.path.join(args.cache_dir, 'reference_model',
+                               f'{args.dataset}_{args.class_pair}_seed{args.seed}.pt')
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+
+    net = build_network(args.ref_model, channel, num_classes, im_size, seed=args.seed)
+    if os.path.exists(cache_path) and not args.recompute_reference:
+        net.load_state_dict(torch.load(cache_path, map_location=args.device))
+        return net.to(args.device)
+
+    net, acc_test = train_from_scratch(net, images_train_norm, labels_train, testloader,
+                                        epochs=args.victim_epochs, lr=args.victim_lr,
+                                        batch_size=args.victim_bs, decay_epochs=args.victim_decay,
+                                        args=args)
+    logging.info(f'[reference model] test acc = {acc_test:.4f}')
+    torch.save(net.state_dict(), cache_path)
+    return net
+
+
+def select_targets(args, ref_net, images_test_norm, labels_test, class_names):
+    cache_path = os.path.join(args.cache_dir, 'targets',
+                               f'{args.dataset}_{args.class_pair}_seed{args.seed}.json')
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    if os.path.exists(cache_path) and not args.recompute_targets:
+        with open(cache_path) as f:
+            return json.load(f)['target_ids']
+
+    target_class_name, poison_class_name = CLASS_PAIRS[args.class_pair]
+    target_class_idx = class_names.index(target_class_name)
+    poison_class_idx = class_names.index(poison_class_name)
+
+    candidates = (labels_test == target_class_idx).nonzero(as_tuple=True)[0].tolist()
+
+    ref_net.eval()
+    gaps = {}
+    with torch.no_grad():
+        for start in range(0, len(candidates), 512):
+            idx = candidates[start:start + 512]
+            x = images_test_norm[idx].to(args.device)
+            probs = torch.softmax(ref_net(x), dim=1)
+            p_true = probs[:, target_class_idx]
+            p_adv = probs[:, poison_class_idx]
+            gap = (p_true - p_adv).cpu().tolist()
+            for i, g in zip(idx, gap):
+                gaps[i] = g
+
+    filtered = [i for i, g in gaps.items() if args.target_margin_low <= g <= args.target_margin_high]
+    rng = np.random.RandomState(args.seed)
+    if len(filtered) >= args.num_targets:
+        chosen = rng.choice(filtered, size=args.num_targets, replace=False).tolist()
+    else:
+        logging.info(f'[select_targets] WARNING: only {len(filtered)} candidates in margin band '
+              f'[{args.target_margin_low}, {args.target_margin_high}] out of {len(candidates)}; '
+              f'falling back to the closest-to-band candidates to reach {args.num_targets}.')
+        mid = (args.target_margin_low + args.target_margin_high) / 2.0
+        ranked = sorted(gaps.keys(), key=lambda i: abs(gaps[i] - mid))
+        chosen = ranked[:args.num_targets]
+
+    with open(cache_path, 'w') as f:
+        json.dump({'target_ids': chosen, 'gaps': {str(k): gaps[k] for k in chosen}}, f, indent=2)
+    return chosen
+
+
+# --------------------------------------------------------------------------- #
+# Clean baseline: same architecture + same victim hyperparams, trained on
+# UNPOISONED data. Gives "CTA before attack" (mean +/- std over num_victims
+# clean runs) to compare post-attack CTA against. Cached per (dataset, model,
+# seed) only -- independent of attack/base/class_pair/coef, so it is computed
+# once and every run for that model architecture just reuses it.
+# --------------------------------------------------------------------------- #
+
+def train_or_load_one_baseline(args, model_name, v, channel, num_classes, im_size,
+                                images_train_norm, labels_train, testloader):
+    """Train (or load) exactly one of the num_victims clean-baseline checkpoints for
+    model_name. Used both by get_clean_baseline (loops over all of them) and by the
+    --baseline_only CLI path (one process per checkpoint, so these can be fanned out
+    across GPUs). Always (re)writes a small JSON sidecar next to the checkpoint --
+    {dataset}_{model}_seed{seed}_v{v}.json -- so a launcher script can aggregate
+    results by globbing JSON files instead of parsing logs."""
+    cache_path = os.path.join(args.cache_dir, 'clean_baseline',
+                               f'{args.dataset}_{model_name}_seed{args.seed}_v{v}.pt')
+    sidecar_path = cache_path[:-3] + '.json'
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    baseline_seed = args.seed * 10000 + 999900 + v  # distinct from per-target victim seeds
+
+    net = build_network(model_name, channel, num_classes, im_size, seed=baseline_seed)
+    if os.path.exists(cache_path):
+        net.load_state_dict(torch.load(cache_path, map_location=args.device))
+        net = net.to(args.device)
+        acc_test = evaluate_test_acc(net, testloader, args.device)
+    else:
+        net, acc_test = train_from_scratch(net, images_train_norm, labels_train, testloader,
+                                            epochs=args.victim_epochs, lr=args.victim_lr,
+                                            batch_size=args.victim_bs, decay_epochs=args.victim_decay,
+                                            args=args)
+        torch.save(net.state_dict(), cache_path)
+
+    with open(sidecar_path, 'w') as f:
+        json.dump({'dataset': args.dataset, 'model': model_name, 'seed': args.seed,
+                    'victim_id': v, 'test_acc': acc_test}, f)
+
+    logging.info(f'[clean baseline {model_name} v{v}] test acc = {acc_test:.4f}')
+    return acc_test
+
+
+def get_clean_baseline(args, model_name, channel, num_classes, im_size,
+                        images_train_norm, labels_train, testloader):
+    accs = [train_or_load_one_baseline(args, model_name, v, channel, num_classes, im_size,
+                                        images_train_norm, labels_train, testloader)
+            for v in range(args.num_victims)]
+    return float(np.mean(accs)), float(np.std(accs))
+
+
+def summarize_results(rows):
+    """rows: list of dicts with target_id, victim_id, success, clean_test_acc.
+    ASR mean/std is computed over per-target success rates (averaged across
+    victims first, then mean/std across targets) -- this is the target-to-
+    target variability, which is what's informative for comparing methods.
+    CTA mean/std is computed directly over all (target, victim) trials."""
+    per_target_success = defaultdict(list)
+    all_cta = []
+    for r in rows:
+        per_target_success[r['target_id']].append(r['success'])
+        all_cta.append(r['clean_test_acc'])
+    per_target_asr = [float(np.mean(v)) for v in per_target_success.values()]
+    return {
+        'asr_mean': float(np.mean(per_target_asr)) if per_target_asr else None,
+        'asr_std': float(np.std(per_target_asr)) if per_target_asr else None,
+        'cta_post_mean': float(np.mean(all_cta)) if all_cta else None,
+        'cta_post_std': float(np.std(all_cta)) if all_cta else None,
+        'num_targets': len(per_target_success),
+        'num_trials': len(rows),
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Surrogate ensemble
+# --------------------------------------------------------------------------- #
+
+def get_surrogate_ensemble(args, channel, num_classes, im_size, images_train_norm, labels_train, testloader):
+    K = args.num_surrogate if args.base == 'ours' else 1
+    nets = []
+    for k in range(K):
+        cache_path = os.path.join(
+            args.cache_dir, 'surrogates',
+            f'{args.dataset}_{args.model}_{args.class_pair}_seed{args.seed}_k{k}.pt')
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+
+        net = build_network(args.model, channel, num_classes, im_size, seed=args.seed + 1000 + k)
+        if os.path.exists(cache_path) and not args.recompute_surrogates:
+            net.load_state_dict(torch.load(cache_path, map_location=args.device))
+            net = net.to(args.device)
+        else:
+            net, acc_test = train_from_scratch(net, images_train_norm, labels_train, testloader,
+                                                epochs=args.victim_epochs, lr=args.victim_lr,
+                                                batch_size=args.victim_bs, decay_epochs=args.victim_decay,
+                                                args=args)
+            logging.info(f'[surrogate {k}] test acc = {acc_test:.4f}')
+            torch.save(net.state_dict(), cache_path)
+        net.eval()
+        nets.append(net)
+    return nets
+
+
+# --------------------------------------------------------------------------- #
+# Base selection
+# --------------------------------------------------------------------------- #
+
+def select_bases_random(candidate_idx, num_poisons, seed):
+    rng = np.random.RandomState(seed)
+    return rng.choice(candidate_idx, size=min(num_poisons, len(candidate_idx)), replace=False).tolist()
+
+
+def select_bases_ours(candidate_idx, images_train_norm, target_norm, surrogate_nets,
+                       poison_class_idx, coef, num_poisons, device, batch_size=256):
+    """s_i = B_i + coef * R_i, top-m by s_i. See paper Eq. 8."""
+    K = len(surrogate_nets)
+    n = len(candidate_idx)
+    scores = torch.zeros(n)
+
+    with torch.no_grad():
+        target_embeds = [net.embed(target_norm.unsqueeze(0).to(device)) for net in surrogate_nets]
+
+        for start in range(0, n, batch_size):
+            chunk = candidate_idx[start:start + batch_size]
+            batch = images_train_norm[chunk].to(device)
+            batch_score = torch.zeros(len(chunk), device=device)
+
+            for net, t_embed in zip(surrogate_nets, target_embeds):
+                probs = torch.softmax(net(batch), dim=1)
+                p_a = probs[:, poison_class_idx]
+                probs_masked = probs.clone()
+                probs_masked[:, poison_class_idx] = -1.0
+                p_max_other, _ = probs_masked.max(dim=1)
+                b_k = 1.0 - (p_a - p_max_other)
+
+                feats = net.embed(batch)
+                r_k = F.cosine_similarity(feats, t_embed.expand_as(feats), dim=1)
+
+                batch_score += (b_k + coef * r_k) / K
+
+            scores[start:start + len(chunk)] = batch_score.cpu()
+
+    order = torch.argsort(scores, descending=True).tolist()
+    top_m = order[:num_poisons]
+    return [candidate_idx[i] for i in top_m]
+
+
+# --------------------------------------------------------------------------- #
+# Perturbation crafting: FC (Bullseye-Polytope-style multi-poison feature
+# collision) and GRAD (Witches' Brew-style single-step gradient matching)
+# --------------------------------------------------------------------------- #
+
+def craft_poison(attack, base_imgs_raw, target_norm, surrogate_nets, poison_class_idx,
+                  epsilon, craft_steps, craft_lr, mean, std, device):
+    m = base_imgs_raw.shape[0]
+    base_imgs_raw = base_imgs_raw.to(device)
+    delta = torch.zeros_like(base_imgs_raw, requires_grad=True)
+    optimizer = torch.optim.Adam([delta], lr=craft_lr)
+    criterion = nn.CrossEntropyLoss()
+    poison_label = torch.full((m,), poison_class_idx, dtype=torch.long, device=device)
+    target_norm = target_norm.to(device)
+
+    for net in surrogate_nets:
+        net.eval()
+
+    if attack == 'FC':
+        with torch.no_grad():
+            target_feats = [net.embed(target_norm.unsqueeze(0)).detach() for net in surrogate_nets]
+    else:
+        target_grads = []
+        for net in surrogate_nets:
+            net.zero_grad()
+            out = net(target_norm.unsqueeze(0))
+            loss_t = criterion(out, torch.tensor([poison_class_idx], device=device))
+            params = [p for p in net.parameters() if p.requires_grad]
+            g = torch.autograd.grad(loss_t, params)
+            target_grads.append([gi.detach() for gi in g])
+
+    for step in range(craft_steps):
+        optimizer.zero_grad()
+        x_adv_raw = torch.clamp(base_imgs_raw + delta, 0.0, 1.0)
+        x_adv_norm = normalize(x_adv_raw, mean, std, device)
+
+        total_loss = 0.0
+        for k, net in enumerate(surrogate_nets):
+            if attack == 'FC':
+                feats = net.embed(x_adv_norm)
+                pooled = feats.mean(dim=0, keepdim=True)
+                loss_k = ((pooled - target_feats[k]) ** 2).sum()
+            else:
+                net.zero_grad()
+                out = net(x_adv_norm)
+                loss_poison = criterion(out, poison_label)
+                params = [p for p in net.parameters() if p.requires_grad]
+                g_poison = torch.autograd.grad(loss_poison, params, create_graph=True)
+                num = sum((gp * gt).sum() for gp, gt in zip(g_poison, target_grads[k]))
+                denom = (torch.sqrt(sum((gp ** 2).sum() for gp in g_poison) + 1e-12) *
+                         torch.sqrt(sum((gt ** 2).sum() for gt in target_grads[k]) + 1e-12))
+                loss_k = 1.0 - num / denom
+            total_loss = total_loss + loss_k
+
+        total_loss = total_loss / len(surrogate_nets)
+        grad_delta, = torch.autograd.grad(total_loss, [delta])
+        delta.grad = grad_delta
+        optimizer.step()
+
+        with torch.no_grad():
+            delta.data = torch.clamp(delta.data, -epsilon, epsilon)
+            x_proj = torch.clamp(base_imgs_raw + delta.data, 0.0, 1.0)
+            delta.data = x_proj - base_imgs_raw
+
+    return delta.detach().cpu()
+
+
+# --------------------------------------------------------------------------- #
+# Main
+# --------------------------------------------------------------------------- #
+
+def main():
+    args = parse_args()
+    set_seed(args.seed)
+
+    if args.baseline_only:
+        if args.baseline_victim_id is None:
+            raise ValueError('--baseline_only requires --baseline_victim_id (0..num_victims-1)')
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+        logging.info(f'=== baseline_only: {args.model} v{args.baseline_victim_id} on {args.device} ===')
+
+        channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = \
+            get_dataset(args.dataset, args.data_path)
+        images_train_raw, labels_train = materialize_raw_train(dst_train)
+        images_train_norm = normalize(images_train_raw, mean, std, 'cpu')
+
+        acc = train_or_load_one_baseline(args, args.model, args.baseline_victim_id,
+                                          channel, num_classes, im_size,
+                                          images_train_norm, labels_train, testloader)
+        logging.info(f'[baseline_only done] {args.model} v{args.baseline_victim_id} acc={acc:.4f}')
+        return
+
+    run_name = (f'{args.dataset}_{args.model}_{args.attack}_{args.base}_{args.class_pair}'
+                f'_budget{args.budget:g}_seed{args.seed}')
+    if args.base == 'ours':
+        run_name += f'_K{args.num_surrogate}_coef{args.coef}'
+    run_dir = os.path.join(args.out_dir, run_name)
+    os.makedirs(run_dir, exist_ok=True)
+
+    log_path = os.path.join(run_dir, 'log.txt')
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    for h in list(root_logger.handlers):
+        root_logger.removeHandler(h)
+    file_handler = logging.FileHandler(log_path, mode='a')   # append, never truncated
+    stream_handler = logging.StreamHandler()
+    fmt = logging.Formatter('%(asctime)s %(message)s')
+    file_handler.setFormatter(fmt)
+    stream_handler.setFormatter(fmt)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(stream_handler)
+
+    logging.info(f'=== run start: {run_name} on {args.device} ===')
+
+    channel, im_size, num_classes, class_names, mean, std, dst_train, dst_test, testloader = \
+        get_dataset(args.dataset, args.data_path)
+
+    images_train_raw, labels_train = materialize_raw_train(dst_train)
+    images_train_norm = normalize(images_train_raw, mean, std, 'cpu')
+    images_test_norm, labels_test = materialize_normalized_test(dst_test)
+
+    full_train_len = len(dst_train)
+    args.num_poisons = round(args.budget * full_train_len)
+    logging.info(f'[budget] budget={args.budget} -> num_poisons={args.num_poisons} '
+                 f'(full_train_len={full_train_len})')
+
+    target_class_name, poison_class_name = CLASS_PAIRS[args.class_pair]
+    target_class_idx = class_names.index(target_class_name)
+    poison_class_idx = class_names.index(poison_class_name)
+
+    # --- clean pre-attack baseline for this architecture (cached per model, shared across
+    #     all attack/base/class_pair runs of that model) ---
+    cta_baseline_mean, cta_baseline_std = get_clean_baseline(
+        args, args.model, channel, num_classes, im_size, images_train_norm, labels_train, testloader)
+    logging.info(f'[clean baseline] {args.model} CTA = {cta_baseline_mean:.4f} +/- {cta_baseline_std:.4f}')
+
+    # --- fixed reference model + fixed target set (shared across all model/attack/base runs) ---
+    ref_net = get_reference_model(args, channel, num_classes, im_size,
+                                   images_train_norm, labels_train, testloader)
+    target_ids = select_targets(args, ref_net, images_test_norm, labels_test, class_names)
+    logging.info(f'[targets] {len(target_ids)} fixed targets: {target_ids}')
+
+    # --- surrogate ensemble (K=num_surrogate for 'ours', K=1 for 'random') ---
+    surrogate_nets = get_surrogate_ensemble(args, channel, num_classes, im_size,
+                                             images_train_norm, labels_train, testloader)
+
+    candidate_idx = (labels_train == poison_class_idx).nonzero(as_tuple=True)[0].tolist()
+
+    results_path = os.path.join(run_dir, 'results.csv')
+    write_header = not os.path.exists(results_path)
+
+    completed = set()
+    if not write_header:
+        with open(results_path, newline='') as f:
+            for row in csv.DictReader(f):
+                completed.add((int(row['target_id']), int(row['victim_id'])))
+        if completed:
+            logging.info(f'[resume] {len(completed)} (target, victim) trials already in '
+                         f'{results_path}; skipping those.')
+
+    results_file = open(results_path, 'a', newline='')
+    writer = csv.writer(results_file)
+    if write_header:
+        writer.writerow(['dataset', 'model', 'attack', 'base', 'class_pair', 'seed',
+                          'num_surrogate', 'coef', 'budget', 'num_poisons', 'epsilon',
+                          'target_id', 'victim_id', 'success', 'clean_test_acc'])
+
+    deltas_path = os.path.join(run_dir, 'deltas.pt')
+    bases_path = os.path.join(run_dir, 'bases.json')
+    cached_deltas = torch.load(deltas_path) if (os.path.exists(deltas_path) and not args.recompute_deltas) else {}
+    cached_bases = json.load(open(bases_path)) if (os.path.exists(bases_path) and not args.recompute_deltas) else {}
+
+    for target_id in target_ids:
+        target_norm = images_test_norm[target_id]
+
+        if str(target_id) in cached_bases:
+            base_ids = cached_bases[str(target_id)]
+        elif args.base == 'random':
+            base_ids = select_bases_random(candidate_idx, args.num_poisons, seed=args.seed + target_id)
+        else:
+            base_ids = select_bases_ours(candidate_idx, images_train_norm, target_norm, surrogate_nets,
+                                          poison_class_idx, args.coef, args.num_poisons, args.device)
+        cached_bases[str(target_id)] = base_ids
+
+        if target_id in cached_deltas:
+            delta = cached_deltas[target_id]
+        else:
+            base_imgs_raw = images_train_raw[base_ids]
+            # Standard FC (Bullseye Polytope) / GRAD (Witches' Brew) white-box crafting uses a
+            # single surrogate matching the victim architecture -- both papers' ensembling
+            # variants are for black-box transfer to an unknown victim architecture, which is
+            # not this setting (--model IS the victim architecture here). num_surrogate / the
+            # full K-net ensemble is used only for 'ours' base-selection scoring above; crafting
+            # always uses just the first surrogate.
+            delta = craft_poison(args.attack, base_imgs_raw, target_norm, surrogate_nets[:1],
+                                  poison_class_idx, args.epsilon, args.craft_steps, args.craft_lr,
+                                  mean, std, args.device)
+            cached_deltas[target_id] = delta
+            torch.save(cached_deltas, deltas_path)
+            with open(bases_path, 'w') as f:
+                json.dump(cached_bases, f)
+
+        # build the poisoned training set for this target
+        poisoned_raw = images_train_raw.clone()
+        poisoned_raw[base_ids] = torch.clamp(poisoned_raw[base_ids] + delta, 0.0, 1.0)
+        poisoned_norm = normalize(poisoned_raw, mean, std, 'cpu')
+
+        for victim_id in range(args.num_victims):
+            if (target_id, victim_id) in completed:
+                logging.info(f'[target {target_id} | victim {victim_id}] already in results.csv, skipping')
+                continue
+
+            victim_seed = args.seed * 10000 + target_id * 100 + victim_id
+            victim_net = build_network(args.model, channel, num_classes, im_size, seed=victim_seed)
+            victim_net, _ = train_from_scratch(victim_net, poisoned_norm, labels_train, testloader,
+                                                epochs=args.victim_epochs, lr=args.victim_lr,
+                                                batch_size=args.victim_bs, decay_epochs=args.victim_decay,
+                                                args=args)
+
+            victim_net.eval()
+            with torch.no_grad():
+                pred = victim_net(target_norm.unsqueeze(0).to(args.device)).argmax(dim=1).item()
+            success = int(pred == poison_class_idx)
+
+            cta = evaluate_clean_accuracy(victim_net, images_test_norm, labels_test,
+                                           exclude_idx=set(target_ids), device=args.device)
+
+            writer.writerow([args.dataset, args.model, args.attack, args.base, args.class_pair,
+                              args.seed, args.num_surrogate if args.base == 'ours' else '',
+                              args.coef if args.base == 'ours' else '', args.budget, args.num_poisons,
+                              args.epsilon, target_id, victim_id, success, cta])
+            results_file.flush()
+            logging.info(f'[target {target_id} | victim {victim_id}] success={success} cta={cta:.4f}')
+
+            if args.save_victim_ckpts:
+                ckpt_dir = os.path.join(run_dir, 'victims')
+                os.makedirs(ckpt_dir, exist_ok=True)
+                torch.save(victim_net.state_dict(),
+                           os.path.join(ckpt_dir, f'target{target_id}_victim{victim_id}.pt'))
+
+    results_file.close()
+    logging.info(f'[done] results written to {results_path}')
+
+    with open(results_path, newline='') as f:
+        all_rows = [{'target_id': int(r['target_id']), 'victim_id': int(r['victim_id']),
+                     'success': int(r['success']), 'clean_test_acc': float(r['clean_test_acc'])}
+                    for r in csv.DictReader(f)]
+    stats = summarize_results(all_rows)
+    stats['cta_drop_mean'] = (stats['cta_post_mean'] - cta_baseline_mean
+                               if stats['cta_post_mean'] is not None else None)
+    stats.update({
+        'dataset': args.dataset, 'model': args.model, 'attack': args.attack, 'base': args.base,
+        'class_pair': args.class_pair, 'seed': args.seed,
+        'num_surrogate': args.num_surrogate if args.base == 'ours' else None,
+        'coef': args.coef if args.base == 'ours' else None,
+        'budget': args.budget, 'num_poisons': args.num_poisons, 'epsilon': args.epsilon,
+        'cta_baseline_mean': cta_baseline_mean, 'cta_baseline_std': cta_baseline_std,
+    })
+
+    summary_path = os.path.join(run_dir, 'summary.json')
+    with open(summary_path, 'w') as f:
+        json.dump(stats, f, indent=2)
+    logging.info(f'[summary] ASR = {stats["asr_mean"]:.4f} +/- {stats["asr_std"]:.4f} | '
+                 f'CTA post = {stats["cta_post_mean"]:.4f} +/- {stats["cta_post_std"]:.4f} | '
+                 f'CTA baseline = {cta_baseline_mean:.4f} +/- {cta_baseline_std:.4f} | '
+                 f'CTA drop = {stats["cta_drop_mean"]:.4f}')
+
+    # sweep-wide rollup, one row per (model, attack, base, class_pair, budget) run -- easiest
+    # place to look once the full sweep has finished.
+    global_summary_path = os.path.join(args.out_dir, 'summary_all.csv')
+    write_global_header = not os.path.exists(global_summary_path)
+    fieldnames = ['dataset', 'model', 'attack', 'base', 'class_pair', 'seed',
+                  'num_surrogate', 'coef', 'budget', 'num_poisons', 'epsilon',
+                  'num_targets', 'num_trials',
+                  'cta_baseline_mean', 'cta_baseline_std',
+                  'asr_mean', 'asr_std', 'cta_post_mean', 'cta_post_std', 'cta_drop_mean']
+    with open(global_summary_path, 'a', newline='') as f:
+        gw = csv.DictWriter(f, fieldnames=fieldnames)
+        if write_global_header:
+            gw.writeheader()
+        gw.writerow({k: stats[k] for k in fieldnames})
+    logging.info(f'[summary] appended to {global_summary_path}')
+
+
+if __name__ == '__main__':
+    main()

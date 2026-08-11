@@ -1,0 +1,64 @@
+95a96,101
+>     p.add_argument('--budget', type=float, default=None,
+>                     help="Poison budget as a fraction of the full training set size (Witches' "
+>                          "Brew / poisoning-benchmark convention), e.g. 0.01 = 1%% of the train "
+>                          "set. Converted internally to num_poisons = round(budget * "
+>                          "len(full_train_set)) once the dataset is loaded. Required unless "
+>                          "--baseline_only.")
+97,99c103,105
+<                     help="Poison budget m per target. Not specified in the brief; 25 is a "
+<                          "reasonable from-scratch CIFAR-10 default used here as a placeholder "
+<                          "-- change freely.")
+---
+>                     help="Poison budget m per target. DERIVED from --budget once the dataset "
+>                          "is loaded in normal-mode runs (see --budget); this default is only "
+>                          "a placeholder before that point / when --baseline_only is set.")
+158c164,165
+<                                            ('--class_pair', args.class_pair)] if val is None]
+---
+>                                            ('--class_pair', args.class_pair),
+>                                            ('--budget', args.budget)] if val is None]
+613c620
+<                 f'_seed{args.seed}')
+---
+>                 f'_budget{args.budget:g}_seed{args.seed}')
+640a648,652
+>     full_train_len = len(dst_train)
+>     args.num_poisons = round(args.budget * full_train_len)
+>     logging.info(f'[budget] budget={args.budget} -> num_poisons={args.num_poisons} '
+>                  f'(full_train_len={full_train_len})')
+> 
+679c691
+<                           'num_surrogate', 'coef', 'num_poisons', 'epsilon',
+---
+>                           'num_surrogate', 'coef', 'budget', 'num_poisons', 'epsilon',
+738c750
+<                               args.coef if args.base == 'ours' else '', args.num_poisons,
+---
+>                               args.coef if args.base == 'ours' else '', args.budget, args.num_poisons,
+756a769,770
+>     stats['cta_drop_mean'] = (stats['cta_post_mean'] - cta_baseline_mean
+>                                if stats['cta_post_mean'] is not None else None)
+762c776
+<         'num_poisons': args.num_poisons, 'epsilon': args.epsilon,
+---
+>         'budget': args.budget, 'num_poisons': args.num_poisons, 'epsilon': args.epsilon,
+771c785,786
+<                  f'CTA baseline = {cta_baseline_mean:.4f} +/- {cta_baseline_std:.4f}')
+---
+>                  f'CTA baseline = {cta_baseline_mean:.4f} +/- {cta_baseline_std:.4f} | '
+>                  f'CTA drop = {stats["cta_drop_mean"]:.4f}')
+773,774c788,789
+<     # sweep-wide rollup, one row per (model, attack, base, class_pair) run -- easiest place to
+<     # look once the full run_experiments.sh sweep has finished.
+---
+>     # sweep-wide rollup, one row per (model, attack, base, class_pair, budget) run -- easiest
+>     # place to look once the full sweep has finished.
+778c793
+<                   'num_surrogate', 'coef', 'num_poisons', 'epsilon',
+---
+>                   'num_surrogate', 'coef', 'budget', 'num_poisons', 'epsilon',
+781c796
+<                   'asr_mean', 'asr_std', 'cta_post_mean', 'cta_post_std']
+---
+>                   'asr_mean', 'asr_std', 'cta_post_mean', 'cta_post_std', 'cta_drop_mean']

@@ -1,0 +1,44 @@
+2026-08-10 20:11:59,251 === run start: CIFAR10_ResNet20BN_FC_ours_dog-bird_budget0.02_seed42_K5_coef10.0_l2_sum_ce5_frac0.25 on cuda ===
+2026-08-10 20:12:02,343 [data_frac] using 0.25 of the training set: 12500/50000 examples (class-balanced, seed 42); test set kept full at 10000.
+2026-08-10 20:12:02,344 [budget] budget=0.02 -> num_poisons=250 (train_len=12500)
+2026-08-10 20:12:05,312 [clean baseline] ResNet20BN CTA = 0.7367 +/- 0.0065
+2026-08-10 20:12:05,384 [select_targets] eligibility: 953/1000 candidates usable; dropped 47 already predicted as "bird" by the clean model.
+2026-08-10 20:12:05,385 [select_targets] difficulty spectrum: position 1e-05 of the eligible pool sorted worst->best => ranks 0..2 of 953; difficulty (p_max - p_bird) in [0.0175, 0.0580] (mean 0.0403); pool spans [0.0175, 1.0000]. 1 of the chosen are classified correctly by the clean model, 2 misclassified to a non-adversarial class.
+2026-08-10 20:12:05,385 [select_targets] chosen: 3355 d=0.0175 clean_pred=cat p_bird=0.2635; 6072 d=0.0453 clean_pred=cat p_bird=0.2580; 5853 d=0.0580 clean_pred=dog p_bird=0.4208
+2026-08-10 20:12:05,387 [targets] 3 fixed targets (difficulty 0=easiest .. 1=hardest): 3355(d=0.017), 6072(d=0.045), 5853(d=0.058)
+2026-08-10 20:12:05,508 [surrogates] 5 trained | crafting ensemble = 5 | "ours" scoring ensemble = 5
+2026-08-10 20:12:05,510 === target 3355 (1/3) : selecting bases + crafting poisons ===
+2026-08-10 20:12:29,435 [target 3355 (1/3) | victim 1/3] DONE  SUCCESS (pred=bird, adv=bird) | CTA=0.7296 (clean baseline 0.7367, drop -0.0071)
+2026-08-10 20:12:51,310 [target 3355 (1/3) | victim 2/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7285 (clean baseline 0.7367, drop -0.0082)
+2026-08-10 20:13:13,217 [target 3355 (1/3) | victim 3/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7379 (clean baseline 0.7367, drop +0.0012)
+2026-08-10 20:13:13,219 === target 3355 (1/3) FINISHED: ASR=0.3333 (1/3 victims fooled) | CTA=0.7320 +/- 0.0042 ===
+2026-08-10 20:13:13,219 === target 6072 (2/3) : selecting bases + crafting poisons ===
+2026-08-10 20:13:36,817 [target 6072 (2/3) | victim 1/3] DONE  SUCCESS (pred=bird, adv=bird) | CTA=0.7322 (clean baseline 0.7367, drop -0.0045)
+2026-08-10 20:13:58,739 [target 6072 (2/3) | victim 2/3] DONE  SUCCESS (pred=bird, adv=bird) | CTA=0.7271 (clean baseline 0.7367, drop -0.0096)
+2026-08-10 20:14:20,614 [target 6072 (2/3) | victim 3/3] DONE  SUCCESS (pred=bird, adv=bird) | CTA=0.7281 (clean baseline 0.7367, drop -0.0086)
+2026-08-10 20:14:20,616 === target 6072 (2/3) FINISHED: ASR=1.0000 (3/3 victims fooled) | CTA=0.7292 +/- 0.0022 ===
+2026-08-10 20:14:20,616 === target 5853 (3/3) : selecting bases + crafting poisons ===
+2026-08-10 20:14:30,218 === run start: CIFAR10_ResNet20BN_FC_ours_dog-bird_budget0.02_seed42_K5_coef10.0_l2_sum_ce5_frac0.25 on cuda ===
+2026-08-10 20:14:33,319 [data_frac] using 0.25 of the training set: 12500/50000 examples (class-balanced, seed 42); test set kept full at 10000.
+2026-08-10 20:14:33,319 [budget] budget=0.02 -> num_poisons=250 (train_len=12500)
+2026-08-10 20:14:36,297 [clean baseline] ResNet20BN CTA = 0.7367 +/- 0.0065
+2026-08-10 20:14:36,321 [targets] 3 fixed targets (difficulty 0=easiest .. 1=hardest): 3355(d=0.017), 6072(d=0.045), 5853(d=0.058)
+2026-08-10 20:14:36,423 [surrogates] 5 trained | crafting ensemble = 5 | "ours" scoring ensemble = 5
+2026-08-10 20:14:36,426 === target 3355 (1/3) : selecting bases + crafting poisons ===
+2026-08-10 20:15:00,363 [target 3355 (1/3) | victim 1/3] DONE  FAIL (pred=frog, adv=bird) | CTA=0.7336 (clean baseline 0.7367, drop -0.0031)
+2026-08-10 20:15:22,194 [target 3355 (1/3) | victim 2/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7380 (clean baseline 0.7367, drop +0.0013)
+2026-08-10 20:15:44,060 [target 3355 (1/3) | victim 3/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7402 (clean baseline 0.7367, drop +0.0035)
+2026-08-10 20:15:44,062 === target 3355 (1/3) FINISHED: ASR=0.0000 (0/3 victims fooled) | CTA=0.7373 +/- 0.0027 ===
+2026-08-10 20:15:44,063 === target 6072 (2/3) : selecting bases + crafting poisons ===
+2026-08-10 20:16:07,616 [target 6072 (2/3) | victim 1/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7342 (clean baseline 0.7367, drop -0.0025)
+2026-08-10 20:16:29,478 [target 6072 (2/3) | victim 2/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7311 (clean baseline 0.7367, drop -0.0056)
+2026-08-10 20:16:51,341 [target 6072 (2/3) | victim 3/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7262 (clean baseline 0.7367, drop -0.0105)
+2026-08-10 20:16:51,343 === target 6072 (2/3) FINISHED: ASR=0.0000 (0/3 victims fooled) | CTA=0.7305 +/- 0.0033 ===
+2026-08-10 20:16:51,343 === target 5853 (3/3) : selecting bases + crafting poisons ===
+2026-08-10 20:17:14,973 [target 5853 (3/3) | victim 1/3] DONE  SUCCESS (pred=bird, adv=bird) | CTA=0.7311 (clean baseline 0.7367, drop -0.0056)
+2026-08-10 20:17:36,816 [target 5853 (3/3) | victim 2/3] DONE  SUCCESS (pred=bird, adv=bird) | CTA=0.7322 (clean baseline 0.7367, drop -0.0045)
+2026-08-10 20:17:58,717 [target 5853 (3/3) | victim 3/3] DONE  FAIL (pred=dog, adv=bird) | CTA=0.7399 (clean baseline 0.7367, drop +0.0032)
+2026-08-10 20:17:58,719 === target 5853 (3/3) FINISHED: ASR=0.6667 (2/3 victims fooled) | CTA=0.7344 +/- 0.0039 ===
+2026-08-10 20:17:58,722 [done] results written to ours_result/CIFAR10_ResNet20BN_FC_ours_dog-bird_budget0.02_seed42_K5_coef10.0_l2_sum_ce5_frac0.25/results.csv
+2026-08-10 20:17:58,728 [summary] ASR = 0.2222 +/- 0.3143 | CTA post = 0.7341 +/- 0.0044 | CTA baseline = 0.7367 +/- 0.0065 | CTA drop = -0.0027
+2026-08-10 20:17:58,731 [summary] appended to ours_result/summary_all.csv
