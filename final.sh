@@ -10,10 +10,10 @@ SEED=42
 # ATTACKS=(fc gradmatch)
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
-MODEL=ResNet20BN
-ATTACK=fc
+MODEL=VGG13BN
+ATTACK=gradmatch
 BASE=random
-CLASS_PAIR=dog-bird
+CLASS_PAIR=frog-airplane
 
 PAIR_ORDER=poison-target
 
@@ -38,7 +38,8 @@ SURROGATE_DECAY="35 45"
 
 
 NUM_VICTIMS=6
-# NUM_VICTIMS=4
+# NUM_VICTIMS=3
+# NUM_VICTIMS=5
 VICTIM_EPOCHS=50
 VICTIM_LR=0.1
 VICTIM_BS=125
@@ -53,7 +54,7 @@ cd /home/mmoslem3/scratch/attack_if
 
 # 0.04 0.02 0.01 0.005 0.002 0.001
 # for bug in 0.04 0.02 0.01; do
-for bug in 0.001; do
+for bug in 0.01; do
 # for bug in 0.005 0.002 0.001; do
 
 python final.py \

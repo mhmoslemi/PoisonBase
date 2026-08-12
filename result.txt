@@ -1,0 +1,222 @@
+================================================================================
+ FEATURE-COLLISION POISONING -- POISON-BUDGET SWEEP
+ CIFAR-10 / ResNet20BN / random base selection / dog->bird
+================================================================================
+ Run date        : 2026-08-11 (runs started 15:17, finished 18:0x)
+ Script          : final.py
+ Output dir      : ours_result/
+ Summary CSV     : ours_result/summary_all.csv
+ Per-run logs    : ours_result/CIFAR10_ResNet20BN_fc_random_dog-bird_b<B>_eps8_seed42_ce5_tgt10/
+                   {log.txt, results.csv}
+ Cluster         : 6 concurrent Slurm jobs (1 GPU each), one budget per job,
+                   ~2h45m wall-clock each.
+
+--------------------------------------------------------------------------------
+ 1. MAIN RESULT
+--------------------------------------------------------------------------------
+ ASR  = attack success rate, fraction of victim models that classify the target
+        image as the adversarial class (dog). 10 targets x 6 victims = 60 trials.
+ CTA  = clean test accuracy of the poisoned victim (mean over all 60 victims).
+ Clean baseline CTA (6 unpoisoned victims) = 0.8394 +/- 0.0032
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001        50    11.7 %     +/-15.0    0.8380    -0.0014
+   0.002       100    16.7 %     +/-14.9    0.8373    -0.0021
+   0.005       250    30.0 %     +/-23.3    0.8371    -0.0023
+   0.010       500    43.3 %     +/-30.9    0.8362    -0.0032
+   0.020      1000    55.0 %     +/-24.8    0.8356    -0.0038   <-- best ASR
+   0.040      2000    48.3 %     +/-36.9    0.8347    -0.0048
+
+
+--------------------------------------------------------------------------------
+ 2. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ The same 10 target images are used for every budget (target selection depends
+ only on the clean victims and the seed), so the columns are directly paired.
+ Each cell = ASR over 6 victims, i.e. one of {0, 16.7, 33.3, 50, 66.7, 83.3, 100}.
+
+ target ->  3495  2903  6697  2315  6899  2312  6353  4421  2242  6768 | mean
+ -----------------------------------------------------------------------------
+ b=0.001    16.7  16.7   0.0  16.7  50.0   0.0   0.0  16.7   0.0   0.0 | 11.7
+ b=0.002    16.7  16.7   0.0  16.7  50.0   0.0  16.7   0.0  16.7  33.3 | 16.7
+ b=0.005    50.0   0.0  33.3  33.3  66.7   0.0  16.7  16.7  66.7  16.7 | 30.0
+ b=0.010    66.7  33.3  50.0  16.7 100.0   0.0  16.7  16.7  83.3  50.0 | 43.3
+ b=0.020    66.7  50.0  83.3  33.3  66.7  16.7  50.0  16.7  83.3  83.3 | 55.0
+ b=0.040    66.7   0.0  50.0   0.0 100.0  50.0  16.7  16.7  83.3 100.0 | 48.3
+
+
+--------------------------------------------------------------------------------
+ 3. HYPERPARAMETERS (identical for all six runs except --budget)
+--------------------------------------------------------------------------------
+ -- Task ----------------------------------------------------------------------
+ dataset               CIFAR10   (50000 train images, data_path
+                                  /home/mmoslem3/scratch/data)
+ model                 ResNet20BN  (BatchNorm variant, networks.py)
+ class_pair            dog-bird
+ pair_order            poison-target  => poison class = dog  (y_adv = 5)
+                                        target class = bird (class 2)
+                       Poisons are dog images perturbed to sit on a bird target;
+                       a successful attack makes the victim call the bird target
+                       "dog".
+ seed                  42
+
+ -- Attack --------------------------------------------------------------------
+ attack                fc               (feature collision)
+ fc_mode               sample           per-sample feature matching (the
+                                        default; NOT the mean-pooled bullseye
+                                        variant)
+ base                  random           poison base images drawn at random from
+                                        the poison class (no importance /
+                                        influence-based selection)
+ base_dist             l2               distance used in the base/feature term
+ lambda_margin         1.0              weight of the margin term
+ budget                0.001 / 0.002 / 0.005 / 0.01 / 0.02 / 0.04
+                                        = fraction of the 50000-image train set
+                                        that is poisoned
+ num_poisons           50 / 100 / 250 / 500 / 1000 / 2000  (= budget x 50000)
+ epsilon               0.0313725 = 8/255, L_inf
+                       realized L_inf was 0.031372 (8.00/255) in every run, i.e.
+                       the constraint is always active/tight
+ craft_steps           250
+ craft_alpha           0.0039216 = 1/255   (PGD step size)
+ restarts              8
+ craft_ensemble        5                crafting is done against all 5
+                                        surrogates simultaneously
+ craft_aug             True             augmentation during crafting
+ craft_schedule        False
+ fc_restarts           1
+ recompute_deltas      True             perturbations recomputed from scratch
+                                        for every target (no reuse)
+
+ -- Surrogate models (used to craft the poisons) -------------------------------
+ num_surrogates        5 x ResNet20BN, trained on the full clean train set
+ surrogate_epochs      60
+ surrogate_lr          0.1
+ surrogate_decay       [35, 45]         LR decay milestones
+ surrogate_bs          128
+ surrogate_wd          0.0
+ surrogate_aug         False
+
+ -- Victim models (used to evaluate the attack) --------------------------------
+ num_victims           6 per target, each trained FROM SCRATCH on the poisoned
+                       train set
+ victim_epochs         50
+ victim_lr             0.1
+ victim_decay          [40]             LR decay milestone
+ victim_bs             125
+ victim_wd             0.0
+ victim_aug            False
+ clean_baseline        True             6 extra unpoisoned victims give the
+                                        reference CTA 0.8394 +/- 0.0032
+ total victim trainings per budget: 10 targets x 6 victims = 60 (+6 clean)
+
+ -- Target selection ------------------------------------------------------------
+ num_targets           10
+ target_select         10               difficulty DEGREE on a 0..100 scale
+                                        (0 = easiest, 100 = hardest), so 10 =
+                                        near-easy but not the very easiest.
+ rank_on_victims       True             easiness is ranked with the CLEAN VICTIM
+                                        models, not the surrogates
+ require_correct_target False
+ selection outcome     target pool 1000 -> 972 eligible (28 dropped: already
+                       predicted as y_adv or otherwise ineligible)
+                       chosen rank 96-105 of 972, p_adv range 0.0609..0.0907
+ chosen targets        [3495, 2903, 6697, 2315, 6899, 2312, 6353, 4421, 2242,
+                        6768]
+                       identical for all six budgets
+
+ -- Bookkeeping ------------------------------------------------------------------
+ cache_dir             ./cache
+ out_dir               ours_result
+ no_resume             True             every run started clean
+ dsa_strategy          color_crop_cutout_flip_scale_rotate
+ fast_gradmatch        False
+ precompute_only       False
+
+--------------------------------------------------------------------------------
+ 4. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ResNet20BN --attack fc --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 10 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.
+
+
+
+================================================================================
+ CIFAR-10 / ConvNetBN / fc / base random / dog->bird / target_select 50
+================================================================================
+ Run names : CIFAR10_ConvNetBN_fc_random_dog-bird_b<B>_eps8_seed42_ce5_tgt50
+
+--------------------------------------------------------------------------------
+ 5. MAIN RESULT (ConvNetBN)
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ConvNetBN victims) = 0.8103 +/- 0.0059
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001        50     --          --         --         --
+   0.002       100     --          --         --         --
+   0.005       250    13.3 %     +/-19.4    0.8011    -0.0092
+   0.010       500     --          --         --         --
+   0.020      1000     --          --         --         --
+   0.040      2000    91.7 %     +/-11.2    0.7998    -0.0105
+
+--------------------------------------------------------------------------------
+ 6. PER-TARGET ASR BREAKDOWN (ConvNetBN)
+--------------------------------------------------------------------------------
+ target ->  2540  8129  3725  5705  7663  3875  5169  6335  7488  9831 | mean
+ -----------------------------------------------------------------------------
+ b=0.001      --    --    --    --    --    --    --    --    --    -- |   --
+ b=0.002      --    --    --    --    --    --    --    --    --    -- |   --
+ b=0.005    16.7  16.7  66.7   0.0   0.0   0.0   0.0  16.7   0.0  16.7 | 13.3
+ b=0.010      --    --    --    --    --    --    --    --    --    -- |   --
+ b=0.020      --    --    --    --    --    --    --    --    --    -- |   --
+ b=0.040   100.0  83.3 100.0  83.3 100.0 100.0  83.3 100.0  66.7 100.0 | 91.7
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   --
+   b=0.002   --
+   b=0.005   bird 51 | dog  8 | horse 1
+   b=0.010   --
+   b=0.020   --
+   b=0.040   bird  5 | dog 55
+
+--------------------------------------------------------------------------------
+ 7. EXACT COMMAND (ConvNetBN)
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/ubuntu/mohammad/data --seed 42 \
+   --model ConvNetBN --attack fc --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 50 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.005, 0.04}.   [pending: 0.001, 0.002, 0.01, 0.02]
+
+ target pool 1000 -> 960 eligible (40 dropped), rank 475-484 of 960, degree 50,
+ p_adv range 0.0000..0.0000
+ targets [2540, 8129, 3725, 5705, 7663, 3875, 5169, 6335, 7488, 9831]
+
+----------------------
+
+
