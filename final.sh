@@ -10,8 +10,8 @@ SEED=42
 # ATTACKS=(fc gradmatch)
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
-MODEL=VGG13BN
-ATTACK=gradmatch
+MODEL=ResNet20BN
+ATTACK=fc
 BASE=random
 CLASS_PAIR=frog-airplane
 
@@ -25,9 +25,9 @@ CRAFT_ENSEMBLE=5        # 0 = use all surrogates
 
 # easiest | hardest | random | first, or a difficulty degree 0..100
 # (0 == easiest, 100 == hardest). Numeric degrees get a _tgt<N> run-name suffix.
-TARGET_SELECT=10
-NUM_TARGETS=10
-# NUM_TARGETS=4
+TARGET_SELECT=2
+# NUM_TARGETS=10
+NUM_TARGETS=4
 
 BASE_DIST=l2
 LAMBDA=1.0
@@ -37,8 +37,8 @@ SURROGATE_EPOCHS=60
 SURROGATE_DECAY="35 45"
 
 
-NUM_VICTIMS=6
-# NUM_VICTIMS=3
+# NUM_VICTIMS=6
+NUM_VICTIMS=3
 # NUM_VICTIMS=5
 VICTIM_EPOCHS=50
 VICTIM_LR=0.1
@@ -49,12 +49,20 @@ VICTIM_DECAY="40"
 # Set FAST="--fast_gradmatch" there.
 FAST=""
 
+# Fits the same (exact) objective in memory by doing one surrogate and one
+# CRAFT_BATCH slice of poisons at a time.  Leave empty for small budgets: the run
+# is then bit-for-bit the old code path.  Set LOWMEM="--craft_lowmem" for the
+# budgets that OOM (b0.04 -> 2000 poisons).  Costs ~1.5-2x crafting time.
+# gradmatch only -- ignored when ATTACK=fc.
+LOWMEM=""
+CRAFT_BATCH=256
+
 source /home/mmoslem3/ENV/bin/activate
 cd /home/mmoslem3/scratch/attack_if
 
 # 0.04 0.02 0.01 0.005 0.002 0.001
 # for bug in 0.04 0.02 0.01; do
-for bug in 0.01; do
+for bug in 0.005; do
 # for bug in 0.005 0.002 0.001; do
 
 python final.py \
@@ -64,6 +72,7 @@ python final.py \
     --budget "$bug" --epsilon "$EPSILON" \
     --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
     --restarts "$RESTARTS" --craft_ensemble "$CRAFT_ENSEMBLE" $FAST \
+    $LOWMEM --craft_batch "$CRAFT_BATCH" \
     --base_dist "$BASE_DIST" --lambda_margin "$LAMBDA" \
     --num_surrogates "$NUM_SURROGATES" --surrogate_epochs "$SURROGATE_EPOCHS" \
     --surrogate_decay $SURROGATE_DECAY \

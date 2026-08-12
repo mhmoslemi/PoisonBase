@@ -488,9 +488,67 @@ def craft_fc(nets, base01, x_t_norm, norm, eps, steps, alpha, device,
 # crafting: gradient matching (Witches' Brew)
 # --------------------------------------------------------------------------- #
 
+def _gradmatch_net_grad(net, g_t, base01, delta, y_p, norm, crit, chunk,
+                        use_dsa, dsa_strategy, dsa_param, seed):
+    """d/d(delta) of (1 - cos(g_p, g_t)) for one surrogate, in poison micro-batches.
+
+    Same value as the full-batch path, computed without ever holding the whole
+    second-order graph.  g_p is the gradient of the *mean* poison loss, so each
+    micro-batch is weighted by its share of the poison set.  The split is exact
+    because the nets are in eval() (BN uses running stats, no cross-sample coupling)
+    and a fixed DiffAugment seed makes the augmentation Siamese, i.e. identical for
+    every image, hence identical for every micro-batch.
+    """
+    params = [p for p in net.parameters()]
+    N = base01.shape[0]
+
+    def chunk_loss(i0, i1, d):
+        x = norm(torch.clamp(base01[i0:i1] + d, 0.0, 1.0))
+        if use_dsa:
+            x = DiffAugment(x, dsa_strategy, seed=seed, param=dsa_param)
+        return crit(net(x), y_p[i0:i1]) * ((i1 - i0) / N)
+
+    if chunk >= N:
+        g_p = flat_grad(torch.autograd.grad(chunk_loss(0, N, delta), params,
+                                            create_graph=True))
+        obj = 1.0 - cosine(g_p, g_t)
+        return torch.autograd.grad(obj, delta)[0], obj.item()
+
+    # DiffAugment's Siamese branch (randb[:] = randb[0]) cannot handle a batch of 1,
+    # so fold a trailing singleton into the chunk before it
+    edges = list(range(0, N, chunk)) + [N]
+    if edges[-1] - edges[-2] == 1:
+        edges.pop(-2)
+    spans = list(zip(edges[:-1], edges[1:]))
+
+    # pass 1: accumulate g_p with no second-order graph
+    g_p = None
+    for i0, i1 in spans:
+        g = flat_grad([gg.detach() for gg in
+                       torch.autograd.grad(chunk_loss(i0, i1, delta[i0:i1].detach()),
+                                           params)])
+        g_p = g if g_p is None else g_p + g
+
+    # freeze v = d(obj)/d(g_p) so pass 2 differentiates one scalar per micro-batch
+    g_leaf = g_p.detach().requires_grad_(True)
+    obj = 1.0 - cosine(g_leaf, g_t)
+    v = torch.autograd.grad(obj, g_leaf)[0].detach()
+    obj_val = obj.item()
+    del g_p, g_leaf, obj
+
+    # pass 2: <d g_p / d delta, v>, one micro-batch of second-order graph at a time
+    grad = torch.zeros_like(delta)
+    for i0, i1 in spans:
+        d_c = delta[i0:i1]
+        g = flat_grad(torch.autograd.grad(chunk_loss(i0, i1, d_c), params,
+                                          create_graph=True))
+        grad[i0:i1] = torch.autograd.grad(torch.dot(g, v), d_c)[0]
+    return grad, obj_val
+
+
 def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, restarts,
                     device, dsa_strategy=None, dsa_param=None, fast=False,
-                    schedule=False):
+                    schedule=False, lowmem=False, chunk=0):
     set_requires_grad(nets, True)
     for n in nets:
         n.eval()
@@ -507,6 +565,8 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
 
     base01 = base01.detach()
     use_dsa = dsa_strategy not in (None, '', 'none', 'None')
+    if chunk <= 0:
+        chunk = base01.shape[0]
     best_delta, best_obj = None, float('inf')
 
     for _r in range(restarts):
@@ -519,6 +579,34 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
             sched = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=ms, gamma=0.1)
 
         for _t in range(iters):
+            if lowmem:
+                # exact objective, but one surrogate and one micro-batch of poisons
+                # at a time so the second-order graph never covers the whole set
+                seed = int(torch.randint(0, 100000, (1,)).item()) if use_dsa else -1
+                grad, obj_val = None, 0.0
+                for net, g_t in zip(nets, g_targets):
+                    g, o = _gradmatch_net_grad(net, g_t, base01, delta, y_p, norm,
+                                               crit, chunk, use_dsa, dsa_strategy,
+                                               dsa_param, seed)
+                    grad = g if grad is None else grad + g
+                    obj_val += o
+                grad /= len(nets)
+                obj_val /= len(nets)
+
+                if obj_val < best_obj:
+                    best_obj = obj_val
+                    best_delta = delta.detach().clone()
+
+                opt.zero_grad(set_to_none=True)
+                delta.grad = grad.sign()
+                opt.step()
+                if sched is not None:
+                    sched.step()
+                with torch.no_grad():
+                    delta.clamp_(-eps, eps)
+                    delta.data = torch.clamp(base01 + delta, 0.0, 1.0) - base01
+                continue
+
             x_adv_norm = norm(torch.clamp(base01 + delta, 0.0, 1.0))
             if use_dsa:
                 seed = int(torch.randint(0, 100000, (1,)).item())
@@ -714,7 +802,8 @@ def main(args):
                     args.craft_alpha, args.craft_steps, args.restarts, device,
                     dsa_strategy=(args.dsa_strategy if args.craft_aug else None),
                     dsa_param=dsa_param, fast=args.fast_gradmatch,
-                    schedule=args.craft_schedule)
+                    schedule=args.craft_schedule, lowmem=args.craft_lowmem,
+                    chunk=args.craft_batch)
             else:
                 x_adv01, obj = craft_fc(
                     craft_nets, base01, x_t_norm, norm, args.epsilon, args.craft_steps,
@@ -876,6 +965,15 @@ def parse_args():
     p.add_argument('--fast_gradmatch', action='store_true', default=False,
                    help='first-order approximation, skips create_graph (2-3x faster, '
                         'use this for VGG13BN with large poison counts)')
+    p.add_argument('--craft_lowmem', action='store_true', default=False,
+                   help='gradmatch only: compute the same gradient one surrogate and '
+                        'one --craft_batch slice of poisons at a time instead of all '
+                        'at once. Off by default (identical to the old code path); '
+                        'turn it on for large budgets that OOM. Overrides '
+                        '--fast_gradmatch. Costs ~1.5-2x crafting time.')
+    p.add_argument('--craft_batch', type=int, default=256,
+                   help='poison micro-batch size used when --craft_lowmem is set; '
+                        '0 = no splitting (per-surrogate savings only)')
 
     # base selection
     p.add_argument('--lambda_margin', type=float, default=1.0)

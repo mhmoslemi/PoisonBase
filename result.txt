@@ -167,11 +167,11 @@
 
    budget   poisons    ASR       ASR std     CTA      CTA drop
    -----------------------------------------------------------
-   0.001        50     --          --         --         --
-   0.002       100     --          --         --         --
+   0.001        50     0.0 %     +/- 0.0    0.8014    -0.0089
+   0.002       100     1.7 %     +/- 5.0    0.8013    -0.0090
    0.005       250    13.3 %     +/-19.4    0.8011    -0.0092
-   0.010       500     --          --         --         --
-   0.020      1000     --          --         --         --
+   0.010       500    35.0 %     +/-24.1    0.8010    -0.0093
+   0.020      1000    73.3 %     +/-29.1    0.8009    -0.0094
    0.040      2000    91.7 %     +/-11.2    0.7998    -0.0105
 
 --------------------------------------------------------------------------------
@@ -179,20 +179,20 @@
 --------------------------------------------------------------------------------
  target ->  2540  8129  3725  5705  7663  3875  5169  6335  7488  9831 | mean
  -----------------------------------------------------------------------------
- b=0.001      --    --    --    --    --    --    --    --    --    -- |   --
- b=0.002      --    --    --    --    --    --    --    --    --    -- |   --
+ b=0.001     0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |  0.0
+ b=0.002    16.7   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |  1.7
  b=0.005    16.7  16.7  66.7   0.0   0.0   0.0   0.0  16.7   0.0  16.7 | 13.3
- b=0.010      --    --    --    --    --    --    --    --    --    -- |   --
- b=0.020      --    --    --    --    --    --    --    --    --    -- |   --
+ b=0.010    50.0  33.3  83.3   0.0  33.3  33.3  50.0  16.7   0.0  50.0 | 35.0
+ b=0.020   100.0 100.0 100.0  66.7  66.7  66.7  66.7 100.0   0.0  66.7 | 73.3
  b=0.040   100.0  83.3 100.0  83.3 100.0 100.0  83.3 100.0  66.7 100.0 | 91.7
 
  Target-prediction tally (60 victim evaluations of the target):
-   b=0.001   --
-   b=0.002   --
-   b=0.005   bird 51 | dog  8 | horse 1
-   b=0.010   --
-   b=0.020   --
-   b=0.040   bird  5 | dog 55
+   b=0.001   bird 59 | cat 1
+   b=0.002   airplane 1 | bird 57 | dog 1 | horse 1
+   b=0.005   bird 51 | dog 8 | horse 1
+   b=0.010   airplane 1 | bird 37 | dog 21 | ship 1
+   b=0.020   bird 16 | dog 44
+   b=0.040   bird 5 | dog 55
 
 --------------------------------------------------------------------------------
  7. EXACT COMMAND (ConvNetBN)
@@ -211,7 +211,7 @@
    --clean_baseline --cache_dir ./cache --out_dir ours_result \
    --no_resume --recompute_deltas
 
- with <BUDGET> in {0.005, 0.04}.   [pending: 0.001, 0.002, 0.01, 0.02]
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
 
  target pool 1000 -> 960 eligible (40 dropped), rank 475-484 of 960, degree 50,
  p_adv range 0.0000..0.0000
@@ -219,4 +219,582 @@
 
 ----------------------
 
+
+
+================================================================================
+ CIFAR-10 / VGG13BN / fc / base random / dog-bird / target_select 3
+================================================================================
+ Run names : CIFAR10_VGG13BN_fc_random_dog-bird_b<B>_eps8_seed42_ce5_tgt3
+
+--------------------------------------------------------------------------------
+ 8. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned VGG13BN victims) = 0.8476 +/- 0.0158
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50    21.7 %   +/- 18.3    0.8534   +0.0058
+   0.002      100    41.7 %   +/- 31.0    0.8525   +0.0049
+   0.005      250    45.0 %   +/- 23.6    0.8542   +0.0066
+   0.010      500    41.7 %   +/- 26.1    0.8530   +0.0054
+   0.020     1000    61.7 %   +/- 35.0    0.8532   +0.0056
+   0.040     2000    75.0 %   +/- 17.1    0.8502   +0.0026
+
+--------------------------------------------------------------------------------
+ 9. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  3728  5640  6922  7855  2127  7586  7360  2171  4462  2597 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001   16.7   0.0  66.7  16.7  16.7  16.7  33.3  16.7  33.3   0.0 |  21.7
+ b=0.002   16.7  16.7 100.0  66.7  50.0  66.7  16.7  16.7  66.7   0.0 |  41.7
+ b=0.005   16.7  50.0  83.3  66.7  50.0  33.3  50.0  66.7  33.3   0.0 |  45.0
+ b=0.010   33.3   0.0  50.0  66.7  33.3  50.0  33.3  83.3  66.7   0.0 |  41.7
+ b=0.020  100.0  50.0 100.0 100.0   0.0  50.0  83.3  16.7  83.3  33.3 |  61.7
+ b=0.040   83.3  50.0  66.7 100.0  83.3  66.7 100.0  66.7  83.3  50.0 |  75.0
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   bird 28 | cat 9 | deer 6 | dog 13 | frog 2 | horse 2
+   b=0.002   bird 22 | cat 7 | deer 4 | dog 25 | horse 2
+   b=0.005   bird 21 | cat 3 | deer 3 | dog 27 | frog 4 | horse 2
+   b=0.010   automobile 1 | bird 19 | cat 6 | deer 6 | dog 25 | frog 1 | horse 2
+   b=0.020   bird 15 | cat 2 | deer 6 | dog 37
+   b=0.040   bird 7 | cat 3 | deer 1 | dog 45 | frog 2 | horse 2
+
+--------------------------------------------------------------------------------
+ 10. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model VGG13BN --attack fc --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 3 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ degree 3, rank 29-38 of 970, p_adv range 0.1680..0.1985
+ targets [3728, 5640, 6922, 7855, 2127, 7586, 7360, 2171, 4462, 2597]
+
+
+================================================================================
+ CIFAR-10 / VGG13BN / fc / base random / frog-airplane / target_select 3
+================================================================================
+ Run names : CIFAR10_VGG13BN_fc_random_frog-airplane_b<B>_eps8_seed42_ce5_tgt3
+
+--------------------------------------------------------------------------------
+ 11. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned VGG13BN victims) = 0.8476 +/- 0.0158
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50     1.7 %   +/-  5.0    0.8534   +0.0058
+   0.002      100     1.7 %   +/-  5.0    0.8534   +0.0058
+   0.005      250     3.3 %   +/-  6.7    0.8530   +0.0054
+   0.010      500    13.3 %   +/- 14.5    0.8536   +0.0060
+   0.020     1000    10.0 %   +/- 20.0    0.8545   +0.0069
+   0.040     2000    16.7 %   +/- 25.8    0.8524   +0.0048
+
+--------------------------------------------------------------------------------
+ 12. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->   912  9957  1739  1165  3278  4313   416  6491   338  4287 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001    0.0   0.0   0.0   0.0   0.0  16.7   0.0   0.0   0.0   0.0 |   1.7
+ b=0.002    0.0   0.0   0.0   0.0   0.0  16.7   0.0   0.0   0.0   0.0 |   1.7
+ b=0.005   16.7   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0  16.7 |   3.3
+ b=0.010   16.7   0.0   0.0  16.7   0.0  16.7  16.7   0.0  16.7  50.0 |  13.3
+ b=0.020    0.0   0.0   0.0   0.0   0.0  16.7  16.7   0.0   0.0  66.7 |  10.0
+ b=0.040   50.0   0.0  50.0   0.0   0.0   0.0   0.0   0.0   0.0  66.7 |  16.7
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 31 | automobile 3 | bird 2 | cat 10 | deer 2 | dog 2 | frog 1 | horse 1 | ship 7 | truck 1
+   b=0.002   airplane 35 | automobile 1 | bird 1 | cat 11 | deer 5 | dog 2 | frog 1 | ship 3 | truck 1
+   b=0.005   airplane 37 | bird 2 | cat 5 | deer 6 | dog 2 | frog 2 | ship 4 | truck 2
+   b=0.010   airplane 30 | bird 2 | cat 7 | deer 7 | frog 8 | ship 6
+   b=0.020   airplane 37 | automobile 1 | bird 3 | cat 6 | deer 3 | frog 6 | ship 3 | truck 1
+   b=0.040   airplane 36 | bird 1 | cat 3 | deer 2 | dog 1 | frog 10 | ship 7
+
+--------------------------------------------------------------------------------
+ 13. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model VGG13BN --attack fc --base random \
+   --class_pair frog-airplane --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 3 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ degree 3, rank 30-39 of 999, p_adv range 0.0053..0.0098
+ targets [912, 9957, 1739, 1165, 3278, 4313, 416, 6491, 338, 4287]
+
+
+================================================================================
+ CIFAR-10 / VGG13BN / gradmatch / base random / dog-bird / target_select 50
+================================================================================
+ Run names : CIFAR10_VGG13BN_gradmatch_random_dog-bird_b<B>_eps8_seed42_ce5_tgt50
+
+--------------------------------------------------------------------------------
+ 14. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned VGG13BN victims) = 0.8476 +/- 0.0158
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50   13.3 %   +/- 18.0    0.8552   +0.0076
+   0.002      100   21.7 %   +/- 27.9    0.8554   +0.0078
+   0.005      250   55.0 %   +/- 27.9    0.8549   +0.0073
+   0.010      500     --          --         --         --
+   0.020     1000     --          --         --         --
+   0.040     2000     --          --         --         --
+
+--------------------------------------------------------------------------------
+ 15. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->   630   409  2270  9870  1656  5022  9090  6033  7940  9731 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001     0.0  33.3  16.7   0.0   0.0   0.0  33.3  50.0   0.0   0.0 |  13.3
+ b=0.002     0.0  50.0  16.7   0.0   0.0   0.0  83.3  50.0   0.0  16.7 |  21.7
+ b=0.005    16.7  66.7  33.3  50.0  66.7  16.7 100.0 100.0  50.0  50.0 |  55.0
+ b=0.010      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.020      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 4 | bird 38 | cat 4 | deer 4 | dog 8 | frog 2
+   b=0.002   airplane 1 | bird 35 | cat 3 | deer 6 | dog 13 | frog 2
+   b=0.005   airplane 1 | bird 19 | cat 5 | dog 33 | frog 1 | horse 1
+   b=0.010   --
+   b=0.020   --
+   b=0.040   --
+
+--------------------------------------------------------------------------------
+ 16. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model VGG13BN --attack gradmatch --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --craft_lowmem --craft_batch 256 \
+   --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 50 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005}.   [pending: 0.01, 0.02, 0.04]
+
+ NOTE  --craft_lowmem computes the gradient-matching update one surrogate
+       and one 256-poison micro-batch at a time. Same objective and same
+       gradient as the old full-batch path (verified to ~1e-16 relative,
+       zero sign flips) -- it only exists so the second-order graph fits
+       in GPU memory at large poison counts. --fast_gradmatch was also on
+       the command line but --craft_lowmem takes precedence, so these runs
+       used the exact objective.
+
+ poison class = dog (y_adv = 5), target class = bird (class 2)
+ degree 50, rank 480-489 of 970, p_adv range 0.0000..0.0000
+ target pool 1000 -> 970 eligible (30 dropped)
+ targets [630, 409, 2270, 9870, 1656, 5022, 9090, 6033, 7940, 9731]
+
+
+================================================================================
+ CIFAR-10 / VGG13BN / gradmatch / base random / frog-airplane / target_select 12
+================================================================================
+ Run names : CIFAR10_VGG13BN_gradmatch_random_frog-airplane_b<B>_eps8_seed42_ce5_tgt12
+
+--------------------------------------------------------------------------------
+ 17. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned VGG13BN victims) = 0.8476 +/- 0.0158
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50    0.0 %   +/-  0.0    0.8521   +0.0045
+   0.002      100    5.0 %   +/- 10.7    0.8523   +0.0047
+   0.005      250   16.7 %   +/- 19.7    0.8520   +0.0044
+   0.010      500     --          --         --         --
+   0.020     1000     --          --         --         --
+   0.040     2000     --          --         --         --
+
+--------------------------------------------------------------------------------
+ 18. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  2783  2507  6738  5787  7815  5074  7356  8267  2264  6481 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001     0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.002     0.0   0.0   0.0   0.0  33.3   0.0   0.0   0.0   0.0  16.7 |   5.0
+ b=0.005    33.3  16.7   0.0   0.0  50.0  16.7   0.0  50.0   0.0   0.0 |  16.7
+ b=0.010      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.020      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 35 | bird 10 | cat 6 | ship 9
+   b=0.002   airplane 40 | automobile 3 | bird 7 | cat 1 | frog 3 | ship 6
+   b=0.005   airplane 34 | automobile 3 | bird 4 | cat 5 | frog 10 | ship 4
+   b=0.010   --
+   b=0.020   --
+   b=0.040   --
+
+--------------------------------------------------------------------------------
+ 19. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model VGG13BN --attack gradmatch --base random \
+   --class_pair frog-airplane --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --craft_lowmem --craft_batch 256 \
+   --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 12 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005}.   [pending: 0.01, 0.02, 0.04]
+
+ NOTE  --craft_lowmem computes the gradient-matching update one surrogate
+       and one 256-poison micro-batch at a time. Same objective and same
+       gradient as the old full-batch path (verified to ~1e-16 relative,
+       zero sign flips) -- it only exists so the second-order graph fits
+       in GPU memory at large poison counts. --fast_gradmatch was also on
+       the command line but --craft_lowmem takes precedence, so these runs
+       used the exact objective.
+
+ poison class = frog (y_adv = 6), target class = airplane (class 0)
+ degree 12, rank 119-128 of 999, p_adv range 0.0001..0.0001
+ target pool 1000 -> 999 eligible (1 dropped)
+ targets [2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481]
+
+
+================================================================================
+ CIFAR-10 / ResNet20BN / fc / base ours / dog-bird / target_select 10
+================================================================================
+ Run names : CIFAR10_ResNet20BN_fc_ours_dog-bird_b<B>_eps8_seed42_lam1_l2_ce5_tgt10
+
+--------------------------------------------------------------------------------
+ 20. MAIN RESULT
+--------------------------------------------------------------------------------
+
+   budget   poisons    ASR       ASR std     CTA     baseline   CTA drop
+   ---------------------------------------------------------------------
+   0.001       50     8.3 %   +/- 11.2    0.8384   0.8364    +0.0020
+   0.002      100    11.7 %   +/- 15.0    0.8372   0.8356    +0.0016
+   0.005      250    43.3 %   +/- 28.1    0.8366   0.8363    +0.0003
+   0.010      500    50.0 %   +/- 26.9    0.8378   0.8353    +0.0025
+   0.020     1000    36.7 %   +/- 34.8    0.8363   0.8356    +0.0007
+   0.040     2000    23.3 %   +/- 24.9    0.8336   0.8381    -0.0045
+
+--------------------------------------------------------------------------------
+ 21. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  3495  7561  5479  4009  3781   354  3422  9366   448  6763 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001   16.7   0.0   0.0   0.0  16.7   0.0  16.7  33.3   0.0   0.0 |   8.3
+ b=0.002   16.7  16.7  16.7   0.0  50.0   0.0  16.7   0.0   0.0   0.0 |  11.7
+ b=0.005   83.3  50.0  50.0   0.0  66.7  16.7   0.0  66.7  66.7  33.3 |  43.3
+ b=0.010   83.3  83.3  66.7  50.0  16.7  16.7  83.3  33.3  50.0  16.7 |  50.0
+ b=0.020   33.3  50.0   0.0  16.7 100.0  16.7  33.3  16.7 100.0   0.0 |  36.7
+ b=0.040   33.3   0.0   0.0   0.0  83.3  33.3  33.3  33.3   0.0  16.7 |  23.3
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   bird 42 | cat 9 | deer 1 | dog 5 | frog 2 | horse 1
+   b=0.002   bird 39 | cat 7 | deer 5 | dog 7 | frog 1 | horse 1
+   b=0.005   airplane 1 | bird 23 | cat 4 | deer 3 | dog 26 | frog 2 | horse 1
+   b=0.010   airplane 2 | bird 26 | deer 1 | dog 30 | frog 1
+   b=0.020   bird 29 | deer 5 | dog 22 | frog 2 | horse 2
+   b=0.040   bird 38 | cat 4 | deer 2 | dog 14 | frog 1 | horse 1
+
+--------------------------------------------------------------------------------
+ 22. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ResNet20BN --attack fc --base ours \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 10 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ degree 10, rank 96-105 of 972, p_adv range 0.0671..0.0775
+ targets [3495, 7561, 5479, 4009, 3781, 354, 3422, 9366, 448, 6763]
+
+
+================================================================================
+ CIFAR-10 / ConvNetBN / fc / base random / dog-bird / target_select 10
+================================================================================
+ Run names : CIFAR10_ConvNetBN_fc_random_dog-bird_b<B>_eps8_seed42_ce5_tgt10
+
+--------------------------------------------------------------------------------
+ 23. MAIN RESULT
+--------------------------------------------------------------------------------
+
+   budget   poisons    ASR       ASR std     CTA     baseline   CTA drop
+   ---------------------------------------------------------------------
+   0.001       50     --          --         --         --         --
+   0.002      100     --          --         --         --         --
+   0.005      250    48.3 %   +/- 26.3    0.8014   0.8103    -0.0089
+   0.010      500     --          --         --         --         --
+   0.020     1000     --          --         --         --         --
+   0.040     2000    96.7 %   +/- 10.0    0.7989   0.8113    -0.0124
+
+--------------------------------------------------------------------------------
+ 24. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  6713  1644   219  3694  7235  4753  8654  4452  9874  5404 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001     --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.002     --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.005   50.0  83.3  16.7  33.3  33.3  66.7 100.0  16.7  33.3  50.0 |  48.3
+ b=0.010     --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.020     --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.040  100.0 100.0  66.7 100.0 100.0 100.0 100.0 100.0 100.0 100.0 |  96.7
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   --
+   b=0.002   --
+   b=0.005   airplane 1 | bird 27 | cat 1 | deer 1 | dog 29 | frog 1
+   b=0.010   --
+   b=0.020   --
+   b=0.040   bird 2 | dog 58
+
+--------------------------------------------------------------------------------
+ 25. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ConvNetBN --attack fc --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 10 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.005, 0.04}.   [pending: 0.001, 0.002, 0.01, 0.02]
+
+ degree 10, rank 95-104 of 960, p_adv range 0.0420..0.0555
+ targets [6713, 1644, 219, 3694, 7235, 4753, 8654, 4452, 9874, 5404]
+
+
+================================================================================
+ CIFAR-10 / ConvNetBN / fc / base random / frog-airplane / target_select 20
+================================================================================
+ Run names : CIFAR10_ConvNetBN_fc_random_frog-airplane_b<B>_eps8_seed42_ce5_tgt20
+
+--------------------------------------------------------------------------------
+ 26. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ConvNetBN victims) = 0.8103
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50     0.0 %   +/-  0.0    0.8004   -0.0099
+   0.002      100     0.0 %   +/-  0.0    0.8010   -0.0093
+   0.005      250     0.0 %   +/-  0.0    0.8006   -0.0097
+   0.010      500     1.7 %   +/-  5.0    0.8009   -0.0094
+   0.020     1000    10.0 %   +/- 13.3    0.8002   -0.0101
+   0.040     2000    30.0 %   +/- 30.6    0.7997   -0.0106
+
+--------------------------------------------------------------------------------
+ 27. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  7511   857  7010  2091  1776  1596  5354  3158  6006  6191 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.002    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.005    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.010    0.0   0.0   0.0   0.0   0.0   0.0  16.7   0.0   0.0   0.0 |   1.7
+ b=0.020    0.0   0.0   0.0   0.0   0.0   0.0  16.7  33.3  16.7  33.3 |  10.0
+ b=0.040    0.0   0.0   0.0  33.3   0.0  50.0 100.0  50.0  33.3  33.3 |  30.0
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 47 | bird 2 | deer 3 | dog 1 | ship 7
+   b=0.002   airplane 45 | bird 2 | cat 1 | deer 2 | ship 10
+   b=0.005   airplane 43 | bird 3 | cat 3 | deer 1 | ship 10
+   b=0.010   airplane 51 | bird 2 | deer 3 | frog 1 | ship 3
+   b=0.020   airplane 45 | deer 1 | frog 6 | horse 1 | ship 7
+   b=0.040   airplane 35 | bird 2 | cat 1 | frog 18 | ship 4
+
+--------------------------------------------------------------------------------
+ 28. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ConvNetBN --attack fc --base random \
+   --class_pair frog-airplane --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 20 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ degree 20, rank 197-206 of 994, p_adv range 0.0000..0.0000
+ targets [7511, 857, 7010, 2091, 1776, 1596, 5354, 3158, 6006, 6191]
+
+
+================================================================================
+ CIFAR-10 / ConvNetBN / gradmatch / base random / dog-bird / target_select 70
+================================================================================
+ Run names : CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b<B>_eps8_seed42_ce5_tgt70
+
+--------------------------------------------------------------------------------
+ 29. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ConvNetBN victims) = 0.8103
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50     0.0 %   +/-  0.0    0.8034   -0.0069
+   0.002      100     0.0 %   +/-  0.0    0.8038   -0.0065
+   0.005      250     1.7 %   +/-  5.0    0.8046   -0.0057
+   0.010      500    21.7 %   +/- 23.6    0.8046   -0.0057
+   0.020     1000    43.3 %   +/- 28.1    0.8038   -0.0065
+   0.040     2000    83.3 %   +/- 31.6    0.8029   -0.0074
+
+--------------------------------------------------------------------------------
+ 30. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->   843  1257  8252  8730  8055  5859  8954   821  1547  4427 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.002    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.005    0.0   0.0   0.0   0.0   0.0  16.7   0.0   0.0   0.0   0.0 |   1.7
+ b=0.010   66.7  16.7  50.0  16.7   0.0  50.0   0.0   0.0   0.0  16.7 |  21.7
+ b=0.020   50.0  50.0 100.0  33.3  33.3  50.0  50.0  66.7   0.0   0.0 |  43.3
+ b=0.040  100.0 100.0 100.0  83.3 100.0 100.0 100.0 100.0   0.0  50.0 |  83.3
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 2 | bird 53 | cat 1 | deer 1 | frog 2 | horse 1
+   b=0.002   airplane 2 | bird 54 | cat 2 | deer 1 | horse 1
+   b=0.005   airplane 3 | bird 51 | cat 3 | dog 1 | horse 2
+   b=0.010   airplane 2 | bird 44 | deer 1 | dog 13
+   b=0.020   airplane 4 | bird 27 | cat 2 | deer 1 | dog 26
+   b=0.040   airplane 3 | bird 7 | dog 50
+
+--------------------------------------------------------------------------------
+ 31. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ConvNetBN --attack gradmatch --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 70 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ degree 70, rank 665-674 of 960, p_adv range 0.0000..0.0000
+ targets [843, 1257, 8252, 8730, 8055, 5859, 8954, 821, 1547, 4427]
+
+
+================================================================================
+ CIFAR-10 / ConvNetBN / gradmatch / base random / frog-airplane / target_select 35
+================================================================================
+ Run names : CIFAR10_ConvNetBN_gradmatch_random_frog-airplane_b<B>_eps8_seed42_ce5_tgt35
+
+--------------------------------------------------------------------------------
+ 32. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ConvNetBN victims) = 0.8103
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50     0.0 %   +/-  0.0    0.8024   -0.0079
+   0.002      100     0.0 %   +/-  0.0    0.8016   -0.0087
+   0.005      250     0.0 %   +/-  0.0    0.8020   -0.0083
+   0.010      500     3.3 %   +/-  6.7    0.8017   -0.0086
+   0.020     1000     3.3 %   +/- 10.0    0.8010   -0.0093
+   0.040     2000    16.7 %   +/- 23.6    0.8004   -0.0099
+
+--------------------------------------------------------------------------------
+ 33. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->   496  2087  8941  9820  3825  1796  2548  6437  3336  2603 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.002    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.005    0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.010    0.0   0.0   0.0  16.7   0.0   0.0  16.7   0.0   0.0   0.0 |   3.3
+ b=0.020    0.0   0.0   0.0   0.0   0.0   0.0  33.3   0.0   0.0   0.0 |   3.3
+ b=0.040   16.7   0.0   0.0   0.0   0.0   0.0  50.0   0.0  66.7  33.3 |  16.7
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 46 | automobile 1 | bird 1 | deer 5 | horse 1 | ship 2 | truck 4
+   b=0.002   airplane 46 | bird 1 | cat 1 | deer 3 | horse 4 | ship 2 | truck 3
+   b=0.005   airplane 52 | automobile 1 | bird 1 | deer 2 | horse 2 | ship 1 | truck 1
+   b=0.010   airplane 42 | cat 1 | deer 7 | dog 1 | frog 2 | ship 4 | truck 3
+   b=0.020   airplane 38 | automobile 1 | bird 2 | cat 1 | deer 6 | frog 2 | horse 1 | ship 4 | truck 5
+   b=0.040   airplane 34 | deer 7 | dog 1 | frog 10 | horse 2 | ship 3 | truck 3
+
+--------------------------------------------------------------------------------
+ 34. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ConvNetBN --attack gradmatch --base random \
+   --class_pair frog-airplane --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 35 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ degree 35, rank 344-353 of 994, p_adv range 0.0000..0.0000
+ targets [496, 2087, 8941, 9820, 3825, 1796, 2548, 6437, 3336, 2603]
 
