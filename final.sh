@@ -25,7 +25,7 @@ CRAFT_ENSEMBLE=5        # 0 = use all surrogates
 
 # easiest | hardest | random | first, or a difficulty degree 0..100
 # (0 == easiest, 100 == hardest). Numeric degrees get a _tgt<N> run-name suffix.
-TARGET_SELECT=20
+TARGET_SELECT=14
 NUM_TARGETS=10
 # NUM_TARGETS=4
 
@@ -62,7 +62,7 @@ cd /home/mmoslem3/scratch/attack_if
 
 # 0.04 0.02 0.01 0.005 0.002 0.001
 # for bug in 0.04 0.02 0.01; do
-for bug in 0.005; do
+for bug in 0.04; do
 # for bug in 0.005 0.002 0.001; do
 
 python final.py \

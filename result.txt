@@ -362,7 +362,7 @@
    0.005      250   55.0 %   +/- 27.9    0.8549   +0.0073
    0.010      500   76.7 %   +/- 30.0    0.8545   +0.0069
    0.020     1000   96.7 %   +/- 10.0    0.8529   +0.0053
-   0.040     2000     --          --         --         --
+   0.040     2000   98.3 %   +/-  5.0    0.8505   +0.0029
 
 --------------------------------------------------------------------------------
  15. PER-TARGET ASR BREAKDOWN
@@ -374,7 +374,7 @@
  b=0.005    16.7  66.7  33.3  50.0  66.7  16.7 100.0 100.0  50.0  50.0 |  55.0
  b=0.010    16.7 100.0 100.0  83.3 100.0  50.0 100.0 100.0  83.3  33.3 |  76.7
  b=0.020    66.7 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 |  96.7
- b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.040   100.0 100.0 100.0  83.3 100.0 100.0 100.0 100.0 100.0 100.0 |  98.3
 
  Target-prediction tally (60 victim evaluations of the target):
    b=0.001   airplane 4 | bird 38 | cat 4 | deer 4 | dog 8 | frog 2
@@ -382,7 +382,7 @@
    b=0.005   airplane 1 | bird 19 | cat 5 | dog 33 | frog 1 | horse 1
    b=0.010   bird 10 | deer 3 | dog 46 | frog 1
    b=0.020   bird 2 | dog 58
-   b=0.040   --
+   b=0.040   cat 1 | dog 59
 
 --------------------------------------------------------------------------------
  16. EXACT COMMAND
@@ -402,14 +402,14 @@
    --clean_baseline --cache_dir ./cache --out_dir ours_result \
    --no_resume --recompute_deltas
 
- with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02}.   [pending: 0.04]
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.
 
- NOTE  b=0.001/0.002/0.005 ran end-to-end in one invocation. b=0.01 and b=0.02
-       were interrupted (node time limits) and finished over 2-3 invocations with
-       --no_resume and --recompute_deltas dropped, so completed (target, victim)
-       trials were skipped and finished crafts reused. Those two flags are the
-       ONLY arguments that differed; every other hyperparameter was verified
-       identical to the command above.
+ NOTE  b=0.001/0.002/0.005 ran end-to-end in one invocation. b=0.01, b=0.02 and
+       b=0.04 were interrupted (node time limits) and finished over 2-5
+       invocations with --no_resume and --recompute_deltas dropped, so completed
+       (target, victim) trials were skipped and finished crafts reused. Those two
+       flags are the ONLY arguments that differed; every other hyperparameter was
+       verified identical to the command above.
 
  NOTE  --craft_lowmem computes the gradient-matching update one surrogate
        and one 256-poison micro-batch at a time. Same objective and same
@@ -442,7 +442,7 @@
    0.005      250   16.7 %   +/- 19.7    0.8520   +0.0044
    0.010      500   28.3 %   +/- 25.9    0.8535   +0.0059
    0.020     1000   56.7 %   +/- 30.9    0.8511   +0.0035
-   0.040     2000     --          --         --         --
+   0.040     2000   78.3 %   +/- 30.8    0.8499   +0.0023
 
 --------------------------------------------------------------------------------
  18. PER-TARGET ASR BREAKDOWN
@@ -454,7 +454,7 @@
  b=0.005    33.3  16.7   0.0   0.0  50.0  16.7   0.0  50.0   0.0   0.0 |  16.7
  b=0.010    16.7   0.0   0.0  16.7  66.7  50.0   0.0  66.7  50.0  16.7 |  28.3
  b=0.020    83.3  66.7   0.0  50.0  83.3  83.3  16.7 100.0  50.0  33.3 |  56.7
- b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.040   100.0  83.3   0.0  66.7 100.0 100.0  83.3 100.0  50.0 100.0 |  78.3
 
  Target-prediction tally (60 victim evaluations of the target):
    b=0.001   airplane 35 | bird 10 | cat 6 | ship 9
@@ -462,7 +462,7 @@
    b=0.005   airplane 34 | automobile 3 | bird 4 | cat 5 | frog 10 | ship 4
    b=0.010   airplane 30 | automobile 3 | bird 5 | cat 4 | frog 17 | ship 1
    b=0.020   airplane 16 | bird 2 | cat 3 | frog 34 | ship 5
-   b=0.040   --
+   b=0.040   airplane 11 | cat 1 | frog 47 | truck 1
 
 --------------------------------------------------------------------------------
  19. EXACT COMMAND
@@ -482,14 +482,14 @@
    --clean_baseline --cache_dir ./cache --out_dir ours_result \
    --no_resume --recompute_deltas
 
- with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02}.   [pending: 0.04]
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.
 
- NOTE  b=0.001/0.002/0.005 ran end-to-end in one invocation. b=0.01 and b=0.02
-       were interrupted (node time limits) and finished over 2-3 invocations with
-       --no_resume and --recompute_deltas dropped, so completed (target, victim)
-       trials were skipped and finished crafts reused. Those two flags are the
-       ONLY arguments that differed; every other hyperparameter was verified
-       identical to the command above.
+ NOTE  b=0.001/0.002/0.005 ran end-to-end in one invocation. b=0.01, b=0.02 and
+       b=0.04 were interrupted (node time limits) and finished over 2-4
+       invocations with --no_resume and --recompute_deltas dropped, so completed
+       (target, victim) trials were skipped and finished crafts reused. Those two
+       flags are the ONLY arguments that differed; every other hyperparameter was
+       verified identical to the command above.
 
  NOTE  --craft_lowmem computes the gradient-matching update one surrogate
        and one 256-poison micro-batch at a time. Same objective and same
@@ -812,3 +812,223 @@
  degree 35, rank 344-353 of 994, p_adv range 0.0000..0.0000
  targets [496, 2087, 8941, 9820, 3825, 1796, 2548, 6437, 3336, 2603]
 
+
+================================================================================
+ CIFAR-10 / ResNet20BN / fc / base random / frog-airplane / target_select 2
+================================================================================
+ Run names : CIFAR10_ResNet20BN_fc_random_frog-airplane_b<B>_eps8_seed42_ce5_tgt2
+
+--------------------------------------------------------------------------------
+ 35. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ResNet20BN victims) = 0.8394 +/- 0.0032
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50    8.3 %   +/- 11.2    0.8375   -0.0019
+   0.002      100    8.3 %   +/- 11.2    0.8376   -0.0018
+   0.005      250   18.3 %   +/- 17.4    0.8369   -0.0025
+   0.010      500   16.7 %   +/- 14.9    0.8386   -0.0008
+   0.020     1000   30.0 %   +/- 30.6    0.8372   -0.0022
+   0.040     2000   33.3 %   +/- 32.5    0.8357   -0.0037
+
+--------------------------------------------------------------------------------
+ 36. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  9273  2535  4118  5462  8476  3342   313  4490  2672  6481 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001    16.7  33.3   0.0   0.0   0.0   0.0   0.0  16.7   0.0  16.7 |   8.3
+ b=0.002     0.0  33.3   0.0   0.0  16.7  16.7   0.0   0.0   0.0  16.7 |   8.3
+ b=0.005     0.0  33.3  16.7   0.0  33.3  16.7   0.0  50.0   0.0  33.3 |  18.3
+ b=0.010    16.7  16.7  16.7   0.0  50.0   0.0   0.0  16.7  16.7  33.3 |  16.7
+ b=0.020    16.7  83.3   0.0   0.0  83.3  16.7   0.0  50.0  16.7  33.3 |  30.0
+ b=0.040     0.0  50.0   0.0  33.3  50.0  66.7   0.0 100.0   0.0  33.3 |  33.3
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 32 | automobile 1 | bird 10 | cat 3 | deer 2 | frog 5 | horse 1 | ship 6
+   b=0.002   airplane 27 | bird 13 | cat 2 | deer 3 | frog 5 | horse 1 | ship 7 | truck 2
+   b=0.005   airplane 25 | automobile 1 | bird 14 | cat 1 | deer 2 | frog 11 | horse 1 | ship 5
+   b=0.010   airplane 26 | automobile 1 | bird 11 | cat 2 | deer 5 | frog 10 | horse 1 | ship 3 | truck 1
+   b=0.020   airplane 25 | automobile 2 | bird 9 | cat 1 | frog 18 | horse 1 | ship 4
+   b=0.040   airplane 26 | bird 7 | deer 2 | frog 20 | horse 2 | ship 3
+
+--------------------------------------------------------------------------------
+ 37. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ResNet20BN --attack fc --base random \
+   --class_pair frog-airplane --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --fc_restarts 1 --fc_mode sample --craft_ensemble 5 \
+   --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 2 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02, 0.04}.   [pending: none]
+
+ NOTE  --craft_lowmem / --fast_gradmatch were OFF for these runs (unlike the
+       VGG13BN gradmatch sweeps): ResNet20BN is small enough that the full
+       second-order graph fits, so the crafting path is the original one.
+
+ poison class = frog (y_adv = 6), target class = airplane (class 0)
+ degree 2, rank 20-29 of 998, p_adv range 0.0199..0.0471
+ target pool 1000 -> 998 eligible (2 dropped)
+ targets [9273, 2535, 4118, 5462, 8476, 3342, 313, 4490, 2672, 6481]
+
+
+================================================================================
+ CIFAR-10 / ResNet20BN / gradmatch / base random / dog-bird / target_select 14
+================================================================================
+ Run names : CIFAR10_ResNet20BN_gradmatch_random_dog-bird_b<B>_eps8_seed42_ce5_tgt14
+
+--------------------------------------------------------------------------------
+ 38. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ResNet20BN victims) = 0.8394 +/- 0.0032
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50   15.0 %   +/- 15.7    0.8376   -0.0018
+   0.002      100   31.7 %   +/- 25.2    0.8388   -0.0006
+   0.005      250   43.3 %   +/- 22.6    0.8379   -0.0015
+   0.010      500   56.7 %   +/- 34.3    0.8373   -0.0021
+   0.020     1000   75.0 %   +/- 26.1    0.8367   -0.0027
+   0.040     2000     --          --         --         --
+
+--------------------------------------------------------------------------------
+ 39. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  5118  8740  5324  4630   833  2065  7056  9059  6707  9874 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001     0.0   0.0   0.0  16.7  16.7  33.3   0.0  50.0  16.7  16.7 |  15.0
+ b=0.002    16.7  16.7  16.7  16.7  33.3  16.7   0.0  66.7  50.0  83.3 |  31.7
+ b=0.005    66.7  50.0   0.0  33.3  33.3  66.7  16.7  66.7  33.3  66.7 |  43.3
+ b=0.010    83.3  16.7  16.7  50.0  83.3 100.0   0.0  50.0  66.7 100.0 |  56.7
+ b=0.020    83.3  33.3  33.3 100.0  66.7 100.0  50.0  83.3 100.0 100.0 |  75.0
+ b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 2 | bird 30 | cat 7 | deer 5 | dog 9 | frog 3 | ship 4
+   b=0.002   bird 25 | cat 6 | deer 4 | dog 19 | frog 1 | horse 1 | ship 2 | truck 2
+   b=0.005   bird 22 | cat 3 | deer 2 | dog 26 | frog 1 | ship 5 | truck 1
+   b=0.010   airplane 1 | bird 12 | cat 8 | dog 34 | ship 2 | truck 3
+   b=0.020   bird 11 | dog 45 | ship 2 | truck 2
+   b=0.040   --
+
+--------------------------------------------------------------------------------
+ 40. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ResNet20BN --attack gradmatch --base random \
+   --class_pair dog-bird --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 \
+   --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 14 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02}.   [pending: 0.04]
+
+ NOTE  --craft_lowmem / --fast_gradmatch were OFF for these runs (unlike the
+       VGG13BN gradmatch sweeps): ResNet20BN is small enough that the full
+       second-order graph fits, so the crafting path is the original one.
+
+ NOTE  b=0.02 was interrupted twice (node time limits) and finished over 3
+       invocations with --no_resume and --recompute_deltas dropped, so completed
+       (target, victim) trials were skipped and the finished craft was reused;
+       those two flags are the ONLY arguments that differed.
+       b=0.04 was still running when the allocation expired; it is resumable
+       from results.csv + deltas.pt.
+
+ poison class = dog (y_adv = 5), target class = bird (class 2)
+ degree 14, rank 135-144 of 972, p_adv range 0.0148..0.0181
+ target pool 1000 -> 972 eligible (28 dropped)
+ targets [5118, 8740, 5324, 4630, 833, 2065, 7056, 9059, 6707, 9874]
+
+
+================================================================================
+ CIFAR-10 / ResNet20BN / gradmatch / base random / frog-airplane / target_select 10
+================================================================================
+ Run names : CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b<B>_eps8_seed42_ce5_tgt10
+
+--------------------------------------------------------------------------------
+ 41. MAIN RESULT
+--------------------------------------------------------------------------------
+ Clean baseline CTA (6 unpoisoned ResNet20BN victims) = 0.8394 +/- 0.0032
+
+   budget   poisons    ASR       ASR std     CTA      CTA drop
+   -----------------------------------------------------------
+   0.001       50    1.7 %   +/-  5.0    0.8380   -0.0014
+   0.002      100    0.0 %   +/-  0.0    0.8377   -0.0017
+   0.005      250    8.3 %   +/- 11.2    0.8375   -0.0019
+   0.010      500   26.7 %   +/- 29.1    0.8372   -0.0022
+   0.020     1000   45.0 %   +/- 25.9    0.8357   -0.0037
+   0.040     2000     --          --         --         --
+
+--------------------------------------------------------------------------------
+ 42. PER-TARGET ASR BREAKDOWN
+--------------------------------------------------------------------------------
+ target ->  9235   338   255  3207  8563   912  4639  2570  3117  2041 |  mean
+ -------------------------------------------------------------------------------
+ b=0.001    16.7   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   1.7
+ b=0.002     0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
+ b=0.005     0.0  16.7   0.0  16.7   0.0   0.0  33.3   0.0   0.0  16.7 |   8.3
+ b=0.010    66.7   0.0  16.7   0.0  16.7  50.0  83.3   0.0   0.0  33.3 |  26.7
+ b=0.020    66.7  50.0  33.3  16.7  50.0  16.7 100.0  66.7  33.3  16.7 |  45.0
+ b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
+
+ Target-prediction tally (60 victim evaluations of the target):
+   b=0.001   airplane 45 | bird 6 | cat 6 | frog 1 | horse 2
+   b=0.002   airplane 43 | bird 5 | cat 4 | deer 2 | horse 3 | ship 1 | truck 2
+   b=0.005   airplane 37 | automobile 1 | bird 6 | cat 4 | frog 5 | horse 3 | ship 2 | truck 2
+   b=0.010   airplane 30 | bird 4 | cat 4 | deer 1 | frog 16 | horse 3 | truck 2
+   b=0.020   airplane 23 | bird 5 | cat 3 | frog 27 | horse 2
+   b=0.040   --
+
+--------------------------------------------------------------------------------
+ 43. EXACT COMMAND
+--------------------------------------------------------------------------------
+ python final.py \
+   --dataset CIFAR10 --data_path /home/mmoslem3/scratch/data --seed 42 \
+   --model ResNet20BN --attack gradmatch --base random \
+   --class_pair frog-airplane --pair_order poison-target \
+   --budget <BUDGET> \
+   --epsilon 0.0313725 --craft_steps 250 --craft_alpha 0.0039216 \
+   --restarts 8 --craft_ensemble 5 \
+   --base_dist l2 --lambda_margin 1.0 \
+   --num_surrogates 5 --surrogate_epochs 60 --surrogate_decay 35 45 \
+   --num_targets 10 --target_select 10 \
+   --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+   --victim_decay 40 --victim_wd 0.0 \
+   --clean_baseline --cache_dir ./cache --out_dir ours_result \
+   --no_resume --recompute_deltas
+
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02}.   [pending: 0.04]
+
+ NOTE  --craft_lowmem / --fast_gradmatch were OFF for these runs (unlike the
+       VGG13BN gradmatch sweeps): ResNet20BN is small enough that the full
+       second-order graph fits, so the crafting path is the original one.
+
+ NOTE  b=0.02 was interrupted twice (node time limits) and finished over 3
+       invocations with --no_resume and --recompute_deltas dropped, so completed
+       (target, victim) trials were skipped and the finished craft was reused;
+       those two flags are the ONLY arguments that differed.
+       b=0.04 was still running when the allocation expired; it is resumable
+       from results.csv + deltas.pt.
+
+ poison class = frog (y_adv = 6), target class = airplane (class 0)
+ degree 10, rank 99-108 of 998, p_adv range 0.0001..0.0001
+ target pool 1000 -> 998 eligible (2 dropped)
+ targets [9235, 338, 255, 3207, 8563, 912, 4639, 2570, 3117, 2041]
