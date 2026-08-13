@@ -11,9 +11,9 @@ SEED=42
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
 MODEL=ResNet20BN
-ATTACK=fc
+ATTACK=gradmatch
 BASE=random
-CLASS_PAIR=frog-airplane
+CLASS_PAIR=dog-bird
 
 PAIR_ORDER=poison-target
 
@@ -25,9 +25,9 @@ CRAFT_ENSEMBLE=5        # 0 = use all surrogates
 
 # easiest | hardest | random | first, or a difficulty degree 0..100
 # (0 == easiest, 100 == hardest). Numeric degrees get a _tgt<N> run-name suffix.
-TARGET_SELECT=2
-# NUM_TARGETS=10
-NUM_TARGETS=4
+TARGET_SELECT=20
+NUM_TARGETS=10
+# NUM_TARGETS=4
 
 BASE_DIST=l2
 LAMBDA=1.0
@@ -37,8 +37,8 @@ SURROGATE_EPOCHS=60
 SURROGATE_DECAY="35 45"
 
 
-# NUM_VICTIMS=6
-NUM_VICTIMS=3
+NUM_VICTIMS=6
+# NUM_VICTIMS=3
 # NUM_VICTIMS=5
 VICTIM_EPOCHS=50
 VICTIM_LR=0.1

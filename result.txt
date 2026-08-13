@@ -360,8 +360,8 @@
    0.001       50   13.3 %   +/- 18.0    0.8552   +0.0076
    0.002      100   21.7 %   +/- 27.9    0.8554   +0.0078
    0.005      250   55.0 %   +/- 27.9    0.8549   +0.0073
-   0.010      500     --          --         --         --
-   0.020     1000     --          --         --         --
+   0.010      500   76.7 %   +/- 30.0    0.8545   +0.0069
+   0.020     1000   96.7 %   +/- 10.0    0.8529   +0.0053
    0.040     2000     --          --         --         --
 
 --------------------------------------------------------------------------------
@@ -372,16 +372,16 @@
  b=0.001     0.0  33.3  16.7   0.0   0.0   0.0  33.3  50.0   0.0   0.0 |  13.3
  b=0.002     0.0  50.0  16.7   0.0   0.0   0.0  83.3  50.0   0.0  16.7 |  21.7
  b=0.005    16.7  66.7  33.3  50.0  66.7  16.7 100.0 100.0  50.0  50.0 |  55.0
- b=0.010      --    --    --    --    --    --    --    --    --    -- |    --
- b=0.020      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.010    16.7 100.0 100.0  83.3 100.0  50.0 100.0 100.0  83.3  33.3 |  76.7
+ b=0.020    66.7 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 100.0 |  96.7
  b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
 
  Target-prediction tally (60 victim evaluations of the target):
    b=0.001   airplane 4 | bird 38 | cat 4 | deer 4 | dog 8 | frog 2
    b=0.002   airplane 1 | bird 35 | cat 3 | deer 6 | dog 13 | frog 2
    b=0.005   airplane 1 | bird 19 | cat 5 | dog 33 | frog 1 | horse 1
-   b=0.010   --
-   b=0.020   --
+   b=0.010   bird 10 | deer 3 | dog 46 | frog 1
+   b=0.020   bird 2 | dog 58
    b=0.040   --
 
 --------------------------------------------------------------------------------
@@ -402,7 +402,14 @@
    --clean_baseline --cache_dir ./cache --out_dir ours_result \
    --no_resume --recompute_deltas
 
- with <BUDGET> in {0.001, 0.002, 0.005}.   [pending: 0.01, 0.02, 0.04]
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02}.   [pending: 0.04]
+
+ NOTE  b=0.001/0.002/0.005 ran end-to-end in one invocation. b=0.01 and b=0.02
+       were interrupted (node time limits) and finished over 2-3 invocations with
+       --no_resume and --recompute_deltas dropped, so completed (target, victim)
+       trials were skipped and finished crafts reused. Those two flags are the
+       ONLY arguments that differed; every other hyperparameter was verified
+       identical to the command above.
 
  NOTE  --craft_lowmem computes the gradient-matching update one surrogate
        and one 256-poison micro-batch at a time. Same objective and same
@@ -433,8 +440,8 @@
    0.001       50    0.0 %   +/-  0.0    0.8521   +0.0045
    0.002      100    5.0 %   +/- 10.7    0.8523   +0.0047
    0.005      250   16.7 %   +/- 19.7    0.8520   +0.0044
-   0.010      500     --          --         --         --
-   0.020     1000     --          --         --         --
+   0.010      500   28.3 %   +/- 25.9    0.8535   +0.0059
+   0.020     1000   56.7 %   +/- 30.9    0.8511   +0.0035
    0.040     2000     --          --         --         --
 
 --------------------------------------------------------------------------------
@@ -445,16 +452,16 @@
  b=0.001     0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0   0.0 |   0.0
  b=0.002     0.0   0.0   0.0   0.0  33.3   0.0   0.0   0.0   0.0  16.7 |   5.0
  b=0.005    33.3  16.7   0.0   0.0  50.0  16.7   0.0  50.0   0.0   0.0 |  16.7
- b=0.010      --    --    --    --    --    --    --    --    --    -- |    --
- b=0.020      --    --    --    --    --    --    --    --    --    -- |    --
+ b=0.010    16.7   0.0   0.0  16.7  66.7  50.0   0.0  66.7  50.0  16.7 |  28.3
+ b=0.020    83.3  66.7   0.0  50.0  83.3  83.3  16.7 100.0  50.0  33.3 |  56.7
  b=0.040      --    --    --    --    --    --    --    --    --    -- |    --
 
  Target-prediction tally (60 victim evaluations of the target):
    b=0.001   airplane 35 | bird 10 | cat 6 | ship 9
    b=0.002   airplane 40 | automobile 3 | bird 7 | cat 1 | frog 3 | ship 6
    b=0.005   airplane 34 | automobile 3 | bird 4 | cat 5 | frog 10 | ship 4
-   b=0.010   --
-   b=0.020   --
+   b=0.010   airplane 30 | automobile 3 | bird 5 | cat 4 | frog 17 | ship 1
+   b=0.020   airplane 16 | bird 2 | cat 3 | frog 34 | ship 5
    b=0.040   --
 
 --------------------------------------------------------------------------------
@@ -475,7 +482,14 @@
    --clean_baseline --cache_dir ./cache --out_dir ours_result \
    --no_resume --recompute_deltas
 
- with <BUDGET> in {0.001, 0.002, 0.005}.   [pending: 0.01, 0.02, 0.04]
+ with <BUDGET> in {0.001, 0.002, 0.005, 0.01, 0.02}.   [pending: 0.04]
+
+ NOTE  b=0.001/0.002/0.005 ran end-to-end in one invocation. b=0.01 and b=0.02
+       were interrupted (node time limits) and finished over 2-3 invocations with
+       --no_resume and --recompute_deltas dropped, so completed (target, victim)
+       trials were skipped and finished crafts reused. Those two flags are the
+       ONLY arguments that differed; every other hyperparameter was verified
+       identical to the command above.
 
  NOTE  --craft_lowmem computes the gradient-matching update one surrogate
        and one 256-poison micro-batch at a time. Same objective and same
