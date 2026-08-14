@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# RESUME  CIFAR10_VGG13BN_gradmatch_random_frog-airplane_b0.04_eps8_seed42_ce5_tgt12
+# RESUME  CIFAR10_ResNet20BN_gradmatch_random_dog-bird_b0.04_eps8_seed42_ce5_tgt14
 #
 # Every hyperparameter below was copied verbatim out of this run's own
 # "args:" line in ours_result/<run>/log.txt. The ONLY two arguments that
@@ -10,32 +10,29 @@
 #     done are skipped and new rows appended.
 #   * deltas.pt is reloaded, so the 9 finished crafts are reused.
 #
-# Targets (10): [2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481]
-#   done   -> 2783 2507 6738 5787 7815 5074 7356 8267 2264  (9/10, 6 victims each)
-#   to run -> 6481  (6 trainings)
-#   crafts already cached for: none of the remaining targets -- each is crafted fresh
+# Targets (10): [5118, 8740, 5324, 4630, 833, 2065, 7056, 9059, 6707, 9874]
+#   done   -> 5118 8740 5324 4630 833 2065 7056 9059 6707  (9/10, 6 victims each)
+#   to run -> 9874  (1 craft + 6 trainings) -- the last target
+#   crafts already cached for the 9 done targets; 9874 is crafted fresh, so this
+#   is one craft (~35-75 min) plus 6 victim trainings, then the run is complete.
 #
 # Resuming is idempotent: if this dies again, just rerun it.
 
 source /home/mmoslem3/ENV/bin/activate
 cd /home/mmoslem3/scratch/attack_if
 
-RUN=CIFAR10_VGG13BN_gradmatch_random_frog-airplane_b0.04_eps8_seed42_ce5_tgt12
-LOG="ours_result/$RUN/log.txt"
-if [ -f "$LOG" ]; then
-    echo "###### previous output, replayed from $LOG ######"
-    cat "$LOG"
-    echo "###### end of previous log -- resuming below ######"
-    echo
-else
-    echo "WARNING: $LOG not found -- this would START OVER, not resume."
+# refuse to run without a GPU: final.py silently falls back to CPU, where crafting
+# 2000 poisons takes weeks and looks like a hang
+if ! python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)"; then
+    echo "ERROR: no GPU visible here (torch.cuda.is_available() == False)."
+    echo "       final.py would run on CPU. Get a GPU allocation, then rerun."
     exit 1
 fi
 
 # data + model
 A_DATA="--dataset CIFAR10
         --data_path /home/mmoslem3/scratch/data
-        --model VGG13BN
+        --model ResNet20BN
         --seed 42
         --cache_dir ./cache
         --out_dir ours_result
@@ -44,7 +41,7 @@ A_DATA="--dataset CIFAR10
 # attack
 A_ATTACK="--attack gradmatch
           --base random
-          --class_pair frog-airplane
+          --class_pair dog-bird
           --pair_order poison-target
           --budget 0.04
           --num_poisons 500
@@ -55,8 +52,6 @@ A_ATTACK="--attack gradmatch
           --fc_restarts 1
           --fc_mode sample
           --craft_ensemble 5
-          --fast_gradmatch
-          --craft_lowmem
           --craft_batch 256"
 
 # base selection
@@ -73,7 +68,7 @@ A_SURROGATES="--num_surrogates 5
 
 # targets
 A_TARGETS="--num_targets 10
-           --target_select 12"
+           --target_select 14"
 
 # victims
 A_VICTIMS="--num_victims 6

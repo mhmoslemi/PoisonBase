@@ -1,26 +1,36 @@
 #!/usr/bin/env bash
 #
-# RESUME  CIFAR10_VGG13BN_gradmatch_random_dog-bird_b0.04_eps8_seed42_ce5_tgt50
+# RESUME  CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.04_eps8_seed42_ce5_tgt10
 #
 # Every hyperparameter below was copied verbatim out of this run's own
 # "args:" line in ours_result/<run>/log.txt. The ONLY two arguments that
 # differ from the original invocation are --no_resume and --recompute_deltas,
 # which are omitted -- that is what makes it resume instead of restart:
-#   * results.csv is read first, so the 54 (target, victim) trials already
+#   * results.csv is read first, so the 48 (target, victim) trials already
 #     done are skipped and new rows appended.
-#   * deltas.pt is reloaded, so the 9 finished crafts are reused.
+#   * deltas.pt is reloaded, so the 8 finished crafts are reused.
 #
-# Targets (10): [630, 409, 2270, 9870, 1656, 5022, 9090, 6033, 7940, 9731]
-#   done   -> 630 409 2270 9870 1656 5022 9090 6033 7940  (9/10, 6 victims each)
-#   to run -> 9731  (6 trainings)
-#   crafts already cached for: none of the remaining targets -- each is crafted fresh
+# Targets (10): [9235, 338, 255, 3207, 8563, 912, 4639, 2570, 3117, 2041]
+#   done   -> 9235 338 255 3207 8563 912 4639 2570  (8/10, 6 victims each)
+#   to run -> 3117 2041  (2 crafts + 12 trainings)
+#   crafts already cached for: 9235 338 255 3207 8563 912 4639 2570 -- i.e. none
+#   of the remaining targets; it died after finishing 2570's 6 victims, so 3117 is
+#   crafted fresh.
 #
 # Resuming is idempotent: if this dies again, just rerun it.
 
 source /home/mmoslem3/ENV/bin/activate
 cd /home/mmoslem3/scratch/attack_if
 
-RUN=CIFAR10_VGG13BN_gradmatch_random_dog-bird_b0.04_eps8_seed42_ce5_tgt50
+# refuse to run without a GPU: final.py silently falls back to CPU, where crafting
+# 2000 poisons takes weeks and looks like a hang
+if ! python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)"; then
+    echo "ERROR: no GPU visible here (torch.cuda.is_available() == False)."
+    echo "       final.py would run on CPU. Get a GPU allocation, then rerun."
+    exit 1
+fi
+
+RUN=CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.04_eps8_seed42_ce5_tgt10
 LOG="ours_result/$RUN/log.txt"
 if [ -f "$LOG" ]; then
     echo "###### previous output, replayed from $LOG ######"
@@ -35,7 +45,7 @@ fi
 # data + model
 A_DATA="--dataset CIFAR10
         --data_path /home/mmoslem3/scratch/data
-        --model VGG13BN
+        --model ResNet20BN
         --seed 42
         --cache_dir ./cache
         --out_dir ours_result
@@ -44,7 +54,7 @@ A_DATA="--dataset CIFAR10
 # attack
 A_ATTACK="--attack gradmatch
           --base random
-          --class_pair dog-bird
+          --class_pair frog-airplane
           --pair_order poison-target
           --budget 0.04
           --num_poisons 500
@@ -55,8 +65,6 @@ A_ATTACK="--attack gradmatch
           --fc_restarts 1
           --fc_mode sample
           --craft_ensemble 5
-          --fast_gradmatch
-          --craft_lowmem
           --craft_batch 256"
 
 # base selection
@@ -73,7 +81,7 @@ A_SURROGATES="--num_surrogates 5
 
 # targets
 A_TARGETS="--num_targets 10
-           --target_select 50"
+           --target_select 10"
 
 # victims
 A_VICTIMS="--num_victims 6

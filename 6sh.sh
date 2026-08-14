@@ -21,6 +21,14 @@
 source /home/mmoslem3/ENV/bin/activate
 cd /home/mmoslem3/scratch/attack_if
 
+# refuse to run without a GPU: final.py silently falls back to CPU, where crafting
+# 2000 poisons takes weeks and looks like a hang
+if ! python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)"; then
+    echo "ERROR: no GPU visible here (torch.cuda.is_available() == False)."
+    echo "       final.py would run on CPU. Get a GPU allocation, then rerun."
+    exit 1
+fi
+
 RUN=CIFAR10_ResNet20BN_gradmatch_random_dog-bird_b0.04_eps8_seed42_ce5_tgt14
 LOG="ours_result/$RUN/log.txt"
 if [ -f "$LOG" ]; then
