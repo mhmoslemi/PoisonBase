@@ -1,0 +1,44 @@
+\begin{table}[t]
+\centering
+\caption{Attacked target images. For each (model, class pair, attack) combination the same ten
+CIFAR-10 test images are attacked, and that set is shared by every poison-selection variant
+(dpp / smart / random) and every poison budget reported in
+Table~\ref{tab:sweep_asr_clean_minus_cta}; each target is attacked independently and evaluated on
+six victim models retrained from scratch, so every reported ASR is over $10\times6=60$ trials.
+Indices are into the CIFAR-10 test split. Difficulty $\delta$ is the percentile position of the
+ten-target window in the eligible target-class pool ranked by the clean ensemble's softmax
+probability of the adversarial label ($\delta=0$ easiest, $\delta=100$ hardest); test images the
+clean ensemble already predicts as the adversarial label are excluded from the pool.}
+\label{tab:target_ids}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{lllcl}
+\hline
+\textbf{Model} &
+\textbf{Pair} &
+\textbf{Attack} &
+\textbf{Difficulty $\delta$} &
+\textbf{Target indices (CIFAR-10 test split)} \\
+\hline
+
+ConvNet & dog-bird & FC & 50 & \texttt{2540, 8129, 3725, 5705, 7663, 3875, 5169, 6335, 7488, 9831} \\
+ConvNet & dog-bird & GM & 70 & \texttt{843, 1257, 8252, 8730, 8055, 5859, 8954, 821, 1547, 4427} \\
+ConvNet & frog-airplane & FC & 20 & \texttt{7511, 857, 7010, 2091, 1776, 1596, 5354, 3158, 6006, 6191} \\
+ConvNet & frog-airplane & GM & 35 & \texttt{496, 2087, 8941, 9820, 3825, 1796, 2548, 6437, 3336, 2603} \\
+\addlinespace
+ResNet20 & dog-bird & FC & 10 & \texttt{3495, 2903, 6697, 2315, 6899, 2312, 6353, 4421, 2242, 6768} \\
+ResNet20 & dog-bird & GM & 14 & \texttt{5118, 8740, 5324, 4630, 833, 2065, 7056, 9059, 6707, 9874} \\
+ResNet20 & frog-airplane & FC & 2 & \texttt{9273, 2535, 4118, 5462, 8476, 3342, 313, 4490, 2672, 6481} \\
+ResNet20 & frog-airplane & GM & 10 & \texttt{9235, 338, 255, 3207, 8563, 912, 4639, 2570, 3117, 2041} \\
+\addlinespace
+VGG13 & dog-bird & FC & 3 & \texttt{3728, 5640, 6922, 7855, 2127, 7586, 7360, 2171, 4462, 2597} \\
+VGG13 & dog-bird & GM & 50 & \texttt{630, 409, 2270, 9870, 1656, 5022, 9090, 6033, 7940, 9731} \\
+VGG13 & frog-airplane & FC & 3 & \texttt{912, 9957, 1739, 1165, 3278, 4313, 416, 6491, 338, 4287} \\
+VGG13 & frog-airplane & GM & 12 & \texttt{2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481} \\
+
+\hline
+\end{tabular}
+}
+
+\end{table}

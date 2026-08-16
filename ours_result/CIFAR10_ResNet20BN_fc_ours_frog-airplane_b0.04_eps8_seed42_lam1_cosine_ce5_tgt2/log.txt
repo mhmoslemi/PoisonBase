@@ -84,3 +84,56 @@
 [2026-08-13 23:42:27]   [t4490 v1/6] SUCCESS (pred=frog) CTA=0.8286
 [2026-08-13 23:44:36]   [t4490 v2/6] fail (pred=airplane) CTA=0.8312
 [2026-08-13 23:46:45]   [t4490 v3/6] fail (pred=airplane) CTA=0.8323
+[2026-08-13 23:48:54]   [t4490 v4/6] SUCCESS (pred=frog) CTA=0.8332
+[2026-08-13 23:51:03]   [t4490 v5/6] SUCCESS (pred=frog) CTA=0.8390
+[2026-08-14 02:46:37] === run start: CIFAR10_ResNet20BN_fc_ours_frog-airplane_b0.04_eps8_seed42_lam1_cosine_ce5_tgt2 on cuda ===
+[2026-08-14 02:46:37] args: {"attack": "fc", "base": "ours", "base_dist": "cosine", "budget": 0.04, "cache_dir": "./cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 5, "num_targets": 10, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/ResNet20BN_fc_frog-airplane.json", "target_select": 2, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-14 02:46:37] N_total=50000 budget=0.04 -> N_p=2000 poisons, y_adv=6(frog) target_class=0(airplane)
+[2026-08-14 02:46:37] === surrogates (5 x ResNet20BN, trained on the full real set) ===
+[2026-08-14 02:46:37]   crafting on 5/5 surrogates
+[2026-08-14 02:46:37] === clean victims (6 x ResNet20BN) ===
+[2026-08-14 02:46:38]   clean baseline CTA = 0.8394 +/- 0.0032
+[2026-08-14 02:46:38]   target pool 1000 -> eligible 998 (2 already predicted as y_adv or dropped)
+[2026-08-14 02:46:38]   chosen 10 targets (file), p_adv range 0.0199..0.0471
+[2026-08-14 02:46:38]   targets: [9273, 2535, 4118, 5462, 8476, 3342, 313, 4490, 2672, 6481]
+[2026-08-14 02:46:38]   resume: 47 (target, victim) trials already done
+[2026-08-14 02:46:39] === target 9273 (1/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 2535 (2/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 4118 (3/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 5462 (4/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 8476 (5/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 3342 (6/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 313 (7/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:46:39] === target 4490 (8/10) ===
+[2026-08-14 02:46:39]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:48:47]   [t4490 v6/6] SUCCESS (pred=frog) CTA=0.8324
+[2026-08-14 02:48:47]   target 4490: ASR=100.0% CTA=0.8324 +/- 0.0000
+[2026-08-14 02:48:47] === target 2672 (9/10) ===
+[2026-08-14 02:49:42]   crafted 2000 poisons in 54 s, obj=0.02820
+[2026-08-14 02:49:42]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 02:51:51]   [t2672 v1/6] fail (pred=ship) CTA=0.8340
+[2026-08-14 02:54:00]   [t2672 v2/6] fail (pred=ship) CTA=0.8275
+[2026-08-14 02:56:09]   [t2672 v3/6] fail (pred=airplane) CTA=0.8281
+[2026-08-14 02:58:17]   [t2672 v4/6] fail (pred=airplane) CTA=0.8385
+[2026-08-14 03:00:26]   [t2672 v5/6] fail (pred=ship) CTA=0.8271
+[2026-08-14 03:02:35]   [t2672 v6/6] fail (pred=airplane) CTA=0.8296
+[2026-08-14 03:02:35]   target 2672: ASR=0.0% CTA=0.8308 +/- 0.0041
+[2026-08-14 03:02:35] === target 6481 (10/10) ===
+[2026-08-14 03:03:29]   crafted 2000 poisons in 54 s, obj=0.03421
+[2026-08-14 03:03:29]   realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-14 03:05:38]   [t6481 v1/6] fail (pred=airplane) CTA=0.8312
+[2026-08-14 03:07:47]   [t6481 v2/6] fail (pred=airplane) CTA=0.8344
+[2026-08-14 03:09:55]   [t6481 v3/6] fail (pred=airplane) CTA=0.8295
+[2026-08-14 03:12:04]   [t6481 v4/6] fail (pred=airplane) CTA=0.8349
+[2026-08-14 03:14:13]   [t6481 v5/6] SUCCESS (pred=frog) CTA=0.8353
+[2026-08-14 03:16:21]   [t6481 v6/6] fail (pred=airplane) CTA=0.8305
+[2026-08-14 03:16:21]   target 6481: ASR=16.7% CTA=0.8326 +/- 0.0023
+[2026-08-14 03:16:21] ==== CIFAR10_ResNet20BN_fc_ours_frog-airplane_b0.04_eps8_seed42_lam1_cosine_ce5_tgt2 : ASR = 28.3% +/- 27.9% | CTA = 0.8318 (baseline 0.8394) ====
+[2026-08-14 03:16:21]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [8, 0, 0, 0, 0, 0, 2, 0, 3, 0]

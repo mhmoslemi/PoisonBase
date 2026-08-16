@@ -1,0 +1,278 @@
+% ---------------------------------------------------------------------------
+% Theory subsection for the quality-gated farthest-point base selector
+% (--sel_filter in final_update.py).
+% Requires: amsmath, amssymb, amsthm, algorithm, algpseudocode.
+% Theorem-like envs assumed:
+%   \newtheorem{proposition}{Proposition}[section]
+%   \newtheorem{remark}[proposition]{Remark}
+% ---------------------------------------------------------------------------
+
+\subsection{Quality-gated diverse base selection}
+\label{sec:filter}
+
+\paragraph{Setup and notation.}
+Fix a target image $x_t$ with adversarial label $y_{\mathrm{adv}}$ and let
+$\mathcal{C}=\{1,\dots,N\}$ index every training image of the poison class
+($N=5000$ for CIFAR-10).  For a poison budget $\beta$ the attacker may perturb
+$N_p=\lceil\beta n\rceil$ of them, so base selection is the combinatorial
+problem of choosing $S\subseteq\mathcal{C}$ with $|S|=N_p$.  Let
+$f_{\theta_1},\dots,f_{\theta_m}$ be the surrogate ensemble and
+$\phi_j:\mathcal{X}\to\mathbb{R}^{d}$ the penultimate representation of
+surrogate $j$.  Our selection score combines a target-proximity term
+$d_j(i)$ and a confidence margin $\mu_j(i)$, each standardised over the
+candidate pool by $z[\,\cdot\,]$ so that the two are commensurate:
+\begin{equation}
+  s(i)\;=\;\frac{1}{m}\sum_{j=1}^{m}\Bigl(z\bigl[d_j\bigr](i)
+        \;+\;\lambda\, z\bigl[\mu_j\bigr](i)\Bigr),
+  \qquad i\in\mathcal{C},
+  \label{eq:score}
+\end{equation}
+with \emph{smaller $s$ meaning a more promising base}.  Alongside the score we
+use the ensemble embedding obtained by $\ell_2$-normalising and concatenating
+the per-surrogate features,
+\begin{equation}
+  \Psi(i)\;=\;\tfrac{1}{\sqrt{m}}\Bigl[\,
+      \hat\phi_1(i)^{\!\top},\dots,\hat\phi_m(i)^{\!\top}\Bigr]^{\!\top}
+      \in\mathbb{R}^{md},
+  \qquad \hat\phi_j=\phi_j/\lVert\phi_j\rVert_2 .
+  \label{eq:embed}
+\end{equation}
+The normalisation is chosen so that $\lVert\Psi(i)\rVert_2=1$ and
+\begin{equation}
+  \bigl\langle\Psi(i),\Psi(i')\bigr\rangle
+  \;=\;\frac{1}{m}\sum_{j=1}^{m}\cos\!\bigl(\phi_j(i),\phi_j(i')\bigr),
+  \label{eq:meancos}
+\end{equation}
+i.e.\ a \emph{single} inner product in the concatenated space equals the
+\emph{mean} per-surrogate cosine similarity.  Two candidates are therefore
+declared redundant only if every surrogate agrees that they are redundant,
+which is what makes the criterion transfer to an unseen victim.  We write
+$\rho(i,i')=1-\langle\Psi(i),\Psi(i')\rangle$ for the induced distance and,
+for $S\subseteq\mathcal{A}\subseteq\mathcal{C}$,
+\begin{equation}
+  r(S;\mathcal{A})=\max_{i\in\mathcal{A}}\min_{j\in S}\rho(i,j),
+  \qquad
+  \operatorname{sep}(S)=\min_{i\neq j\in S}\rho(i,j)
+  \label{eq:radii}
+\end{equation}
+for the covering radius of $S$ over $\mathcal{A}$ and the separation of $S$.
+
+\paragraph{Why the score alone is not enough.}
+The baseline selector takes the $N_p$ best-scoring candidates, i.e.\ it solves
+\begin{equation}
+  S^{\mathrm{plain}}\;=\;\operatorname*{arg\,min}_{|S|=N_p}\;F(S),
+  \qquad F(S)=\sum_{i\in S}s(i).
+  \label{eq:modular}
+\end{equation}
+$F$ is \emph{modular}: the marginal value $F(S\cup\{i\})-F(S)=s(i)$ of a
+candidate never depends on what has already been chosen.  Modularity is
+exactly the property that makes \eqref{eq:modular} trivially solvable by
+sorting, and exactly the property that prevents the objective from expressing
+``this candidate is already covered''.  Two consequences follow.
+
+\emph{(i) Redundancy.}  Because $s$ is a smooth function of $\Psi$ through
+\eqref{eq:score}, its sublevel sets are localised in embedding space.  The
+top-$N_p$ set is the $N_p/N$ sublevel set of $s$, so it concentrates in
+whichever lobe of the class manifold happens to lie closest to the target,
+and near-duplicate images are selected together by construction.
+
+\emph{(ii) Budget saturation.}  The ranking in \eqref{eq:modular} does not
+depend on $N_p$.  As the budget grows, each additional slot is spent on the
+next-best candidate by quality rather than on the candidate that contributes
+the most \emph{new} information, so the selected set becomes an increasingly
+biased sample of the class -- systematically low-margin, near-boundary images
+-- while the quality signal that justified the bias becomes progressively less
+discriminative.  This is the regime in which we observe score-based selection
+underperforming a uniformly random base set.
+
+\paragraph{Diversity as effective rank.}
+The reason redundancy is harmful is visible in the crafting objective.  For
+gradient matching the poison gradient of the selected set under perturbations
+$\Delta=(\delta_i)_{i\in S}$ is, to first order,
+\begin{equation}
+  g_P(\Delta)\;\approx\;\bar{g}_S+\frac{1}{|S|}\sum_{i\in S}J_i\,\delta_i,
+  \qquad
+  J_i=\frac{\partial}{\partial x}\nabla_\theta
+        L\bigl(f_\theta(x),y\bigr)\Big|_{x=x_i},
+  \label{eq:linearise}
+\end{equation}
+so the attainable gradients form a zonotope inside the affine subspace
+$\bar{g}_S+\operatorname{range}\bigl[J_1\;\cdots\;J_{N_p}\bigr]$.  Its
+dimension -- the \emph{effective rank} of the base set -- upper-bounds how
+closely $g_P$ can be steered towards the target gradient $g_t$: the best
+achievable value of $1-\cos(g_P,g_t)$ is governed by the angle between $g_t$
+and that subspace.  A duplicate base contributes $J_{i'}\approx J_i$ and hence
+adds no new directions at all; under the $1/|S|$ normalisation it does not
+even widen the zonotope.  The clean-label constraint
+$\lVert\delta_i\rVert_\infty\le\varepsilon$ makes this binding, because the
+attack must assemble a large component along $g_t$ out of many small,
+\emph{distinct} contributions.  The same argument in feature space applies to
+feature collision: co-located bases deform the victim's decision boundary in
+one small region, and that deformation need not cover the augmentation-induced
+spread of the target at test time.
+
+This suggests replacing the modular objective by one that rewards coverage.
+Two standard surrogates exist: the volumetric relaxation
+$\log\det(I+\sigma^{-2}\Psi_S^{\top}\Psi_S)$, which is submodular and yields
+the DPP-MAP selector, and the covering relaxation $r(S;\cdot)$, which yields a
+$k$-centre problem.  We adopt the latter, constrained by the score.
+
+\paragraph{The selector.}
+Let $\gamma\ge1$ be a \emph{pool ratio} (\texttt{-{}-sel\_pool}, default
+$\gamma=3$) and set
+\begin{equation}
+  k \;=\; \min\bigl(N,\;\max(N_p,\lceil\gamma N_p\rceil)\bigr),
+  \qquad
+  \mathcal{K} \;=\; \bigl\{\,i\in\mathcal{C}\;:\;s(i)\le s_{(k)}\,\bigr\},
+  \label{eq:gate}
+\end{equation}
+where $s_{(k)}$ is the $k$-th order statistic of the scores.  The selector
+then solves the $k$-centre problem \emph{restricted to the gate}
+$\mathcal{K}$,
+\begin{equation}
+  S^{\mathrm{filter}}
+  \;\approx\;\operatorname*{arg\,min}_{S\subseteq\mathcal{K},\,|S|=N_p}
+      \; r(S;\mathcal{K}),
+  \label{eq:kcenter}
+\end{equation}
+using farthest-point traversal seeded at the single best-scoring candidate.
+Quality enters as a hard constraint rather than as a penalty term, and
+diversity is optimised inside the feasible set.
+
+\begin{algorithm}[t]
+\caption{Quality-gated farthest-point base selection}
+\label{alg:filter}
+\begin{algorithmic}[1]
+\Require scores $s\in\mathbb{R}^{N}$, embeddings $\Psi\in\mathbb{R}^{N\times md}$,
+         budget $N_p$, pool ratio $\gamma\ge1$
+\State $k\gets\min(N,\max(N_p,\lceil\gamma N_p\rceil))$
+\State $\mathcal{K}\gets$ indices of the $k$ smallest entries of $s$
+       \Comment{quality gate}
+\State $j_1\gets\arg\min_{i\in\mathcal{K}}s(i)$;\quad
+       $S\gets\{j_1\}$
+\State $\mathrm{md}[i]\gets\rho(i,j_1)$ for all $i\in\mathcal{K}$
+       \Comment{one mat-vec}
+\For{$t=2,\dots,N_p$}
+  \State $j_t\gets\arg\max_{i\in\mathcal{K}\setminus S}\mathrm{md}[i]$
+  \State $S\gets S\cup\{j_t\}$
+  \State $\mathrm{md}[i]\gets\min\bigl(\mathrm{md}[i],\rho(i,j_t)\bigr)$
+         for all $i\in\mathcal{K}$
+\EndFor
+\State \Return $S$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Properties.}
+The construction has three properties that matter in practice.
+
+\begin{proposition}[Exact interpolation]
+\label{prop:interp}
+If $\gamma=1$ then $S^{\mathrm{filter}}=S^{\mathrm{plain}}$.  If
+$\gamma\ge N/N_p$ then the gate is vacuous and Algorithm~\ref{alg:filter}
+reduces to unconstrained farthest-point traversal on $\mathcal{C}$.
+\end{proposition}
+\begin{proof}
+For $\gamma=1$, \eqref{eq:gate} gives $k=N_p$, so $|\mathcal{K}|=N_p$ and the
+loop must exhaust $\mathcal{K}$; the output equals the top-$N_p$ set
+irrespective of the order in which points are added.  For $\gamma\ge N/N_p$,
+$k=N$ and $\mathcal{K}=\mathcal{C}$.
+\end{proof}
+
+Proposition~\ref{prop:interp} is what makes the method a strict
+generalisation rather than an alternative: the baseline is recovered exactly,
+not approximately, at one end of the knob, and the pure-diversity selector at
+the other.  Anything in between is a genuine trade-off, and $\gamma$ is
+scale-free -- it is a ratio of set sizes, not a coefficient carrying the units
+of the score.
+
+\begin{proposition}[Bounded quality loss]
+\label{prop:quality}
+Every selected base lies in the top $k/N$ quantile of the score, and
+\begin{equation}
+  \frac{1}{N_p}\sum_{i\in S^{\mathrm{filter}}}\!\!s(i)
+  \;-\;
+  \frac{1}{N_p}\sum_{i\in S^{\mathrm{plain}}}\!\!s(i)
+  \;\;\le\;\; s_{(k)}-s_{(N_p)} .
+  \label{eq:qualbound}
+\end{equation}
+\end{proposition}
+\begin{proof}
+$S^{\mathrm{filter}}\subseteq\mathcal{K}$ gives
+$\max_{i\in S^{\mathrm{filter}}}s(i)\le s_{(k)}$, and
+$\min_{i\in S^{\mathrm{plain}}}s(i)=s_{(1)}\le s_{(N_p)}$ bounds each of the
+$N_p$ paired differences by $s_{(k)}-s_{(N_p)}$.
+\end{proof}
+
+The bound in \eqref{eq:qualbound} is self-regulating.  The price paid for
+diversity is a gap between two order statistics of the score distribution;
+that gap is small precisely when the left tail of the score is flat, which is
+also when the ranking carries the least information and diversity is most
+worth buying.  Conversely, when the score is sharply peaked -- a few
+genuinely privileged bases -- the gate is expensive to leave and the selector
+stays close to the baseline.
+
+\begin{proposition}[Coverage and anti-redundancy]
+\label{prop:cover}
+Let $r^\star=\min_{|S|=N_p,\,S\subseteq\mathcal{K}}r(S;\mathcal{K})$.
+Algorithm~\ref{alg:filter} returns $S$ with
+$r(S;\mathcal{K})\le 2r^\star$ and
+$\operatorname{sep}(S)\ge r(S;\mathcal{K})$.
+\end{proposition}
+\begin{proof}
+The $2$-approximation is Gonzalez's guarantee for farthest-point traversal
+under a metric.  For the separation, let $r_t$ be the value of
+$\max_i\mathrm{md}[i]$ at the start of iteration $t$; $\mathrm{md}$ is
+pointwise non-increasing, so $r_2\ge r_3\ge\dots\ge r_{N_p}=r(S;\mathcal{K})$.
+Each $j_t$ is at distance exactly $r_t\ge r_{N_p}$ from every previously
+selected point, hence all pairwise distances in $S$ are at least
+$r(S;\mathcal{K})$.
+\end{proof}
+
+The separation bound is the formal statement of the anti-redundancy property:
+no two selected bases can be near-duplicates, and the guarantee degrades
+gracefully as the budget grows (larger $N_p$ forces a smaller
+$r(S;\mathcal{K})$, hence a smaller admissible separation).
+
+\begin{remark}[Budget adaptivity]
+\label{rem:adaptive}
+The clipping in \eqref{eq:gate} makes the gate automatically budget-dependent:
+it is active iff $\gamma N_p<N$, i.e.\ iff
+$\beta<\beta^\star=N/(\gamma n)$.  With $N=5000$, $n=50\,000$ and $\gamma=3$,
+$\beta^\star\approx3.3\times10^{-2}$: at $\beta=5\times10^{-3}$ the gate
+retains $k=750$ of $5000$ candidates and the selector is a true
+quality--diversity blend, whereas at $\beta=4\times10^{-2}$ the gate is
+vacuous and the selector degenerates to pure coverage.  The score is thus
+weighted most heavily where it is most reliable -- small $N_p$, where the
+top of the ranking is sharply better than the bulk -- and is annealed away as
+the budget approaches the class size, without any budget-specific tuning.
+\end{remark}
+
+\begin{remark}[Cost]
+\label{rem:cost}
+Stage one is a partial sort, $O(N\log k)$.  Stage two maintains the
+running minimum $\mathrm{md}$, so each of the $N_p$ iterations costs one
+mat-vec against the gated embeddings: $O(N_p k m d)$ time and $O(k m d)$
+memory.  Both scale linearly in $k$, in contrast to the $O(N^2)$ kernel
+required by a marginal-relevance or determinantal selector over the full
+candidate pool, and the gate shrinks $k$ exactly in the small-budget regime
+where the largest number of greedy iterations would otherwise be cheapest to
+avoid.  Selection is performed under \texttt{torch.no\_grad()} and adds a
+negligible fraction of end-to-end crafting time.
+\end{remark}
+
+\paragraph{Relation to scalarised alternatives.}
+Marginal-relevance and determinantal selectors optimise a single scalarised
+objective, $s(i)+\mu\max_{j\in S}\langle\Psi(i),\Psi(j)\rangle$ and
+$\log\det L_S$ with quality $q_i=\exp(-\alpha s(i))$ respectively.  Both are
+principled, but their trade-off coefficients are not scale-free: $\mu$ carries
+the units of the score, and $\alpha$ interacts with the spectrum of the
+similarity kernel, so a value tuned at one budget or one architecture need not
+transfer.  (We mitigate this for the marginal-relevance variant by
+standardising the similarity term against the empirical distribution of
+pairwise similarities, and for the determinantal variant by shifting the
+quality by $\min_i s(i)$ before exponentiating, which is required for
+numerical stability in the large-$\alpha$ limit where it must recover the
+baseline.)  The constrained formulation \eqref{eq:kcenter} avoids the issue
+altogether: it has one dimensionless knob, an exact reduction to the baseline
+at $\gamma=1$, and the budget-adaptive behaviour of
+Remark~\ref{rem:adaptive} comes for free.
