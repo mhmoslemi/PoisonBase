@@ -1,0 +1,88 @@
+% The GM rows are at 2e-3 and 2e-2: defense_result.txt has no defense run at
+% 1e-2, which the draft originally asked for. Same substitution aug_table.tex
+% makes, for the same reason.
+%
+% The four FC / EPIC / Random cells come from runs that used 10 targets x 4
+% victims; they are recomputed here over the first 5 pinned targets and victims
+% 0-3 like every other cell, so the row stays paired with its DPP column.
+%
+% No Defense is not the 10x6 undefended number: it is recomputed from
+% ours_result over the SAME 5 targets each defense run used and victim ids
+% 0-3, so defended and undefended cells are paired trial-for-trial.
+
+\begin{table}[t]
+\centering
+\caption{
+Robustness of base selection against poisoning defenses.
+We evaluate EPIC and Friendly Noise Defense (FRIENDS)
+\citep{yang2022not,liu2022friendly} using ResNet20BN.
+The same optimized poisons are used across defended and undefended
+victim training. Entries report ASR (\%), with clean test accuracy in
+parentheses.
+}
+\label{tab:defense-robustness}
+\small
+\setlength{\tabcolsep}{4.0pt}
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllcccccc}
+\toprule
+\textbf{Pair} &
+\textbf{Attack} &
+\textbf{$\epsilon$} &
+\multicolumn{2}{c}{\textbf{No Defense}} &
+\multicolumn{2}{c}{\textbf{EPIC}} &
+\multicolumn{2}{c}{\textbf{FRIENDS}} \\
+\cmidrule(lr){4-5}
+\cmidrule(lr){6-7}
+\cmidrule(lr){8-9}
+&
+&
+&
+\textbf{Random} &
+\textbf{DPP} &
+\textbf{Random} &
+\textbf{DPP} &
+\textbf{Random} &
+\textbf{DPP} \\
+\midrule
+
+dog--bird & GM &
+$2{\times}10^{-3}$ &
+25.0 \small{(83.90)} & 55.0 \small{(83.55)} & 10.0 \small{(80.59)} & 40.0 \small{(80.23)} & 5.0 \small{(74.61)} & 15.0 \small{(74.52)} \\
+
+dog--bird & GM &
+$2{\times}10^{-2}$ &
+75.0 \small{(83.55)} & 100.0 \small{(83.70)} & 55.0 \small{(80.26)} & 100.0 \small{(80.70)} & 10.0 \small{(74.48)} & 35.0 \small{(74.56)} \\
+
+dog--bird & FC &
+$2{\times}10^{-3}$ &
+15.0 \small{(83.68)} & 25.0 \small{(83.71)} & 25.0 \small{(79.63)} & -- & -- & -- \\
+
+dog--bird & FC &
+$1{\times}10^{-2}$ &
+35.0 \small{(83.60)} & 40.0 \small{(83.65)} & 25.0 \small{(80.64)} & -- & -- & -- \\
+
+\midrule
+
+frog--airplane & GM &
+$2{\times}10^{-3}$ &
+0.0 \small{(83.79)} & 35.0 \small{(83.70)} & 0.0 \small{(81.39)} & 5.0 \small{(80.84)} & -- & -- \\
+
+frog--airplane & GM &
+$2{\times}10^{-2}$ &
+30.0 \small{(83.67)} & 80.0 \small{(83.64)} & 0.0 \small{(79.98)} & 20.0 \small{(79.45)} & -- & -- \\
+
+frog--airplane & FC &
+$2{\times}10^{-3}$ &
+15.0 \small{(83.74)} & 10.0 \small{(83.71)} & 5.0 \small{(80.37)} & -- & -- & -- \\
+
+frog--airplane & FC &
+$1{\times}10^{-2}$ &
+10.0 \small{(83.90)} & 25.0 \small{(83.79)} & 5.0 \small{(81.08)} & -- & -- & -- \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}
+

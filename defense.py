@@ -612,7 +612,15 @@ def get_defended_clean_victims(args, ctx, only_id=None):
                                            tag='clean%d ' % i)
         acc = test_acc(net, ctx['test_imgs'], ctx['test_labs'])
         os.makedirs(d, exist_ok=True)
-        torch.save(net.state_dict(), path)
+        # write-then-rename: this pool is keyed only on the model, the defense
+        # tag and the victim hyperparameters, so parallel sweeps (aug1..aug4)
+        # share it and can reach this line for the same net_%d.pt at the same
+        # moment. A plain torch.save would let one process read another's
+        # half-written file. os.replace is atomic, so the loser just overwrites
+        # with an identical checkpoint.
+        tmp = '%s.%d.tmp' % (path, os.getpid())
+        torch.save(net.state_dict(), tmp)
+        os.replace(tmp, path)
         log('  trained defended clean victim %d (%s, %s): test acc = %.4f (%.0f s)'
             % (i, args.model, defense_tag(args), acc, time.time() - t0))
         net.eval()

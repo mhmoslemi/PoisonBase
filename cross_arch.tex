@@ -1,0 +1,85 @@
+
+
+\begin{table}[t]
+\centering
+\caption{
+Cross-architecture transfer of base selection.
+$S$ denotes the architecture used for base selection, while $A=V$
+denotes the architecture used for both poison optimization and victim
+training. We fix $\epsilon=5{\times}10^{-3}$ and report ASR (\%), with
+clean test accuracy in parentheses.
+}
+\label{tab:cross-architecture}
+% Same-architecture rows (S = A = V) are recomputed from the existing b0.005
+% dog-bird runs, restricted to the first 5 targets of the sorted Random-DPP
+% intersection and victim ids 0-3 = 20 trials per cell, matching the reduced
+% protocol of the defense and augmentation tables. The two ConvNet rows are
+% reconstructed from the per-trial lines in the run logs, since those runs
+% results.csv files were cleaned; the parser reproduces the csv numbers
+% exactly on all 7 rows where both sources exist.
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Pair} &
+\textbf{Attack} &
+\textbf{Selection $S$} &
+\textbf{Attack/Victim $A=V$} &
+\textbf{Random} &
+\textbf{DPP} \\
+\midrule
+
+dog--bird & FC &
+ConvNet & ConvNet & 15.0 \small{(79.82)} & 85.0 \small{(79.92)} \\
+dog--bird & FC &
+ResNet20BN & ConvNet & -- & -- \\
+dog--bird & FC &
+VGG13 & ConvNet & -- & -- \\
+
+\addlinespace
+dog--bird & FC &
+ConvNet & ResNet20BN & -- & -- \\
+dog--bird & FC &
+ResNet20BN & ResNet20BN & 35.0 \small{(83.61)} & 50.0 \small{(83.71)} \\
+dog--bird & FC &
+VGG13 & ResNet20BN & -- & -- \\
+
+\addlinespace
+dog--bird & FC &
+ConvNet & VGG13 & -- & -- \\
+dog--bird & FC &
+ResNet20BN & VGG13 & -- & -- \\
+dog--bird & FC &
+VGG13 & VGG13 & 35.0 \small{(85.24)} & 45.0 \small{(85.22)} \\
+
+\midrule
+
+dog--bird & GM &
+ConvNet & ConvNet & 0.0 \small{(80.44)} & 50.0 \small{(80.39)} \\
+dog--bird & GM &
+ResNet20BN & ConvNet & -- & -- \\
+dog--bird & GM &
+VGG13 & ConvNet & -- & -- \\
+
+\addlinespace
+dog--bird & GM &
+ConvNet & ResNet20BN & -- & -- \\
+dog--bird & GM &
+ResNet20BN & ResNet20BN & 35.0 \small{(83.69)} & 90.0 \small{(83.73)} \\
+dog--bird & GM &
+VGG13 & ResNet20BN & -- & -- \\
+
+\addlinespace
+dog--bird & GM &
+ConvNet & VGG13 & -- & -- \\
+dog--bird & GM &
+ResNet20BN & VGG13 & -- & -- \\
+dog--bird & GM &
+VGG13 & VGG13 & 35.0 \small{(85.40)} & 90.0 \small{(85.29)} \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}

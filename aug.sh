@@ -36,9 +36,17 @@ ATTACK="${ATTACK:-fc gradmatch}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird frog-airplane}"
 BUDGETS="${BUDGETS:-0.002 0.005 0.02}"
 
-# Base selections to compare. random | ours | dpp  (dpp = ours + --sel_dpp)
+# Base selections to RUN. random | ours | dpp  (dpp = ours + --sel_dpp)
 SELS="${SELS:-random dpp}"
 SEL_ALPHA="${SEL_ALPHA:-2.0}"
+
+# Base selections to PIN THE TARGETS OVER. The targets are the intersection of
+# what these selections have poisons for, so every row of the table is scored on
+# the same images. This is deliberately separate from SELS: the per-row shards
+# (aug01.sh ...) run ONE selection each, but must still be pinned to the
+# intersection over ALL of them, or the Random row and the DPP row would each
+# pick their own targets and stop being comparable.
+PAIR_SELS="${PAIR_SELS:-$SELS}"
 
 # Victim-training augmentations. Anything victim_aug.py accepts:
 #   none      no augmentation (the protocol the attacks were crafted against)
@@ -61,6 +69,14 @@ SEED=42
 EPSILON=0.0313725             # 8/255, matches the attack runs
 
 NUM_VICTIMS="${NUM_VICTIMS:-6}"
+
+# How many of the pinned targets to actually run. 0 = all of them.
+# defense.py takes the FIRST n of the pinned list, and that list is the sorted
+# intersection written to target_sets/aug_<combo>_b<budget>.json, so the same n
+# targets are used by every selection and every augmentation -- and the No Aug.
+# column can be recomputed from the existing attack logs by filtering them to
+# those same target indices and to victim_id < NUM_VICTIMS.
+NUM_TARGETS="${NUM_TARGETS:-0}"
 VICTIM_EPOCHS="${VICTIM_EPOCHS:-50}"
 VICTIM_LR=0.1
 VICTIM_BS=125
@@ -68,6 +84,40 @@ VICTIM_DECAY=40
 
 source /home/mmoslem3/ENV/bin/activate
 cd /home/mmoslem3/scratch/attack_if
+
+# ---- preflight: fail fast if this shell cannot actually see a gpu -----------
+# defense.py's resolve_gpus() falls back to the cpu when it finds no gpu, and a
+# cpu victim is ~100x slower, so a login-node launch would sit there looking
+# like it is working for days. Every shard execs this file, so checking once
+# here covers all 16. Also catches a gpu that is visible but unusable (someone
+# else's process holding all the memory, a broken NVML, a stale allocation).
+python - <<'PY' || exit 1
+import sys
+try:
+    import torch
+except Exception as e:
+    sys.exit('preflight FAILED: cannot import torch: %s' % e)
+if not torch.cuda.is_available():
+    sys.exit('preflight FAILED: CUDA is not available. This is almost certainly '
+             'a login node -- get a gpu allocation (salloc / srun --jobid=... '
+             '--overlap) and rerun. Refusing to fall back to the cpu.')
+n = torch.cuda.device_count()
+if n < 1:
+    sys.exit('preflight FAILED: torch.cuda.is_available() is True but '
+             'device_count() is 0')
+try:
+    x = torch.zeros(2048, 2048, device='cuda:0')
+    float((x + 1).sum().item())
+    del x
+    free, total = torch.cuda.mem_get_info(0)
+except Exception as e:
+    sys.exit('preflight FAILED: gpu 0 is visible but unusable: %s' % e)
+if free < 3 * 2 ** 30:
+    sys.exit('preflight FAILED: only %.1f GiB free on gpu 0; a victim needs a '
+             'few GiB. Something else is using this gpu.' % (free / 2 ** 30))
+print('preflight ok: %d gpu(s), %s, %.1f/%.1f GiB free'
+      % (n, torch.cuda.get_device_name(0), free / 2 ** 30, total / 2 ** 30))
+PY
 
 mkdir -p target_sets "$DEF_OUT_DIR"
 
@@ -86,6 +136,8 @@ echo "    attacks    : $ATTACK"
 echo "    pairs      : $CLASS_PAIR"
 echo "    budgets    : $BUDGETS"
 echo "    selections : $SELS   (dpp alpha $SEL_ALPHA)"
+echo "    targets    : intersection over '$PAIR_SELS'${NUM_TARGETS:+, first $NUM_TARGETS}"
+echo "    victims    : $NUM_VICTIMS"
 echo "    augs       : $AUGS   (under defense $DEFENSE)"
 echo "    poisons    : replayed from $OUT_DIR, results into $DEF_OUT_DIR"
 echo
@@ -119,7 +171,7 @@ PY
     # build_run_name and the cache reader come from the real modules, so this
     # can never drift from what defense.py itself will look for.
     PLAN="$(python - "$model" "$attack" "$pair" "$CFG_TGT" "$SEED" "$EPSILON" \
-                     "$OUT_DIR" "$SEL_ALPHA" "$SELS" "$BUDGETS" <<'PY'
+                     "$OUT_DIR" "$SEL_ALPHA" "$PAIR_SELS" "$BUDGETS" <<'PY'
 import argparse, json, os, sys
 import final_update as FU
 import defense as DEF
@@ -151,12 +203,18 @@ for b in budgets:
         have = ts if have is None else (have & ts)
     have = sorted(have or [])
     path = 'target_sets/aug_%s_%s_%s_b%g.json' % (model, attack, pair, b)
-    with open(path, 'w') as f:
-        json.dump({'_generated_by': 'aug.sh -- intersection of the targets '
-                                    'every base selection has saved poisons for',
-                   '_combo': '%s / %s / %s / b%g' % (model, attack, pair, b),
-                   '_per_selection': ' '.join(report),
-                   'pairs': {pair: {'indices': have}}}, f, indent=1)
+    # keyed on the combo, not on the selection, so the per-row shards all pin the
+    # SAME file -- write it atomically, since several of them run at once
+    blob = {'_generated_by': 'aug.sh -- intersection of the targets every base '
+                             'selection in PAIR_SELS has saved poisons for',
+            '_combo': '%s / %s / %s / b%g' % (model, attack, pair, b),
+            '_pair_sels': ' '.join(sels),
+            '_per_selection': ' '.join(report),
+            'pairs': {pair: {'indices': have}}}
+    tmp = '%s.%d.tmp' % (path, os.getpid())
+    with open(tmp, 'w') as f:
+        json.dump(blob, f, indent=1)
+    os.replace(tmp, path)
     print('#  b%-6g %-28s -> %d paired target(s)' % (b, ' '.join(report), len(have)),
           file=sys.stderr)
     if have:
@@ -197,6 +255,7 @@ PY
                     --craft_ensemble 5 --target_select "$CFG_TGT" \
                     --target_idx_file "$idx" \
                     --defense "$DEFENSE" --victim_aug "$aug" \
+                    --num_targets "$NUM_TARGETS" \
                     --num_victims "$NUM_VICTIMS" --victim_epochs "$VICTIM_EPOCHS" \
                     --victim_lr "$VICTIM_LR" --victim_bs "$VICTIM_BS" \
                     --victim_decay "$VICTIM_DECAY" --victim_wd 0.0 \

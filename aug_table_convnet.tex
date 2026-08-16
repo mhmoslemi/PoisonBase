@@ -1,0 +1,88 @@
+% ConvNetBN twin of tab:augmentation-robustness -- place directly below it.
+%
+% EVERY CELL IS EMPTY ON PURPOSE. The Random arm of the ConvNet fc/gradmatch
+% sweep has no saved poisons left in ours_result (DPP has 10 targets cached
+% per cell, Random has 0), so nothing here is paired yet -- not even the
+% No Aug. column, which is a filtered replay of the same trials. The numbers
+% in tab:sweep_asr_clean_minus_cta for ConvNet Random came from runs whose
+% poison caches have since been cleaned; only raw.txt still has their logs.
+%
+% To fill: run cv0.sh (recrafts the Random arm), then cv1-cv4.sh (the aug
+% replay), then regenerate with
+%     python make_aug_table.py --model ConvNetBN --out aug_table_convnet.tex
+%
+% Rows mirror the ResNet20BN table exactly (GM at 2e-3/2e-2, FC at 2e-3/1e-2)
+% so the two can be read side by side.
+\begin{table}[t]
+\centering
+\caption{
+Robustness of base selection to victim-side data augmentation.
+Poisons are optimized once and kept fixed; only the victim-training
+augmentation is changed.  All experiments use ConvNetBN.
+Entries report ASR (\%), with clean test accuracy in parentheses.
+}
+\label{tab:augmentation-robustness-convnet}
+\small
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllclcccc}
+\toprule
+\textbf{Pair} &
+\textbf{Attack} &
+\textbf{$\epsilon$} &
+\textbf{Selection} &
+\textbf{No Aug.} &
+\textbf{Crop+Flip} &
+\textbf{RandAugment} &
+\textbf{Cutout} \\
+\midrule
+
+dog--bird & GM &
+$2{\times}10^{-3}$ & Random & -- & -- & -- & -- \\
+dog--bird & GM &
+$2{\times}10^{-3}$ & DPP & -- & -- & -- & -- \\
+
+dog--bird & GM &
+$2{\times}10^{-2}$ & Random & -- & -- & -- & -- \\
+dog--bird & GM &
+$2{\times}10^{-2}$ & DPP & -- & -- & -- & -- \\
+
+\addlinespace
+dog--bird & FC &
+$2{\times}10^{-3}$ & Random & -- & -- & -- & -- \\
+dog--bird & FC &
+$2{\times}10^{-3}$ & DPP & -- & -- & -- & -- \\
+
+dog--bird & FC &
+$1{\times}10^{-2}$ & Random & -- & -- & -- & -- \\
+dog--bird & FC &
+$1{\times}10^{-2}$ & DPP & -- & -- & -- & -- \\
+
+\midrule
+
+frog--airplane & GM &
+$2{\times}10^{-3}$ & Random & -- & -- & -- & -- \\
+frog--airplane & GM &
+$2{\times}10^{-3}$ & DPP & -- & -- & -- & -- \\
+
+frog--airplane & GM &
+$2{\times}10^{-2}$ & Random & -- & -- & -- & -- \\
+frog--airplane & GM &
+$2{\times}10^{-2}$ & DPP & -- & -- & -- & -- \\
+
+\addlinespace
+frog--airplane & FC &
+$2{\times}10^{-3}$ & Random & -- & -- & -- & -- \\
+frog--airplane & FC &
+$2{\times}10^{-3}$ & DPP & -- & -- & -- & -- \\
+
+frog--airplane & FC &
+$1{\times}10^{-2}$ & Random & -- & -- & -- & -- \\
+frog--airplane & FC &
+$1{\times}10^{-2}$ & DPP & -- & -- & -- & -- \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}

@@ -57,10 +57,11 @@
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
 
-MODEL="${MODEL:-ConvNetBN}"
+MODEL="${MODEL:-ResNet20BN}"
 ATTACK="${ATTACK:-sapa}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
-BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
+# BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
+BUDGETS="${BUDGETS:-0.04}"
 SELECT="${SELECT:-random}"
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
@@ -87,6 +88,23 @@ SEED=42
 
 source /home/mmoslem3/ENV/bin/activate
 cd /home/mmoslem3/scratch/attack_if
+
+# --- refuse to start on a node with no GPU ------------------------------------
+# klogin* has no CUDA driver. resolve_gpus() returns [] when torch.cuda.is_available()
+# is False, so final_update.py SILENTLY falls back to cpu and then gets OOM-killed
+# on any real budget instead of telling you why. Fail in 2 s instead of 20 min.
+if [ -z "$ALLOW_CPU" ]; then
+    python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)" || {
+        echo "!! no CUDA device visible on $(hostname) -- refusing to start."
+        echo "   final_update.py would fall back to cpu and be OOM-killed on big budgets."
+        echo "   run this inside an allocation, e.g.:"
+        echo "     salloc --account=aip-boyuwang --gres=gpu:l40s:1 --cpus-per-task=4 \\"
+        echo "            --mem=32G --time=12:00:00"
+        echo "   or attach to one you already hold:   srun --jobid=<id> --pty bash"
+        echo "   (ALLOW_CPU=1 bypasses this check)"
+        exit 1
+    }
+fi
 
 # reject a bad SELECT once, up front, instead of after hours of surrogate training
 for sel in $SELECT; do

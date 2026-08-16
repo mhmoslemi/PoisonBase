@@ -1,0 +1,54 @@
+[2026-08-16 02:24:33] === defense run: CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.02_eps8_seed42_ce5_tgt10__def-none+aug-standard ===
+[2026-08-16 02:24:33]     poisons replayed from ours_result/CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.02_eps8_seed42_ce5_tgt10
+[2026-08-16 02:24:33]     defense = none  (none+aug-standard)
+[2026-08-16 02:24:33]     victim augmentation = standard  (applied to the poisoned image, resampled every epoch)
+[2026-08-16 02:24:33] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "gradmatch", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "random", "base_dist": "l2", "budget": 0.02, "cache_dir": "./cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_ensemble": 5, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "defense": "none", "defense_out_dir": "defense_result", "defense_parts": ["none"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "lambda_margin": 1.0, "list_cached": false, "model": "ResNet20BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 0, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 1.0, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "target_sets/aug_ResNet20BN_gradmatch_frog-airplane_b0.02.json", "target_select": 10, "victim_aug": "standard", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-16 02:24:55]   10 target(s) with saved poisons: [255, 338, 912, 2041, 2570, 3117, 3207, 4639, 8563, 9235]
+[2026-08-16 02:24:55] === defended clean victims (6 x ResNet20BN, defense none+aug-standard) ===
+[2026-08-16 02:24:56]   defended clean CTA = 0.8968 +/- 0.0011
+[2026-08-16 02:24:56] === target 255: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-16 02:24:56]   victim augmentation: VictimAugmenter(standard: crop4+flip0.5)
+[2026-08-16 02:27:19]   [t255 v1/6] fail (pred=airplane) CTA=0.8964 (142 s)
+[2026-08-16 02:29:41]   [t255 v2/6] fail (pred=airplane) CTA=0.8944 (142 s)
+[2026-08-16 02:32:02]   [t255 v3/6] fail (pred=cat) CTA=0.8979 (141 s)
+[2026-08-16 02:34:24]   [t255 v4/6] fail (pred=airplane) CTA=0.8939 (142 s)
+[2026-08-16 02:36:45]   [t255 v5/6] fail (pred=airplane) CTA=0.8963 (141 s)
+[2026-08-16 02:39:07]   [t255 v6/6] fail (pred=airplane) CTA=0.8959 (142 s)
+[2026-08-16 02:39:07] === target 338: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-16 02:41:28]   [t338 v1/6] fail (pred=airplane) CTA=0.8939 (141 s)
+[2026-08-16 02:43:50]   [t338 v2/6] SUCCESS (pred=frog) CTA=0.8949 (142 s)
+[2026-08-16 02:46:11]   [t338 v3/6] SUCCESS (pred=frog) CTA=0.8939 (141 s)
+[2026-08-16 02:48:33]   [t338 v4/6] SUCCESS (pred=frog) CTA=0.8967 (141 s)
+[2026-08-16 02:50:54]   [t338 v5/6] fail (pred=airplane) CTA=0.8958 (142 s)
+[2026-08-16 02:53:15]   [t338 v6/6] fail (pred=airplane) CTA=0.8943 (141 s)
+[2026-08-16 02:53:15] === target 912: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-16 02:55:36]   [t912 v1/6] fail (pred=airplane) CTA=0.8927 (141 s)
+[2026-08-16 02:57:58]   [t912 v2/6] fail (pred=cat) CTA=0.8957 (142 s)
+[2026-08-16 03:00:19]   [t912 v3/6] fail (pred=airplane) CTA=0.8963 (141 s)
+[2026-08-16 03:02:41]   [t912 v4/6] fail (pred=airplane) CTA=0.8961 (141 s)
+[2026-08-16 03:05:02]   [t912 v5/6] fail (pred=cat) CTA=0.8997 (142 s)
+[2026-08-16 03:07:24]   [t912 v6/6] fail (pred=bird) CTA=0.8958 (141 s)
+[2026-08-16 03:07:24] === target 2041: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-16 03:09:45]   [t2041 v1/6] SUCCESS (pred=frog) CTA=0.8970 (141 s)
+[2026-08-16 03:12:06]   [t2041 v2/6] SUCCESS (pred=frog) CTA=0.8947 (141 s)
+[2026-08-16 03:14:27]   [t2041 v3/6] SUCCESS (pred=frog) CTA=0.8925 (141 s)
+[2026-08-16 12:03:44] === defense run: CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.02_eps8_seed42_ce5_tgt10__def-none+aug-standard ===
+[2026-08-16 12:03:44]     poisons replayed from ours_result/CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.02_eps8_seed42_ce5_tgt10
+[2026-08-16 12:03:44]     defense = none  (none+aug-standard)
+[2026-08-16 12:03:44]     victim augmentation = standard  (applied to the poisoned image, resampled every epoch)
+[2026-08-16 12:03:44] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "gradmatch", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "random", "base_dist": "l2", "budget": 0.02, "cache_dir": "./cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_ensemble": 5, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "defense": "none", "defense_out_dir": "defense_result", "defense_parts": ["none"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "lambda_margin": 1.0, "list_cached": false, "model": "ResNet20BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 5, "num_victims": 4, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 1.0, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "target_sets/aug_ResNet20BN_gradmatch_frog-airplane_b0.02.json", "target_select": 10, "victim_aug": "standard", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-16 12:04:06]   5 target(s) with saved poisons: [255, 338, 912, 2041, 2570]
+[2026-08-16 12:04:06] === defended clean victims (4 x ResNet20BN, defense none+aug-standard) ===
+[2026-08-16 12:04:07]   defended clean CTA = 0.8967 +/- 0.0011
+[2026-08-16 12:04:07]   merged 21 rows left behind by an interrupted run
+[2026-08-16 12:04:07]   resume: 21 (target, victim) trials already done
+[2026-08-16 12:04:07] === target 2041: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-16 12:04:07]   victim augmentation: VictimAugmenter(standard: crop4+flip0.5)
+[2026-08-16 12:06:25]   [t2041 v4/4] fail (pred=airplane) CTA=0.8912 (139 s)
+[2026-08-16 12:06:25] === target 2570: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-16 12:08:42]   [t2570 v1/4] fail (pred=cat) CTA=0.8959 (137 s)
+[2026-08-16 12:11:00]   [t2570 v2/4] fail (pred=airplane) CTA=0.8929 (137 s)
+[2026-08-16 12:13:17]   [t2570 v3/4] fail (pred=airplane) CTA=0.8964 (138 s)
+[2026-08-16 12:15:34]   [t2570 v4/4] fail (pred=airplane) CTA=0.8952 (137 s)
+[2026-08-16 12:15:34] ==== CIFAR10_ResNet20BN_gradmatch_random_frog-airplane_b0.02_eps8_seed42_ce5_tgt10 | defense none+aug-standard : ASR = 25.0% +/- 31.6% | CTA = 0.8952 (defended clean 0.8967) ====
+[2026-08-16 12:15:34]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [4, 0, 0, 1, 0, 0, 0, 0, 0, 0]
