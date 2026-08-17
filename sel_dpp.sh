@@ -62,7 +62,7 @@ ATTACK="${ATTACK:-sapa}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
 BUDGETS="${BUDGETS:-0.04}"
-SELECT="${SELECT:-random}"
+SELECT="${SELECT:-dpp}"
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
 
@@ -74,7 +74,7 @@ SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
 # file exists the pinned 10 images win and this is ignored, so re-running a combo
 # with a different TARGET_SELECT can never silently swap its targets.
 # Empty -> fall back to the combo's difficulty label in sweep_config.json.
-TARGET_SELECT="${TARGET_SELECT:-70}"
+# TARGET_SELECT="${TARGET_SELECT:-70}"
 
 SHARP_MODE="${SHARP_MODE:-worst}"    # ATTACK=sapa only: worst | avg
 SHARP_SIGMA="${SHARP_SIGMA:-0.05}"   # ATTACK=sapa only. worst: l2 radius (SAM rho).

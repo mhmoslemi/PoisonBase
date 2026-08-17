@@ -323,6 +323,19 @@ def get_surrogates(args, train_imgs, train_labs, test_imgs, test_labs,
     return nets
 
 
+def get_sel_surrogates(args, *rest):
+    """Surrogate pool used for base selection only, when --sel_model is set.
+
+    Cross-architecture transfer: the bases are picked by one architecture (S) and
+    the poisons are then crafted and evaluated on another (A = V). Same seeds and
+    same surrogate hyper-parameters as a normal run of S, so these are literally
+    the nets S's own run selected with -- they load straight out of the cache.
+    """
+    sel_args = argparse.Namespace(**vars(args))
+    sel_args.model = args.sel_model
+    return get_surrogates(sel_args, *rest)
+
+
 def get_clean_victims(args, train_imgs, train_labs, test_imgs, test_labs,
                       channel, num_classes, im_size, device, dsa_param, only_id=None):
     d = victim_dir(args)
@@ -1101,9 +1114,13 @@ def merge_result_shards(run_dir, results_path):
 # one target = one unit of work (base selection -> crafting -> victim training)
 # --------------------------------------------------------------------------- #
 
-def prepare_poisons(args, ctx, surrogates, craft_nets, tidx, y_adv, N_p, run_dir,
+def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
                     legacy, recompute=None):
     """Base selection + crafting for one target -> (base_idx, x_adv01, obj, linf).
+
+    sel_nets is the pool the bases are scored on, craft_nets the pool the poisons
+    are optimized against. They are the same ensemble unless --sel_model asks for
+    a cross-architecture run.
 
     Split out of the victim loop so that a gpu which has nothing left to craft can
     still help train the victims of a target another gpu already crafted: it just
@@ -1130,13 +1147,13 @@ def prepare_poisons(args, ctx, surrogates, craft_nets, tidx, y_adv, N_p, run_dir
     elif args.base == 'random':
         base_idx = select_base_random(train_labs, y_adv, N_p, device, gen)
     elif args.sel_mode:
-        base_idx = select_base_ours_div(surrogates, train_imgs, train_labs,
+        base_idx = select_base_ours_div(sel_nets, train_imgs, train_labs,
                                         x_t_norm, y_adv, N_p, args.lambda_margin,
                                         device, base_dist=args.base_dist,
                                         mode=args.sel_mode, pool=args.sel_pool,
                                         mu=args.sel_mu, alpha=args.sel_alpha)
     else:
-        base_idx = select_base_ours(surrogates, train_imgs, train_labs, x_t_norm,
+        base_idx = select_base_ours(sel_nets, train_imgs, train_labs, x_t_norm,
                                     y_adv, N_p, args.lambda_margin, device,
                                     base_dist=args.base_dist)
 
@@ -1229,7 +1246,7 @@ def run_victims(args, ctx, tidx, y_adv, N_p, victim_ids, prep, target_score,
     return tally
 
 
-def run_one_target(args, ctx, surrogates, craft_nets, tidx, y_adv, N_p,
+def run_one_target(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p,
                    target_score, clean_asr, run_dir, completed, legacy, emit,
                    pos=1, total=1):
     """Whole target on one device: used by the single-gpu / sequential path."""
@@ -1238,7 +1255,7 @@ def run_one_target(args, ctx, surrogates, craft_nets, tidx, y_adv, N_p,
     if not todo:
         log('  all %d victims already done, skipping' % args.num_victims)
         return np.zeros(ctx['num_classes'], dtype=np.int64)
-    prep = prepare_poisons(args, ctx, surrogates, craft_nets, tidx, y_adv, N_p,
+    prep = prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p,
                            run_dir, legacy)
     return run_victims(args, ctx, tidx, y_adv, N_p, todo, prep, target_score,
                        clean_asr, emit)
@@ -1392,6 +1409,12 @@ def _target_worker(rank, gpu, out_q, state, lock, args, run_dir, log_path,
                                     ctx['num_classes'], ctx['im_size'], device,
                                     ctx['dsa_param'])
         craft_nets = surrogates[:args.craft_ensemble] if args.craft_ensemble else surrogates
+        sel_nets = surrogates
+        if args.sel_model and args.sel_model != args.model:
+            sel_nets = get_sel_surrogates(args, ctx['train_imgs'], ctx['train_labs'],
+                                          ctx['test_imgs'], ctx['test_labs'],
+                                          ctx['channel'], ctx['num_classes'],
+                                          ctx['im_size'], device, ctx['dsa_param'])
         legacy = load_legacy_cache(run_dir, args.recompute_deltas)
         rf, writer = open_shard(run_dir, rank)
 
@@ -1434,7 +1457,7 @@ def _target_worker(rank, gpu, out_q, state, lock, args, run_dir, log_path,
                     owned.add(tidx)
                 # `already` means another gpu crafted it this run, so read the cache
                 # even under --recompute_deltas instead of crafting it twice
-                prep = prepare_poisons(args, ctx, surrogates, craft_nets, tidx, y_adv,
+                prep = prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv,
                                        N_p, run_dir, legacy,
                                        recompute=(args.recompute_deltas and not already))
                 cur_tidx = tidx
@@ -1556,6 +1579,13 @@ def build_run_name(args):
             name += '_selmmr%g' % args.sel_mu
         elif args.sel_dpp:
             name += '_seldpp%g' % args.sel_alpha
+        # bases picked by another architecture are a different selection, so the
+        # run must not share a directory (or a poison_cache) with the S = A run.
+        # getattr, not args.sel_model: defense.py builds its own Namespace from a
+        # different parser and calls this to find the attack run it replays.
+        sel_model = getattr(args, 'sel_model', None)
+        if sel_model and sel_model != args.model:
+            name += '_selarch%s' % sel_model
     if args.attack == 'fc' and args.fc_mode != 'sample':
         name += '_%s' % args.fc_mode
     if args.attack == 'sapa':
@@ -1628,6 +1658,14 @@ def main(args):
                                 channel, num_classes, im_size, device, dsa_param)
     craft_nets = surrogates[:args.craft_ensemble] if args.craft_ensemble else surrogates
     log('  crafting on %d/%d surrogates' % (len(craft_nets), len(surrogates)))
+
+    sel_nets = surrogates
+    if args.sel_model and args.sel_model != args.model:
+        log('=== selection surrogates (%d x %s, cross-architecture) ==='
+            % (args.num_surrogates, args.sel_model))
+        sel_nets = get_sel_surrogates(args, train_imgs, train_labs, test_imgs,
+                                      test_labs, channel, num_classes, im_size,
+                                      device, dsa_param)
 
     clean_victims, cta_baseline_mean, cta_baseline_std = [], None, None
     if args.clean_baseline:
@@ -1713,7 +1751,7 @@ def main(args):
 
         try:
             for i, tidx in enumerate(pending):
-                tally += run_one_target(args, ctx, surrogates, craft_nets, tidx, y_adv,
+                tally += run_one_target(args, ctx, sel_nets, craft_nets, tidx, y_adv,
                                         N_p, target_scores.get(tidx, ''),
                                         clean_asrs.get(tidx, float('nan')), run_dir,
                                         completed, legacy, emit, i + 1, len(pending))
@@ -1795,6 +1833,10 @@ def parse_args():
     p.add_argument('--dataset', type=str, default='CIFAR10')
     p.add_argument('--data_path', type=str, default='./data')
     p.add_argument('--model', type=str, default='ConvNetBN', choices=SUPPORTED_MODELS)
+    p.add_argument('--sel_model', type=str, default=None, choices=SUPPORTED_MODELS,
+                   help='architecture whose surrogates pick the bases (S in the '
+                        'cross-architecture table). Defaults to --model; crafting '
+                        'and victim training always use --model')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--cache_dir', type=str, default='./cache')
     p.add_argument('--out_dir', type=str, default='./ours_result')
@@ -1966,6 +2008,11 @@ def parse_args():
         p.error('%s are mutually exclusive -- pick one' % ' / '.join(on))
     if on and args.base != 'ours':
         p.error('%s only affects --base ours (got --base %s)' % (on[0], args.base))
+    if args.sel_model and args.sel_model != args.model and args.base != 'ours':
+        # --base random draws from the class pool with a per-target rng and never
+        # touches a net, so an S != A random run would silently duplicate the
+        # S = A one under a different name
+        p.error('--sel_model only affects --base ours (got --base %s)' % args.base)
     args.sel_mode = ({'--sel_filter': 'filter', '--sel_mmr': 'mmr',
                       '--sel_dpp': 'dpp', '--sel_pca': 'pca'}[on[0]] if on else None)
     return args
