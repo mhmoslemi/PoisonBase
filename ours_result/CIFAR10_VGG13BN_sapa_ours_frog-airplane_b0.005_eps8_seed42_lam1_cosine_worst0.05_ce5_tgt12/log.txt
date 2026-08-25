@@ -1,0 +1,32 @@
+[2026-08-25 14:21:23] === run start: CIFAR10_VGG13BN_sapa_ours_frog-airplane_b0.005_eps8_seed42_lam1_cosine_worst0.05_ce5_tgt12 on cuda [0] ===
+[2026-08-25 14:21:23] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "./cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": true, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": true, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/VGG13BN_gradmatch_frog-airplane.json", "target_select": 12, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-25 14:21:23] Jacobian score: disabled
+[2026-08-25 14:21:23] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=6(frog) target_class=0(airplane)
+[2026-08-25 14:21:23] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-08-25 14:21:26]   crafting on 5/20 surrogates
+[2026-08-25 14:21:26] === clean victims (6 x VGG13BN) ===
+[2026-08-25 14:21:28]   clean baseline CTA = 0.8476 +/- 0.0158
+[2026-08-25 14:21:28]   target pool 1000 -> eligible 999 (1 already predicted as y_adv or dropped)
+[2026-08-25 14:21:28]   chosen 10 targets (file), p_adv range 0.0001..0.0001
+[2026-08-25 14:21:28]   targets: [2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481]
+[2026-08-25 14:21:28] === target 2783 (1/10) ===
+[2026-08-25 14:29:13]   target 2783: crafted 250 poisons in 462 s, obj=0.24944
+[2026-08-25 14:29:13]   target 2783: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 14:30:55]   [t2783 v1/6] fail (pred=airplane) CTA=0.8439
+[2026-08-25 14:32:38]   [t2783 v2/6] SUCCESS (pred=frog) CTA=0.8672
+[2026-08-25 14:34:20]   [t2783 v3/6] SUCCESS (pred=frog) CTA=0.8575
+[2026-08-25 14:36:02]   [t2783 v4/6] SUCCESS (pred=frog) CTA=0.8406
+[2026-08-25 14:37:44]   [t2783 v5/6] SUCCESS (pred=frog) CTA=0.8457
+[2026-08-25 14:39:27]   [t2783 v6/6] SUCCESS (pred=frog) CTA=0.8521
+[2026-08-25 14:39:27]   target 2783, 6 victims on this gpu: ASR=83.3% CTA=0.8512 +/- 0.0091
+[2026-08-25 14:39:27] === target 2507 (2/10) ===
+[2026-08-25 14:47:08]   target 2507: crafted 250 poisons in 459 s, obj=0.29250
+[2026-08-25 14:47:08]   target 2507: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 14:48:51]   [t2507 v1/6] SUCCESS (pred=frog) CTA=0.8610
+[2026-08-25 14:50:33]   [t2507 v2/6] SUCCESS (pred=frog) CTA=0.8473
+[2026-08-25 14:52:15]   [t2507 v3/6] fail (pred=cat) CTA=0.8469
+[2026-08-25 14:53:57]   [t2507 v4/6] SUCCESS (pred=frog) CTA=0.8507
+[2026-08-25 14:55:40]   [t2507 v5/6] SUCCESS (pred=frog) CTA=0.8585
+[2026-08-25 14:57:22]   [t2507 v6/6] SUCCESS (pred=frog) CTA=0.8717
+[2026-08-25 14:57:22]   target 2507, 6 victims on this gpu: ASR=83.3% CTA=0.8560 +/- 0.0088
+[2026-08-25 14:57:22] === target 6738 (3/10) ===

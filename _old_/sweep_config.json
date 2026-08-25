@@ -1,0 +1,47 @@
+{
+  "_what": "Per-(model, attack, class_pair) settings an `ours`-base run must match to be comparable to the published `random`-base sweep. Read by ours.sh; every value can be overridden on the command line.",
+
+  "_targets_are_the_point": "`targets` is the list of 10 test-set indices the random-base sweep actually attacked, and ours.sh feeds it to final.py via --target_idx_file. Difficulty is NOT used to select them. A degree re-ranks the eligible pool by clean-ensemble p_adv at run time, so it only reproduces the same images if the clean victims are bit-identical -- and they are not: the ResNet20BN/fc/dog-bird tgt10 runs logged `eligible 972` on some invocations and `eligible 974` on others, with p_adv ranges 0.0609..0.0907 vs 0.0326..0.0356. Same seed, same degree, different targets. Pinning the indices removes that failure mode entirely: same 10 images, paired comparison, by construction.",
+
+  "_targets_provenance": "The `targets: [...]` line of the random-base run whose numbers table.tex reports, taken from ours_result/<run>/log.txt (identical across all 6 budgets of each sweep, as expected). The 4 ConvNetBN combos have no logs left on disk, so theirs come from the PER-TARGET ASR BREAKDOWN header row of result.txt. For the 8 combos where both sources exist they agree exactly. Only runs with num_targets=10 were used -- several combos also have num_targets=4 side experiments with a different target set.",
+
+  "_difficulty_provenance": "The Difficulty column of table.tex, i.e. the --target_select of the run each row reports. Now only a LABEL: it is still passed so the run name keeps its _tgt<N> suffix and lines up with the table, but --target_idx_file takes precedence in final.py (it is checked before the degree branch), so it no longer chooses anything. NOTE ConvNetBN/fc/dog-bird has a second, partial sweep at tgt10 in result.txt -- tgt50 is the one the table reports (ASRs 0.0 1.7 13.3 35.0 73.3 91.7).",
+
+  "_memory_provenance": "--craft_lowmem / --fast_gradmatch exactly as used by those same runs. Only VGG13BN+gradmatch used them, and at every budget (0.001..0.04), not just the large ones. --craft_lowmem takes precedence over --fast_gradmatch in final.py, so those runs used the exact objective, just chunked. Ignored when attack=fc.",
+
+  "targets": {
+    "ConvNetBN": {
+      "fc":        { "dog-bird":      [2540, 8129, 3725, 5705, 7663, 3875, 5169, 6335, 7488, 9831],
+                     "frog-airplane": [7511,  857, 7010, 2091, 1776, 1596, 5354, 3158, 6006, 6191] },
+      "gradmatch": { "dog-bird":      [ 843, 1257, 8252, 8730, 8055, 5859, 8954,  821, 1547, 4427],
+                     "frog-airplane": [ 496, 2087, 8941, 9820, 3825, 1796, 2548, 6437, 3336, 2603] }
+    },
+    "ResNet20BN": {
+      "fc":        { "dog-bird":      [3495, 2903, 6697, 2315, 6899, 2312, 6353, 4421, 2242, 6768],
+                     "frog-airplane": [9273, 2535, 4118, 5462, 8476, 3342,  313, 4490, 2672, 6481] },
+      "gradmatch": { "dog-bird":      [5118, 8740, 5324, 4630,  833, 2065, 7056, 9059, 6707, 9874],
+                     "frog-airplane": [9235,  338,  255, 3207, 8563,  912, 4639, 2570, 3117, 2041] }
+    },
+    "VGG13BN": {
+      "fc":        { "dog-bird":      [3728, 5640, 6922, 7855, 2127, 7586, 7360, 2171, 4462, 2597],
+                     "frog-airplane": [ 912, 9957, 1739, 1165, 3278, 4313,  416, 6491,  338, 4287] },
+      "gradmatch": { "dog-bird":      [ 630,  409, 2270, 9870, 1656, 5022, 9090, 6033, 7940, 9731],
+                     "frog-airplane": [2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481] }
+    }
+  },
+
+  "difficulty": {
+    "ConvNetBN":  { "fc": { "dog-bird": 50, "frog-airplane": 20 },
+                    "gradmatch": { "dog-bird": 70, "frog-airplane": 35 } },
+    "ResNet20BN": { "fc": { "dog-bird": 10, "frog-airplane": 2 },
+                    "gradmatch": { "dog-bird": 14, "frog-airplane": 10 } },
+    "VGG13BN":    { "fc": { "dog-bird": 3,  "frog-airplane": 3 },
+                    "gradmatch": { "dog-bird": 50, "frog-airplane": 12 } }
+  },
+
+  "memory_default": { "craft_lowmem": false, "fast_gradmatch": false },
+
+  "memory": {
+    "VGG13BN": { "gradmatch": { "craft_lowmem": true, "fast_gradmatch": true } }
+  }
+}

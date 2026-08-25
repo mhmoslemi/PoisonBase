@@ -9,7 +9,7 @@ surrogate into a throwaway cache directory with the CUDA peak counter reset arou
 import argparse, os, shutil, sys, tempfile, time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
-import final_update as FU
+import _old_.final_update as FU
 
 p = argparse.ArgumentParser()
 p.add_argument('--model', default='ConvNetBN')

@@ -18,7 +18,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import final_update as FU
+import _old_.final_update as FU
 
 
 class TinyNet(nn.Module):

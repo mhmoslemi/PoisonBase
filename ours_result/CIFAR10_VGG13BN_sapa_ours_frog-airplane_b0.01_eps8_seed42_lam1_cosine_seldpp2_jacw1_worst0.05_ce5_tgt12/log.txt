@@ -1,0 +1,98 @@
+[2026-08-25 00:03:01] === run start: CIFAR10_VGG13BN_sapa_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_seldpp2_jacw1_worst0.05_ce5_tgt12 on cuda [0] ===
+[2026-08-25 00:03:01] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": true, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": true, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/VGG13BN_gradmatch_frog-airplane.json", "target_select": 12, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-25 00:03:01] Jacobian score: enabled, weight=1, batch_size=64
+[2026-08-25 00:03:01] N_total=50000 budget=0.01 -> N_p=500 poisons, y_adv=6(frog) target_class=0(airplane)
+[2026-08-25 00:03:01] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-08-25 00:03:04]   crafting on 5/20 surrogates
+[2026-08-25 00:03:04] === clean victims (6 x VGG13BN) ===
+[2026-08-25 00:03:06]   clean baseline CTA = 0.8476 +/- 0.0158
+[2026-08-25 00:03:06]   target pool 1000 -> eligible 999 (1 already predicted as y_adv or dropped)
+[2026-08-25 00:03:06]   chosen 10 targets (file), p_adv range 0.0001..0.0001
+[2026-08-25 00:03:06]   targets: [2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481]
+[2026-08-25 00:03:06] === target 2783 (1/10) ===
+[2026-08-25 00:03:08]   Jacobian score exact backend: torch.func JVP
+[2026-08-25 05:29:51] === run start: CIFAR10_VGG13BN_sapa_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_seldpp2_jacw1_worst0.05_ce5_tgt12 on cuda [0] ===
+[2026-08-25 05:29:51] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": true, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": true, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/VGG13BN_gradmatch_frog-airplane.json", "target_select": 12, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-25 05:29:51] Jacobian score: enabled, weight=1, batch_size=64
+[2026-08-25 05:29:51] N_total=50000 budget=0.01 -> N_p=500 poisons, y_adv=6(frog) target_class=0(airplane)
+[2026-08-25 05:29:51] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-08-25 05:29:53]   crafting on 5/20 surrogates
+[2026-08-25 05:29:53] === clean victims (6 x VGG13BN) ===
+[2026-08-25 05:29:54]   clean baseline CTA = 0.8476 +/- 0.0158
+[2026-08-25 05:29:54]   target pool 1000 -> eligible 999 (1 already predicted as y_adv or dropped)
+[2026-08-25 05:29:54]   chosen 10 targets (file), p_adv range 0.0001..0.0001
+[2026-08-25 05:29:54]   targets: [2783, 2507, 6738, 5787, 7815, 5074, 7356, 8267, 2264, 6481]
+[2026-08-25 05:29:54] === target 2783 (1/10) ===
+[2026-08-25 05:29:56]   Jacobian score exact backend: torch.func JVP
+[2026-08-25 05:50:02]   target 2783: crafted 500 poisons in 1191 s, obj=0.23468
+[2026-08-25 05:50:02]   target 2783: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 05:51:42]   [t2783 v1/6] fail (pred=airplane) CTA=0.8462
+[2026-08-25 05:53:23]   [t2783 v2/6] SUCCESS (pred=frog) CTA=0.8661
+[2026-08-25 05:55:04]   [t2783 v3/6] SUCCESS (pred=frog) CTA=0.8589
+[2026-08-25 05:56:46]   [t2783 v4/6] SUCCESS (pred=frog) CTA=0.8312
+[2026-08-25 05:58:27]   [t2783 v5/6] SUCCESS (pred=frog) CTA=0.8515
+[2026-08-25 06:00:08]   [t2783 v6/6] SUCCESS (pred=frog) CTA=0.8527
+[2026-08-25 06:00:08]   target 2783, 6 victims on this gpu: ASR=83.3% CTA=0.8511 +/- 0.0109
+[2026-08-25 06:00:08] === target 2507 (2/10) ===
+[2026-08-25 06:20:24]   target 2507: crafted 500 poisons in 1199 s, obj=0.28933
+[2026-08-25 06:20:24]   target 2507: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 06:22:06]   [t2507 v1/6] SUCCESS (pred=frog) CTA=0.8633
+[2026-08-25 06:23:48]   [t2507 v2/6] SUCCESS (pred=frog) CTA=0.8419
+[2026-08-25 06:25:29]   [t2507 v3/6] SUCCESS (pred=frog) CTA=0.8427
+[2026-08-25 06:27:10]   [t2507 v4/6] SUCCESS (pred=frog) CTA=0.8488
+[2026-08-25 06:28:51]   [t2507 v5/6] SUCCESS (pred=frog) CTA=0.8580
+[2026-08-25 06:30:33]   [t2507 v6/6] SUCCESS (pred=frog) CTA=0.8670
+[2026-08-25 06:30:33]   target 2507, 6 victims on this gpu: ASR=100.0% CTA=0.8536 +/- 0.0098
+[2026-08-25 06:30:33] === target 6738 (3/10) ===
+[2026-08-25 06:50:41]   target 6738: crafted 500 poisons in 1192 s, obj=0.37556
+[2026-08-25 06:50:41]   target 6738: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 06:52:23]   [t6738 v1/6] SUCCESS (pred=frog) CTA=0.8417
+[2026-08-25 06:54:04]   [t6738 v2/6] fail (pred=airplane) CTA=0.8256
+[2026-08-25 06:55:46]   [t6738 v3/6] fail (pred=airplane) CTA=0.8627
+[2026-08-25 06:57:27]   [t6738 v4/6] fail (pred=airplane) CTA=0.8553
+[2026-08-25 06:59:09]   [t6738 v5/6] fail (pred=airplane) CTA=0.8560
+[2026-08-25 07:00:50]   [t6738 v6/6] fail (pred=airplane) CTA=0.8532
+[2026-08-25 07:00:50]   target 6738, 6 victims on this gpu: ASR=16.7% CTA=0.8491 +/- 0.0122
+[2026-08-25 07:00:50] === target 5787 (4/10) ===
+[2026-08-25 07:21:06]   target 5787: crafted 500 poisons in 1199 s, obj=0.33412
+[2026-08-25 07:21:06]   target 5787: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 07:22:48]   [t5787 v1/6] SUCCESS (pred=frog) CTA=0.8496
+[2026-08-25 07:24:30]   [t5787 v2/6] SUCCESS (pred=frog) CTA=0.8436
+[2026-08-25 07:26:11]   [t5787 v3/6] SUCCESS (pred=frog) CTA=0.8570
+[2026-08-25 07:27:52]   [t5787 v4/6] SUCCESS (pred=frog) CTA=0.8526
+[2026-08-25 07:29:33]   [t5787 v5/6] SUCCESS (pred=frog) CTA=0.8577
+[2026-08-25 07:31:15]   [t5787 v6/6] SUCCESS (pred=frog) CTA=0.8417
+[2026-08-25 07:31:15]   target 5787, 6 victims on this gpu: ASR=100.0% CTA=0.8504 +/- 0.0061
+[2026-08-25 07:31:15] === target 7815 (5/10) ===
+[2026-08-25 07:51:25]   target 7815: crafted 500 poisons in 1194 s, obj=0.20074
+[2026-08-25 07:51:25]   target 7815: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 07:53:06]   [t7815 v1/6] SUCCESS (pred=frog) CTA=0.8401
+[2026-08-25 07:54:47]   [t7815 v2/6] SUCCESS (pred=frog) CTA=0.8519
+[2026-08-25 07:56:29]   [t7815 v3/6] SUCCESS (pred=frog) CTA=0.8651
+[2026-08-25 07:58:10]   [t7815 v4/6] SUCCESS (pred=frog) CTA=0.8534
+[2026-08-25 07:59:51]   [t7815 v5/6] SUCCESS (pred=frog) CTA=0.8541
+[2026-08-25 08:01:32]   [t7815 v6/6] SUCCESS (pred=frog) CTA=0.8624
+[2026-08-25 08:01:32]   target 7815, 6 victims on this gpu: ASR=100.0% CTA=0.8545 +/- 0.0081
+[2026-08-25 08:01:32] === target 5074 (6/10) ===
+[2026-08-25 08:21:41]   target 5074: crafted 500 poisons in 1192 s, obj=0.25647
+[2026-08-25 08:21:41]   target 5074: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 08:23:22]   [t5074 v1/6] SUCCESS (pred=frog) CTA=0.8225
+[2026-08-25 08:25:04]   [t5074 v2/6] SUCCESS (pred=frog) CTA=0.8550
+[2026-08-25 08:26:45]   [t5074 v3/6] SUCCESS (pred=frog) CTA=0.8499
+[2026-08-25 08:28:26]   [t5074 v4/6] SUCCESS (pred=frog) CTA=0.8603
+[2026-08-25 08:30:07]   [t5074 v5/6] SUCCESS (pred=frog) CTA=0.8609
+[2026-08-25 08:31:48]   [t5074 v6/6] SUCCESS (pred=frog) CTA=0.8612
+[2026-08-25 08:31:48]   target 5074, 6 victims on this gpu: ASR=100.0% CTA=0.8516 +/- 0.0136
+[2026-08-25 08:31:48] === target 7356 (7/10) ===
+[2026-08-25 08:51:56]   target 7356: crafted 500 poisons in 1191 s, obj=0.25316
+[2026-08-25 08:51:56]   target 7356: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 08:53:37]   [t7356 v1/6] SUCCESS (pred=frog) CTA=0.8590
+[2026-08-25 08:55:19]   [t7356 v2/6] SUCCESS (pred=frog) CTA=0.8542
+[2026-08-25 08:57:00]   [t7356 v3/6] SUCCESS (pred=frog) CTA=0.8534
+[2026-08-25 08:58:41]   [t7356 v4/6] SUCCESS (pred=frog) CTA=0.8625
+[2026-08-25 09:00:22]   [t7356 v5/6] SUCCESS (pred=frog) CTA=0.8374
+[2026-08-25 09:02:04]   [t7356 v6/6] SUCCESS (pred=frog) CTA=0.8533
+[2026-08-25 09:02:04]   target 7356, 6 victims on this gpu: ASR=100.0% CTA=0.8533 +/- 0.0079
+[2026-08-25 09:02:04] === target 8267 (8/10) ===
+[2026-08-25 09:59:12]   another process holds this run (kn043:1207863, 57 min ago) -- skipping. Rerun this script once it is done.
+[2026-08-25 10:10:49]   another process holds this run (kn043:1207863, 69 min ago) -- skipping. Rerun this script once it is done.

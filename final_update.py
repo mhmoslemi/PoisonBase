@@ -646,8 +646,8 @@ def _log_interaction_diagnostics(surrogate_idx, interaction):
         frac_pos = float((vals > 0).float().mean())
     else:
         mean = std = lo = hi = frac_pos = float('nan')
-    log('  Jacobian A surrogate %d: finite=%s mean=%g std=%g min=%g max=%g positive=%g'
-        % (surrogate_idx, bool(finite.all()), mean, std, lo, hi, frac_pos))
+    # log('  Jacobian A surrogate %d: finite=%s mean=%g std=%g min=%g max=%g positive=%g'
+    #     % (surrogate_idx, bool(finite.all()), mean, std, lo, hi, frac_pos))
 
 
 @torch.no_grad()

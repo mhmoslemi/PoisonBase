@@ -499,8 +499,8 @@ def main():
     # the repo's own run naming / selection code, not a copy of it
     if a.repo_root not in sys.path:
         sys.path.insert(0, a.repo_root)
-    import final_update as FU
-    from utils import get_dataset
+    import _old_.final_update as FU
+    from _old_.utils import get_dataset
 
     if a.target_select is None:
         a.target_select = difficulty_label(a.sweep_config, a.model, a.attack,

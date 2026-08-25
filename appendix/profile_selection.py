@@ -15,7 +15,7 @@ import argparse, json, os, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
-import final_update as FU
+import _old_.final_update as FU
 
 
 def ns(a, **kw):

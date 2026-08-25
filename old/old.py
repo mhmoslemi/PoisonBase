@@ -53,7 +53,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from utils import (get_dataset, get_network, DiffAugment, ParamDiffAug, get_time,
+from _old_.utils import (get_dataset, get_network, DiffAugment, ParamDiffAug, get_time,
                    evaluate_synset, TensorDataset)
 
 

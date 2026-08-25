@@ -23,7 +23,7 @@ if ROOT not in sys.path:
 import torch
 import torch.nn as nn
 
-import final_update as FU
+import _old_.final_update as FU
 from extra.test_jacobian_score import explicit_interactions
 
 

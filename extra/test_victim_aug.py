@@ -17,13 +17,13 @@ import sys
 import torch
 import torch.nn.functional as F
 
-import victim_aug as VA
+import _old_.victim_aug as VA
 
 
 def _ctx(device, mean=(0.4914, 0.4822, 0.4465), std=(0.2023, 0.1994, 0.2010)):
     m = torch.tensor(mean, device=device).view(1, 3, 1, 1)
     s = torch.tensor(std, device=device).view(1, 3, 1, 1)
-    from utils import ParamDiffAug
+    from _old_.utils import ParamDiffAug
     return {'norm': lambda x: (x - m) / s, 'denorm': lambda x: x * s + m,
             'im_size': (32, 32), 'dsa_param': ParamDiffAug(), 'device': device}
 
@@ -261,7 +261,7 @@ def t_both_training_paths(device):
     is exercised by a `--defense none` smoke run."""
     import torch.nn as nn
 
-    import defense as DEF
+    import _old_.defense as DEF
 
     calls = {'n': 0}
 
@@ -326,7 +326,7 @@ def t_csv_migration(device):
     import shutil
     import tempfile
 
-    import defense as DEF
+    import _old_.defense as DEF
 
     old_fields = [f for f in DEF.RESULT_FIELDS if f != 'aug']
     assert 'aug' in DEF.RESULT_FIELDS and len(old_fields) + 1 == len(DEF.RESULT_FIELDS)

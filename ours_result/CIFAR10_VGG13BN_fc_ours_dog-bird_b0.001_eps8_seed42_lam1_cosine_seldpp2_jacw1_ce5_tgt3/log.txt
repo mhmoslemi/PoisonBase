@@ -1,0 +1,216 @@
+[2026-08-24 23:45:45] === run start: CIFAR10_VGG13BN_fc_ours_dog-bird_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt3 on cuda [0] ===
+[2026-08-24 23:45:45] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.001, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/VGG13BN_fc_dog-bird.json", "target_select": 3, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-24 23:45:45] Jacobian score: enabled, weight=1, batch_size=64
+[2026-08-24 23:45:45] N_total=50000 budget=0.001 -> N_p=50 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-08-24 23:45:45] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-08-24 23:45:47]   crafting on 5/20 surrogates
+[2026-08-24 23:45:47] === clean victims (6 x VGG13BN) ===
+[2026-08-24 23:45:48]   clean baseline CTA = 0.8476 +/- 0.0158
+[2026-08-24 23:45:48]   target pool 1000 -> eligible 970 (30 already predicted as y_adv or dropped)
+[2026-08-24 23:45:48]   chosen 10 targets (file), p_adv range 0.1680..0.1984
+[2026-08-24 23:45:48]   targets: [3728, 5640, 6922, 7855, 2127, 7586, 7360, 2171, 4462, 2597]
+[2026-08-24 23:45:48] === target 3728 (1/10) ===
+[2026-08-24 23:45:49]   Jacobian score exact backend: torch.func JVP
+[2026-08-24 23:45:49]   Jacobian A surrogate 0: finite=True mean=0.712726 std=3.40787 min=-0 max=99.2019 positive=0.7846
+[2026-08-24 23:45:49]   Jacobian A surrogate 1: finite=True mean=0.404059 std=1.80515 min=-0 max=45.2347 positive=0.7426
+[2026-08-24 23:45:50]   Jacobian A surrogate 2: finite=True mean=0.267517 std=1.20702 min=-0 max=29.705 positive=0.7104
+[2026-08-24 23:45:50]   Jacobian A surrogate 3: finite=True mean=0.255377 std=1.48875 min=-1.13391 max=35.4714 positive=0.6254
+[2026-08-24 23:45:51]   Jacobian A surrogate 4: finite=True mean=0.027728 std=0.131244 min=-0.160713 max=2.73709 positive=0.6612
+[2026-08-24 23:45:51]   Jacobian A surrogate 5: finite=True mean=0.150821 std=0.722094 min=-0.507858 max=14.9911 positive=0.6598
+[2026-08-24 23:45:52]   Jacobian A surrogate 6: finite=True mean=0.250282 std=1.31737 min=-0.172485 max=34.0591 positive=0.6962
+[2026-08-24 23:45:52]   Jacobian A surrogate 7: finite=True mean=0.112574 std=0.699301 min=-0.237259 max=28.0234 positive=0.6662
+[2026-08-24 23:45:53]   Jacobian A surrogate 8: finite=True mean=0.126897 std=0.69766 min=-0 max=20.3274 positive=0.6374
+[2026-08-24 23:45:53]   Jacobian A surrogate 9: finite=True mean=0.364455 std=1.69636 min=-0 max=35.2627 positive=0.7618
+[2026-08-24 23:45:54]   Jacobian A surrogate 10: finite=True mean=0.098648 std=0.552864 min=-0 max=10.2531 positive=0.6036
+[2026-08-24 23:45:54]   Jacobian A surrogate 11: finite=True mean=0.0514332 std=0.245001 min=-0 max=5.71445 positive=0.6736
+[2026-08-24 23:45:54]   Jacobian A surrogate 12: finite=True mean=0.244399 std=1.30849 min=-0.221558 max=41.2548 positive=0.671
+[2026-08-24 23:45:55]   Jacobian A surrogate 13: finite=True mean=0.111448 std=0.534215 min=-0 max=10.7892 positive=0.6514
+[2026-08-24 23:45:55]   Jacobian A surrogate 14: finite=True mean=0.181842 std=0.993327 min=-5.33898 max=25.2715 positive=0.59
+[2026-08-24 23:45:56]   Jacobian A surrogate 15: finite=True mean=0.121766 std=0.617729 min=-0.0103149 max=15.6372 positive=0.6088
+[2026-08-24 23:45:56]   Jacobian A surrogate 16: finite=True mean=0.211792 std=0.965644 min=-0.00305176 max=28.256 positive=0.7194
+[2026-08-24 23:45:57]   Jacobian A surrogate 17: finite=True mean=0.228978 std=1.12434 min=-0.00128174 max=33.8171 positive=0.622
+[2026-08-24 23:45:57]   Jacobian A surrogate 18: finite=True mean=0.562487 std=2.75356 min=-4.40051 max=66.613 positive=0.6778
+[2026-08-24 23:45:58]   Jacobian A surrogate 19: finite=True mean=0.226178 std=1.09908 min=-0.00154114 max=39.7181 positive=0.7538
+[2026-08-24 23:46:00]   target 3728: crafted 50 poisons in 2 s, obj=0.00219
+[2026-08-24 23:46:00]   target 3728: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-24 23:47:18]   [t3728 v1/6] fail (pred=bird) CTA=0.8457
+[2026-08-24 23:48:36]   [t3728 v2/6] fail (pred=cat) CTA=0.8606
+[2026-08-24 23:49:55]   [t3728 v3/6] fail (pred=bird) CTA=0.8549
+[2026-08-24 23:51:13]   [t3728 v4/6] fail (pred=deer) CTA=0.8538
+[2026-08-24 23:52:32]   [t3728 v5/6] fail (pred=deer) CTA=0.8604
+[2026-08-24 23:53:50]   [t3728 v6/6] fail (pred=cat) CTA=0.8488
+[2026-08-24 23:53:50]   target 3728, 6 victims on this gpu: ASR=0.0% CTA=0.8540 +/- 0.0055
+[2026-08-24 23:53:50] === target 5640 (2/10) ===
+[2026-08-24 23:53:50]   Jacobian A surrogate 0: finite=True mean=0.54534 std=2.70889 min=-0 max=86.426 positive=0.7846
+[2026-08-24 23:53:51]   Jacobian A surrogate 1: finite=True mean=0.475049 std=2.13111 min=-0.0496216 max=47.7109 positive=0.7422
+[2026-08-24 23:53:51]   Jacobian A surrogate 2: finite=True mean=0.369476 std=1.703 min=-0.317383 max=29.6196 positive=0.714
+[2026-08-24 23:53:52]   Jacobian A surrogate 3: finite=True mean=0.234874 std=1.2243 min=-0.960419 max=21.415 positive=0.6312
+[2026-08-24 23:53:52]   Jacobian A surrogate 4: finite=True mean=0.22159 std=1.00474 min=-0.732941 max=21.8799 positive=0.6824
+[2026-08-24 23:53:53]   Jacobian A surrogate 5: finite=True mean=0.540802 std=2.44092 min=-0 max=53.2134 positive=0.6774
+[2026-08-24 23:53:53]   Jacobian A surrogate 6: finite=True mean=0.545992 std=2.75379 min=-0 max=63.3865 positive=0.7052
+[2026-08-24 23:53:53]   Jacobian A surrogate 7: finite=True mean=0.0894516 std=0.547691 min=-0.204132 max=18.0277 positive=0.6648
+[2026-08-24 23:53:54]   Jacobian A surrogate 8: finite=True mean=0.191683 std=1.02422 min=-0 max=25.4426 positive=0.6372
+[2026-08-24 23:53:54]   Jacobian A surrogate 9: finite=True mean=0.623701 std=2.81269 min=-0 max=70.7617 positive=0.7608
+[2026-08-24 23:53:55]   Jacobian A surrogate 10: finite=True mean=0.1683 std=1.03833 min=-0.161621 max=22.9387 positive=0.604
+[2026-08-24 23:53:55]   Jacobian A surrogate 11: finite=True mean=0.366162 std=1.80452 min=-0 max=59.9365 positive=0.6714
+[2026-08-24 23:53:56]   Jacobian A surrogate 12: finite=True mean=0.238954 std=1.08549 min=-6.10352e-05 max=20.9946 positive=0.6748
+[2026-08-24 23:53:56]   Jacobian A surrogate 13: finite=True mean=0.301379 std=1.46705 min=-0 max=33.0464 positive=0.6516
+[2026-08-24 23:53:57]   Jacobian A surrogate 14: finite=True mean=0.14581 std=0.745598 min=-0.39801 max=15.4939 positive=0.5982
+[2026-08-24 23:53:57]   Jacobian A surrogate 15: finite=True mean=0.173515 std=0.864424 min=-0 max=20.4895 positive=0.6026
+[2026-08-24 23:53:58]   Jacobian A surrogate 16: finite=True mean=0.217717 std=1.06366 min=-0.0986938 max=28.1511 positive=0.7186
+[2026-08-24 23:53:58]   Jacobian A surrogate 17: finite=True mean=0.162498 std=0.900877 min=-2.60777 max=17.9454 positive=0.557
+[2026-08-24 23:53:58]   Jacobian A surrogate 18: finite=True mean=0.822145 std=4.30493 min=-0.231384 max=109.418 positive=0.687
+[2026-08-24 23:53:59]   Jacobian A surrogate 19: finite=True mean=0.242426 std=1.06378 min=-0.0651855 max=24.3747 positive=0.752
+[2026-08-24 23:54:01]   target 5640: crafted 50 poisons in 2 s, obj=0.00190
+[2026-08-24 23:54:01]   target 5640: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-24 23:55:19]   [t5640 v1/6] SUCCESS (pred=dog) CTA=0.8416
+[2026-08-24 23:56:37]   [t5640 v2/6] SUCCESS (pred=dog) CTA=0.8540
+[2026-08-24 23:57:56]   [t5640 v3/6] fail (pred=cat) CTA=0.8462
+[2026-08-24 23:59:14]   [t5640 v4/6] fail (pred=bird) CTA=0.8642
+[2026-08-25 00:00:33]   [t5640 v5/6] fail (pred=bird) CTA=0.8666
+[2026-08-25 00:01:51]   [t5640 v6/6] SUCCESS (pred=dog) CTA=0.8593
+[2026-08-25 00:01:51]   target 5640, 6 victims on this gpu: ASR=50.0% CTA=0.8553 +/- 0.0091
+[2026-08-25 00:01:51] === target 6922 (3/10) ===
+[2026-08-25 00:01:51]   Jacobian A surrogate 0: finite=True mean=0.468814 std=2.32993 min=-0 max=63.3789 positive=0.7842
+[2026-08-25 00:01:52]   Jacobian A surrogate 1: finite=True mean=0.461424 std=1.9607 min=-0 max=36.0999 positive=0.7414
+[2026-08-25 00:01:52]   Jacobian A surrogate 2: finite=True mean=0.289796 std=1.37339 min=-0 max=33.873 positive=0.7118
+[2026-08-25 00:01:53]   Jacobian A surrogate 3: finite=True mean=0.29438 std=1.56102 min=-0 max=41.3008 positive=0.6322
+[2026-08-25 00:01:53]   Jacobian A surrogate 4: finite=True mean=0.0225834 std=0.1012 min=-0 max=1.70612 positive=0.6712
+[2026-08-25 00:01:54]   Jacobian A surrogate 5: finite=True mean=0.498789 std=2.16424 min=-0 max=37.2168 positive=0.6776
+[2026-08-25 00:01:54]   Jacobian A surrogate 6: finite=True mean=0.0450093 std=0.218182 min=-0 max=5.9939 positive=0.7024
+[2026-08-25 00:01:55]   Jacobian A surrogate 7: finite=True mean=0.103608 std=0.691899 min=-0.683777 max=33.387 positive=0.6644
+[2026-08-25 00:01:55]   Jacobian A surrogate 8: finite=True mean=0.163941 std=0.874909 min=-0.0393677 max=22.4536 positive=0.6364
+[2026-08-25 00:01:56]   Jacobian A surrogate 9: finite=True mean=0.390511 std=1.68826 min=-0 max=33.1713 positive=0.76
+[2026-08-25 00:01:56]   Jacobian A surrogate 10: finite=True mean=0.157784 std=0.904388 min=-0 max=17.8701 positive=0.6028
+[2026-08-25 00:01:56]   Jacobian A surrogate 11: finite=True mean=0.202201 std=0.976481 min=-0.0595703 max=29.915 positive=0.6728
+[2026-08-25 00:01:57]   Jacobian A surrogate 12: finite=True mean=0.225984 std=1.06711 min=-0 max=22.8213 positive=0.6778
+[2026-08-25 00:01:57]   Jacobian A surrogate 13: finite=True mean=8.94458e-05 std=0.000432486 min=-0 max=0.00831866 positive=0.6516
+[2026-08-25 00:01:58]   Jacobian A surrogate 14: finite=True mean=0.14105 std=0.668954 min=-0.283569 max=15.6011 positive=0.604
+[2026-08-25 00:01:58]   Jacobian A surrogate 15: finite=True mean=0.107813 std=0.507329 min=-0 max=14.624 positive=0.6074
+[2026-08-25 00:01:59]   Jacobian A surrogate 16: finite=True mean=0.270146 std=1.26771 min=-6.10352e-05 max=30.132 positive=0.723
+[2026-08-25 00:01:59]   Jacobian A surrogate 17: finite=True mean=0.0718706 std=0.33549 min=-0.109375 max=7.099 positive=0.6198
+[2026-08-25 00:02:00]   Jacobian A surrogate 18: finite=True mean=0.949809 std=4.78189 min=-0 max=109.317 positive=0.6888
+[2026-08-25 00:02:00]   Jacobian A surrogate 19: finite=True mean=0.000857564 std=0.00337397 min=-0 max=0.0584524 positive=0.7526
+[2026-08-25 00:02:02]   target 6922: crafted 50 poisons in 2 s, obj=0.00203
+[2026-08-25 00:02:02]   target 6922: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 00:03:20]   [t6922 v1/6] fail (pred=frog) CTA=0.8591
+[2026-08-25 00:04:39]   [t6922 v2/6] SUCCESS (pred=dog) CTA=0.8618
+[2026-08-25 00:05:57]   [t6922 v3/6] SUCCESS (pred=dog) CTA=0.8543
+[2026-08-25 00:07:15]   [t6922 v4/6] fail (pred=frog) CTA=0.8381
+[2026-08-25 00:08:34]   [t6922 v5/6] SUCCESS (pred=dog) CTA=0.8475
+[2026-08-25 00:09:52]   [t6922 v6/6] fail (pred=frog) CTA=0.8430
+[2026-08-25 00:09:52]   target 6922, 6 victims on this gpu: ASR=50.0% CTA=0.8506 +/- 0.0085
+[2026-08-25 00:09:52] === target 7855 (4/10) ===
+[2026-08-25 00:09:52]   Jacobian A surrogate 0: finite=True mean=0.913544 std=4.79434 min=-0 max=173.331 positive=0.784
+[2026-08-25 00:09:53]   Jacobian A surrogate 1: finite=True mean=0.675886 std=2.92487 min=-0 max=60.6196 positive=0.7428
+[2026-08-25 00:09:53]   Jacobian A surrogate 2: finite=True mean=0.258159 std=1.19633 min=-0.0206299 max=24.2175 positive=0.7096
+[2026-08-25 00:09:54]   Jacobian A surrogate 3: finite=True mean=0.418815 std=2.19495 min=-0 max=50.8574 positive=0.633
+[2026-08-25 00:09:54]   Jacobian A surrogate 4: finite=True mean=0.289165 std=1.41174 min=-0.0713806 max=28.2241 positive=0.6732
+[2026-08-25 00:09:54]   Jacobian A surrogate 5: finite=True mean=0.139319 std=0.612343 min=-0 max=11.3087 positive=0.6774
+[2026-08-25 00:09:55]   Jacobian A surrogate 6: finite=True mean=0.368967 std=1.7588 min=-0.0305786 max=43.1699 positive=0.7022
+[2026-08-25 00:09:55]   Jacobian A surrogate 7: finite=True mean=0.213049 std=1.18651 min=-0.2052 max=40.6875 positive=0.6744
+[2026-08-25 00:09:56]   Jacobian A surrogate 8: finite=True mean=0.185966 std=1.05532 min=-0 max=27.397 positive=0.6384
+[2026-08-25 00:09:56]   Jacobian A surrogate 9: finite=True mean=0.573249 std=2.55343 min=-0.00646973 max=53.8486 positive=0.7602
+[2026-08-25 00:09:57]   Jacobian A surrogate 10: finite=True mean=0.162913 std=0.933594 min=-0.135132 max=21.8213 positive=0.603
+[2026-08-25 00:09:57]   Jacobian A surrogate 11: finite=True mean=0.35297 std=1.76539 min=-0.00109863 max=59.4358 positive=0.671
+[2026-08-25 00:09:58]   Jacobian A surrogate 12: finite=True mean=0.0624765 std=0.283207 min=-0.0345001 max=5.73608 positive=0.6756
+[2026-08-25 00:09:58]   Jacobian A surrogate 13: finite=True mean=0.439636 std=2.19182 min=-0 max=47.2056 positive=0.6518
+[2026-08-25 00:09:59]   Jacobian A surrogate 14: finite=True mean=0.276997 std=1.35698 min=-0.231079 max=27.3806 positive=0.6058
+[2026-08-25 00:09:59]   Jacobian A surrogate 15: finite=True mean=0.145508 std=0.690178 min=-0.00146484 max=17.2351 positive=0.6012
+[2026-08-25 00:09:59]   Jacobian A surrogate 16: finite=True mean=0.438867 std=2.08146 min=-2.35107 max=47.7675 positive=0.7216
+[2026-08-25 00:10:00]   Jacobian A surrogate 17: finite=True mean=0.371467 std=1.79673 min=-0.000366211 max=41.1445 positive=0.6214
+[2026-08-25 00:10:00]   Jacobian A surrogate 18: finite=True mean=0.91008 std=4.67801 min=-0 max=105.464 positive=0.6892
+[2026-08-25 00:10:01]   Jacobian A surrogate 19: finite=True mean=0.419537 std=1.73216 min=-0.276901 max=37.7495 positive=0.752
+[2026-08-25 00:10:03]   target 7855: crafted 50 poisons in 2 s, obj=0.00192
+[2026-08-25 00:10:03]   target 7855: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 00:11:21]   [t7855 v1/6] SUCCESS (pred=dog) CTA=0.8516
+[2026-08-25 00:12:40]   [t7855 v2/6] fail (pred=bird) CTA=0.8545
+[2026-08-25 00:13:58]   [t7855 v3/6] fail (pred=bird) CTA=0.8551
+[2026-08-25 00:15:16]   [t7855 v4/6] fail (pred=bird) CTA=0.8540
+[2026-08-25 00:16:35]   [t7855 v5/6] fail (pred=bird) CTA=0.8619
+[2026-08-25 00:17:53]   [t7855 v6/6] SUCCESS (pred=dog) CTA=0.8514
+[2026-08-25 00:17:53]   target 7855, 6 victims on this gpu: ASR=33.3% CTA=0.8548 +/- 0.0035
+[2026-08-25 00:17:53] === target 2127 (5/10) ===
+[2026-08-25 00:17:53]   Jacobian A surrogate 0: finite=True mean=0.70539 std=4.19341 min=-0.0209351 max=151.694 positive=0.783
+[2026-08-25 00:17:54]   Jacobian A surrogate 1: finite=True mean=0.869544 std=3.57056 min=-0 max=73.1953 positive=0.7418
+[2026-08-25 00:17:54]   Jacobian A surrogate 2: finite=True mean=0.301379 std=1.55825 min=-0.765015 max=55.8667 positive=0.71
+[2026-08-25 00:17:55]   Jacobian A surrogate 3: finite=True mean=0.391325 std=2.21148 min=-0 max=70.7231 positive=0.632
+[2026-08-25 00:17:55]   Jacobian A surrogate 4: finite=True mean=0.253829 std=1.16736 min=-0.341858 max=26.4385 positive=0.666
+[2026-08-25 00:17:56]   Jacobian A surrogate 5: finite=True mean=0.347524 std=1.64268 min=-0.026062 max=31.7562 positive=0.6756
+[2026-08-25 00:17:56]   Jacobian A surrogate 6: finite=True mean=0.363964 std=1.90953 min=-0.000610352 max=56.2439 positive=0.7024
+[2026-08-25 00:17:57]   Jacobian A surrogate 7: finite=True mean=0.00860771 std=0.0478838 min=-0.000350952 max=1.58498 positive=0.6762
+[2026-08-25 00:17:57]   Jacobian A surrogate 8: finite=True mean=0.0139625 std=0.0721502 min=-0.0110779 max=2.02023 positive=0.6294
+[2026-08-25 00:17:57]   Jacobian A surrogate 9: finite=True mean=0.315694 std=1.50257 min=-0.154633 max=38.1836 positive=0.7568
+[2026-08-25 00:17:58]   Jacobian A surrogate 10: finite=True mean=0.119355 std=0.731357 min=-0.585953 max=12.9607 positive=0.601
+[2026-08-25 00:17:58]   Jacobian A surrogate 11: finite=True mean=0.00204309 std=0.00984606 min=-0 max=0.215391 positive=0.6744
+[2026-08-25 00:17:59]   Jacobian A surrogate 12: finite=True mean=0.247166 std=1.26049 min=-7.60089 max=28.9062 positive=0.657
+[2026-08-25 00:17:59]   Jacobian A surrogate 13: finite=True mean=0.151152 std=0.712691 min=-0 max=13.8756 positive=0.6512
+[2026-08-25 00:18:00]   Jacobian A surrogate 14: finite=True mean=0.162873 std=0.799976 min=-0.638489 max=18.8755 positive=0.6008
+[2026-08-25 00:18:00]   Jacobian A surrogate 15: finite=True mean=0.0876101 std=0.519623 min=-0.0908203 max=15.8967 positive=0.6038
+[2026-08-25 00:18:01]   Jacobian A surrogate 16: finite=True mean=0.31426 std=1.51147 min=-7.6304 max=45.2323 positive=0.7124
+[2026-08-25 00:18:01]   Jacobian A surrogate 17: finite=True mean=0.133372 std=0.734521 min=-1.78938 max=18.8528 positive=0.5928
+[2026-08-25 00:18:02]   Jacobian A surrogate 18: finite=True mean=0.674893 std=3.54187 min=-4.33337 max=81.5774 positive=0.6796
+[2026-08-25 00:18:02]   Jacobian A surrogate 19: finite=True mean=0.255122 std=1.10064 min=-0 max=29.3682 positive=0.7538
+[2026-08-25 00:18:04]   target 2127: crafted 50 poisons in 2 s, obj=0.00196
+[2026-08-25 00:18:04]   target 2127: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 00:19:22]   [t2127 v1/6] fail (pred=deer) CTA=0.8611
+[2026-08-25 00:20:41]   [t2127 v2/6] fail (pred=deer) CTA=0.8236
+[2026-08-25 00:21:59]   [t2127 v3/6] fail (pred=deer) CTA=0.8480
+[2026-08-25 00:23:17]   [t2127 v4/6] SUCCESS (pred=dog) CTA=0.8525
+[2026-08-25 00:24:36]   [t2127 v5/6] fail (pred=deer) CTA=0.8518
+[2026-08-25 00:25:54]   [t2127 v6/6] fail (pred=deer) CTA=0.8521
+[2026-08-25 00:25:54]   target 2127, 6 victims on this gpu: ASR=16.7% CTA=0.8482 +/- 0.0117
+[2026-08-25 00:25:54] === target 7586 (6/10) ===
+[2026-08-25 00:25:54]   Jacobian A surrogate 0: finite=True mean=0.356626 std=1.56989 min=-1.41248 max=33.688 positive=0.7744
+[2026-08-25 00:25:55]   Jacobian A surrogate 1: finite=True mean=0.4808 std=1.97978 min=-0 max=42.322 positive=0.7424
+[2026-08-25 00:25:55]   Jacobian A surrogate 2: finite=True mean=0.378802 std=1.94005 min=-0.00477219 max=76.6838 positive=0.7114
+[2026-08-25 00:25:56]   Jacobian A surrogate 3: finite=True mean=0.294516 std=1.46864 min=-0 max=24.5298 positive=0.632
+[2026-08-25 00:25:56]   Jacobian A surrogate 4: finite=True mean=0.48339 std=2.16975 min=-0 max=39.0156 positive=0.6712
+[2026-08-25 00:25:56]   Jacobian A surrogate 5: finite=True mean=0.558525 std=2.67608 min=-6.10352e-05 max=61.8259 positive=0.6768
+[2026-08-25 00:25:57]   Jacobian A surrogate 6: finite=True mean=0.433758 std=2.10953 min=-0 max=66.2808 positive=0.7028
+[2026-08-25 00:25:57]   Jacobian A surrogate 7: finite=True mean=0.212851 std=1.22131 min=-0 max=45.9062 positive=0.6762
+[2026-08-25 00:25:58]   Jacobian A surrogate 8: finite=True mean=0.103171 std=0.540218 min=-3.05176e-05 max=17.7142 positive=0.6372
+[2026-08-25 00:25:58]   Jacobian A surrogate 9: finite=True mean=0.630032 std=2.7176 min=-0 max=52.9207 positive=0.761
+[2026-08-25 00:25:59]   Jacobian A surrogate 10: finite=True mean=0.144991 std=0.818874 min=-0.110901 max=19.5162 positive=0.6018
+[2026-08-25 00:25:59]   Jacobian A surrogate 11: finite=True mean=0.184747 std=1.01105 min=-0.891846 max=37.7898 positive=0.6676
+[2026-08-25 00:26:00]   Jacobian A surrogate 12: finite=True mean=0.298483 std=1.37867 min=-0 max=27.1899 positive=0.6774
+[2026-08-25 00:26:00]   Jacobian A surrogate 13: finite=True mean=0.207936 std=0.956651 min=-0 max=19.1478 positive=0.653
+[2026-08-25 00:26:01]   Jacobian A surrogate 14: finite=True mean=0.205446 std=0.982994 min=-0.496887 max=20.751 positive=0.6034
+[2026-08-25 00:26:01]   Jacobian A surrogate 15: finite=True mean=0.11021 std=0.50784 min=-0 max=11.842 positive=0.6078
+[2026-08-25 00:26:02]   Jacobian A surrogate 16: finite=True mean=0.0139241 std=0.0620402 min=-0.0363722 max=1.19141 positive=0.7188
+[2026-08-25 00:26:02]   Jacobian A surrogate 17: finite=True mean=0.44783 std=2.25175 min=-0.00311279 max=46.9634 positive=0.6222
+[2026-08-25 00:26:02]   Jacobian A surrogate 18: finite=True mean=0.390864 std=2.06599 min=-5.45453 max=45.2212 positive=0.6708
+[2026-08-25 00:26:03]   Jacobian A surrogate 19: finite=True mean=0.685059 std=2.79017 min=-0 max=42.5615 positive=0.752
+[2026-08-25 00:26:05]   target 7586: crafted 50 poisons in 2 s, obj=0.00187
+[2026-08-25 00:26:05]   target 7586: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 00:27:23]   [t7586 v1/6] SUCCESS (pred=dog) CTA=0.8557
+[2026-08-25 00:28:42]   [t7586 v2/6] fail (pred=horse) CTA=0.8582
+[2026-08-25 00:30:00]   [t7586 v3/6] fail (pred=horse) CTA=0.8550
+[2026-08-25 00:31:18]   [t7586 v4/6] fail (pred=bird) CTA=0.8572
+[2026-08-25 00:32:36]   [t7586 v5/6] fail (pred=horse) CTA=0.8550
+[2026-08-25 00:33:55]   [t7586 v6/6] fail (pred=horse) CTA=0.8532
+[2026-08-25 00:33:55]   target 7586, 6 victims on this gpu: ASR=16.7% CTA=0.8557 +/- 0.0016
+[2026-08-25 00:33:55] === target 7360 (7/10) ===
+[2026-08-25 00:33:55]   Jacobian A surrogate 0: finite=True mean=0.860584 std=4.24993 min=-0 max=132.401 positive=0.7844
+[2026-08-25 00:33:56]   Jacobian A surrogate 1: finite=True mean=0.627669 std=2.75215 min=-0 max=58.5923 positive=0.7422
+[2026-08-25 00:33:56]   Jacobian A surrogate 2: finite=True mean=0.389519 std=1.82703 min=-0 max=47.4626 positive=0.7108
+[2026-08-25 00:33:56]   Jacobian A surrogate 3: finite=True mean=0.423447 std=2.24001 min=-0 max=58.4229 positive=0.632
+[2026-08-25 00:33:57]   Jacobian A surrogate 4: finite=True mean=0.185213 std=0.822623 min=-0.0043335 max=13.823 positive=0.6712
+[2026-08-25 00:33:57]   Jacobian A surrogate 5: finite=True mean=0.439958 std=1.90008 min=-0.0392456 max=34.7827 positive=0.6772
+[2026-08-25 00:33:58]   Jacobian A surrogate 6: finite=True mean=0.180345 std=0.87079 min=-0 max=26.6505 positive=0.7026
+[2026-08-25 00:33:58]   Jacobian A surrogate 7: finite=True mean=0.140212 std=0.774483 min=-0.156616 max=24.5394 positive=0.677
+[2026-08-25 00:33:59]   Jacobian A surrogate 8: finite=True mean=0.197751 std=1.04953 min=-0 max=27.1455 positive=0.6376
+[2026-08-25 00:33:59]   Jacobian A surrogate 9: finite=True mean=0.39531 std=1.82039 min=-0 max=35.5673 positive=0.761
+[2026-08-25 00:34:00]   Jacobian A surrogate 10: finite=True mean=0.159682 std=0.894541 min=-0 max=19.2 positive=0.6026
+[2026-08-25 00:34:00]   Jacobian A surrogate 11: finite=True mean=0.308979 std=1.63304 min=-1.57825 max=56.1638 positive=0.6708
+[2026-08-25 00:34:01]   Jacobian A surrogate 12: finite=True mean=0.112488 std=0.540749 min=-0.0152588 max=12.0725 positive=0.6766
+[2026-08-25 00:34:01]   Jacobian A surrogate 13: finite=True mean=0.305552 std=1.51083 min=-0 max=33.4402 positive=0.6516
+[2026-08-25 00:34:02]   Jacobian A surrogate 14: finite=True mean=0.197673 std=0.991407 min=-0 max=19.6864 positive=0.6052
+[2026-08-25 00:34:02]   Jacobian A surrogate 15: finite=True mean=0.128429 std=0.593077 min=-6.10352e-05 max=15.5649 positive=0.6062
+[2026-08-25 00:34:03]   Jacobian A surrogate 16: finite=True mean=0.400828 std=1.85983 min=-0.111725 max=53.8655 positive=0.7196
+[2026-08-25 00:34:03]   Jacobian A surrogate 17: finite=True mean=0.215748 std=0.991307 min=-0.290207 max=21.9208 positive=0.6214
+[2026-08-25 00:34:03]   Jacobian A surrogate 18: finite=True mean=0.923709 std=5.12842 min=-0.149292 max=114.567 positive=0.6872
+[2026-08-25 00:34:04]   Jacobian A surrogate 19: finite=True mean=0.0203927 std=0.0814967 min=-0 max=1.55275 positive=0.7528
+[2026-08-25 00:34:06]   target 7360: crafted 50 poisons in 2 s, obj=0.00205
+[2026-08-25 00:34:06]   target 7360: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 00:35:23]   [t7360 v1/6] fail (pred=bird) CTA=0.8561

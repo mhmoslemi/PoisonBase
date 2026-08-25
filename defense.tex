@@ -1,0 +1,85 @@
+\begin{table*}[b]
+\centering
+\caption{
+Robustness to EPIC and FRIENDS defenses on ConvNet, ResNet20, and VGG13. No
+Defense entries are taken from the full-grid evaluation. Rows highlight
+informative configurations and budget 0.04 is excluded. The two ResNet20 GM
+rows at budget 0.02 add the newly reported plain-Greedy defense runs. Their
+FRIENDS cells use all available trials from the trimmed logs (22 dog--bird and
+21 frog--airplane victim runs), treating each last partial target as complete
+at its reported count. Entries report ASR (CTA), and
+``--'' denotes an unevaluated cell.
+Subscript J denotes selection with the exact Jacobian-aware score.
+}
+\vspace{0.2em}
+\label{tab:defense-robustness}
+
+\scriptsize
+\setlength{\tabcolsep}{1.6pt}
+\renewcommand{\arraystretch}{1.0}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}c l l c ccccc ccccc ccccc@{}}
+\toprule
+
+\textbf{Model} &
+\textbf{Attack} &
+\textbf{Pair} &
+$\boldsymbol{\epsilon}$ &
+\multicolumn{5}{c}{\textbf{No Defense}} &
+\multicolumn{5}{c}{\textbf{EPIC}} &
+\multicolumn{5}{c}{\textbf{FRIENDS}}
+\\
+
+\cmidrule(lr){5-9}
+\cmidrule(lr){10-14}
+\cmidrule(lr){15-19}
+
+& & &
+{\footnotesize $(\times10^{-3})$} &
+Random & Greedy & DPP & Greedy\_J & DPP\_J &
+Random & Greedy & DPP & Greedy\_J & DPP\_J &
+Random & Greedy & DPP & Greedy\_J & DPP\_J
+\\
+
+\midrule
+
+\multirow{4}{*}{\textbf{ConvNet}} & BP & dog--bird & 10 &
+  \scoreT{35.0}{80.10} & \scoreT{96.7}{80.14} & \scoreT{93.3}{80.07} & \scoreT{95.0}{80.23} & \scoreT{90.0}{80.20} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & BP & dog--bird & 20 &
+  \scoreT{73.3}{80.09} & \scoreT{98.3}{80.11} & \scoreT{96.7}{80.10} & \scoreT{93.3}{80.13} & \scoreT{96.7}{80.10} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & GM & dog--bird & 20 &
+  \scoreT{43.3}{80.38} & -- & \scoreT{86.7}{80.33} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & SAPA & dog--bird & 20 &
+  \scoreT{50.0}{80.31} & -- & \scoreT{86.7}{80.37} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+
+\midrule
+
+\multirow{6}{*}{\textbf{ResNet20}} & BP & dog--bird & 10 &
+  \scoreT{43.3}{83.62} & \scoreT{55.0}{83.62} & \scoreT{50.0}{83.73} & -- & \scoreT{53.3}{83.79} & \scoreT{25.0}{80.64} & -- & \scoreT{40.0}{80.42} & -- & -- & \scoreT{10.0}{74.33} & -- & \scoreT{10.0}{74.50} & -- & -- \\
+ & GM & dog--bird & 2 &
+  \scoreT{31.7}{83.88} & -- & \scoreT{56.7}{83.70} & -- & \scoreT{60.4}{83.77} & \scoreT{10.0}{80.59} & -- & \scoreT{40.0}{80.23} & -- & -- & \scoreT{5.0}{74.61} & -- & \scoreT{15.0}{74.52} & -- & -- \\
+ & GM & dog--bird & 10 &
+  \scoreT{56.7}{83.73} & -- & \scoreT{91.7}{83.80} & -- & \scoreT{87.9}{83.92} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & GM & dog--bird & 20 &
+  \scoreT{75.0}{83.67} & -- & \scoreT{100.0}{83.77} & -- & -- & -- & \scoreT{68.0}{79.91} & -- & -- & -- & -- & \scoreT{40.0}{74.81} & -- & -- & -- \\
+ & GM & frog--airplane & 20 &
+  \scoreT{45.0}{83.57} & -- & \scoreT{85.0}{83.49} & -- & -- & -- & \scoreT{28.0}{79.68} & -- & -- & -- & -- & \scoreT{12.0}{74.28} & -- & -- & -- \\
+ & SAPA & dog--bird & 10 &
+  \scoreT{65.0}{83.74} & -- & \scoreT{88.3}{83.76} & -- & \scoreT{87.5}{83.86} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+
+\midrule
+
+\multirow{4}{*}{\textbf{VGG13}} & GM & dog--bird & 5 &
+  \scoreT{55.0}{85.49} & -- & \scoreT{96.7}{85.43} & -- & \scoreT{98.3}{85.62} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & GM & dog--bird & 10 &
+  \scoreT{76.7}{85.45} & -- & \scoreT{100.0}{85.47} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & SAPA & dog--bird & 5 &
+  \scoreT{60.0}{85.49} & -- & \scoreT{98.3}{85.42} & -- & \scoreT{98.3}{85.40} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & SAPA & dog--bird & 10 &
+  \scoreT{88.3}{85.36} & -- & \scoreT{100.0}{85.38} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}%
+}
+
+\end{table*}

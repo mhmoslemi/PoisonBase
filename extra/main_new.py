@@ -29,8 +29,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from networks import ConvNet, VGG, ResNet20BN
-from utils import get_dataset, TensorDataset, epoch as run_epoch
+from _old_.networks import ConvNet, VGG, ResNet20BN
+from _old_.utils import get_dataset, TensorDataset, epoch as run_epoch
 
 
 SUPPORTED_MODELS = ['ConvNetBN', 'VGG13BN', 'ResNet20BN']

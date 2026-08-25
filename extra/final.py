@@ -59,29 +59,29 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils import get_dataset, DiffAugment, ParamDiffAug
+from _old_.utils import get_dataset, DiffAugment, ParamDiffAug
 
 try:
-    from utils import get_time
+    from _old_.utils import get_time
 except ImportError:
     def get_time():
         return time.strftime('[%Y-%m-%d %H:%M:%S]')
 
 try:
-    from utils import get_network as _get_network
+    from _old_.utils import get_network as _get_network
 except ImportError:
     _get_network = None
 
 try:
-    from networks import ConvNet as _ConvNet
+    from _old_.networks import ConvNet as _ConvNet
 except Exception:
     _ConvNet = None
 try:
-    from networks import VGG as _VGG
+    from _old_.networks import VGG as _VGG
 except Exception:
     _VGG = None
 try:
-    from networks import ResNet20BN as _ResNet20BN
+    from _old_.networks import ResNet20BN as _ResNet20BN
 except Exception:
     _ResNet20BN = None
 

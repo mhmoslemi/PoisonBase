@@ -164,13 +164,15 @@ def sel_tag(args):
     """How the bases were picked, for the results.csv 'sel' column."""
     if args.base != 'ours':
         return args.base
+    suffix = ('_jacw%g' % args.jacobian_weight
+              if getattr(args, 'use_jacobian_score', False) else '')
     for flag, name, val in [(args.sel_filter, 'filter', args.sel_pool),
                             (args.sel_pca, 'pca', args.sel_pool),
                             (args.sel_mmr, 'mmr', args.sel_mu),
                             (args.sel_dpp, 'dpp', args.sel_alpha)]:
         if flag:
-            return '%s%g' % (name, val)
-    return 'ours'
+            return '%s%g%s' % (name, val, suffix)
+    return 'ours%s' % suffix
 
 
 def attack_run_dir(args):
@@ -540,11 +542,11 @@ def train_victim_defended(args, ctx, net, poison_mask=None, tag=''):
                 info['frac_poison_dropped'] = 1.0 - kept_p / float(n_poison)
                 info['frac_clean_dropped'] = 1.0 - ((len(active) - kept_p)
                                                     / float(N - n_poison))
-                log('  %sepic ep%d: %d -> %d kept, poisons %d/%d (%.1f%% dropped)'
-                    % (tag, ep, before, len(active), kept_p, n_poison,
-                       100.0 * info['frac_poison_dropped']))
-            else:
-                log('  %sepic ep%d: %d -> %d kept' % (tag, ep, before, len(active)))
+            #     log('  %sepic ep%d: %d -> %d kept, poisons %d/%d (%.1f%% dropped)'
+            #         % (tag, ep, before, len(active), kept_p, n_poison,
+            #            100.0 * info['frac_poison_dropped']))
+            # else:
+            #     log('  %sepic ep%d: %d -> %d kept' % (tag, ep, before, len(active)))
             info['n_kept'] = len(active)
 
         if 'friendly' in kinds and ep == args.friendly_begin_epoch:
@@ -980,6 +982,9 @@ def main(args):
         'model': args.model, 'attack': args.attack, 'base': args.base,
         'sel': sel_tag(args), 'class_pair': args.class_pair, 'seed': args.seed,
         'budget': args.budget, 'epsilon': args.epsilon,
+        'use_jacobian_score': args.use_jacobian_score,
+        'jacobian_weight': args.jacobian_weight,
+        'jacobian_batch_size': args.jacobian_batch_size,
         'num_targets': len(per_target), 'num_trials': len(all_cta),
         'asr_mean': float(np.mean(per_target_asr)) if per_target_asr else None,
         'asr_std': float(np.std(per_target_asr)) if per_target_asr else None,
@@ -1028,7 +1033,7 @@ def main(args):
                            % len(errors))
 
 
-def parse_args():
+def parse_args(argv=None):
     p = argparse.ArgumentParser(
         description='Replay saved poisons through a defended victim training.')
 
@@ -1076,6 +1081,14 @@ def parse_args():
     p.add_argument('--sel_mu', type=float, default=1.0)
     p.add_argument('--sel_dpp', action='store_true', default=False)
     p.add_argument('--sel_alpha', type=float, default=1.0)
+    p.add_argument('--use_jacobian_score', action='store_true', default=False,
+                   help='naming only: replay the poison cache selected with the '
+                        'exact Jacobian-aware pointwise score')
+    p.add_argument('--jacobian_weight', type=float, default=1.0,
+                   help='Jacobian score weight used by the attack run being replayed')
+    p.add_argument('--jacobian_batch_size', type=int, default=64,
+                   help='recorded attack-time Jacobian batch size; it does not '
+                        'change run identity or defense computation')
     p.add_argument('--target_select', type=FU.target_select_arg, default='easiest',
                    help='label only here: it just has to match the attack run so '
                         'the _tgt<N> suffix of the run name lines up')
@@ -1151,7 +1164,7 @@ def parse_args():
                    help='print the targets this attack run has poisons for, as '
                         'json, and exit (used by defense.sh to pair the runs)')
 
-    args = p.parse_args()
+    args = p.parse_args(argv)
 
     on = [n for n, v in [('--sel_filter', args.sel_filter), ('--sel_mmr', args.sel_mmr),
                          ('--sel_dpp', args.sel_dpp), ('--sel_pca', args.sel_pca)] if v]
@@ -1159,6 +1172,12 @@ def parse_args():
         p.error('%s are mutually exclusive -- pick one' % ' / '.join(on))
     if on and args.base != 'ours':
         p.error('%s only affects --base ours (got --base %s)' % (on[0], args.base))
+    if args.jacobian_weight < 0:
+        p.error('--jacobian_weight must be nonnegative')
+    if args.jacobian_batch_size <= 0:
+        p.error('--jacobian_batch_size must be positive')
+    if args.use_jacobian_score and args.base != 'ours':
+        p.error('--use_jacobian_score only applies to --base ours')
     args.sel_mode = ({'--sel_filter': 'filter', '--sel_mmr': 'mmr',
                       '--sel_dpp': 'dpp', '--sel_pca': 'pca'}[on[0]] if on else None)
 
