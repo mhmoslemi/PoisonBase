@@ -1,0 +1,130 @@
+\section{Comparison of Selection Criteria}
+\label{sec:selection-ladder}
+
+The main experiments compare DPP with random base selection, but do not
+show how much of the gain comes from target conditioning, surrogate
+information, or diversity. We therefore compare a broader set of
+selection rules while holding the targets, poison budget, downstream
+optimizer, and victim runs fixed. We consider uninformed selection
+(First-$m$, Random), target-independent difficulty criteria (GraNd,
+EL2N, and boundary proximity), increasingly informative
+target-conditioned criteria (pixel distance, feature similarity, and
+target relevance), and our full pointwise and diversity-aware selectors.
+Bottom-$m$, which selects the lowest-scoring examples according to
+Eq.~\eqref{eq:selection-score}, is included only as a diagnostic
+reference.
+
+All surrogate-based criteria use the same $K=20$ ensemble. GraNd and
+EL2N follow \citet{paul2021deep}; Boundary selects by $B_i$, Feature
+similarity uses cosine similarity to $x_t$ from a single surrogate,
+Target relevance uses $R_i(x_t)$, Greedy selects the top-$m$ examples
+according to $B_i+\lambda R_i(x_t)$, and DPP applies the diversity-aware
+selection of Section~\ref{sec:methodology}. We evaluate five fixed
+bird$\rightarrow$dog targets with five victim runs per target at
+$\epsilon=2\times10^{-3}$.
+
+\begin{table}[!ht]
+\centering
+\caption{
+Comparison of base-selection criteria on bird$\rightarrow$dog at
+$\epsilon=2\times10^{-3}$. All methods use the same targets, victim
+runs, poison budget, and downstream attack settings. Entries report
+mean ASR (\%).
+}
+\label{tab:selection-ladder}
+\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{lcccc}
+\toprule
+&
+\multicolumn{2}{c}{\textbf{ConvNetBN}} &
+\multicolumn{2}{c}{\textbf{ResNet20BN}} \\
+\cmidrule(lr){2-3}
+\cmidrule(lr){4-5}
+\textbf{Selection} &
+\textbf{FC} &
+\textbf{GM} &
+\textbf{FC} &
+\textbf{GM} \\
+\midrule
+Bottom-$m$        & 0.0 & 0.0 & 0.0 & 12.0 \\
+First-$m$         & 0.0 & 0.0 & 8.0 & 24.0 \\
+Random            & 0.0 & 4.0 & 4.0 & 16.0 \\
+\midrule
+GraNd             & 64.0 & 40.0 & 4.0 & 36.0 \\
+EL2N              & 60.0 & 52.0 & 12.0 & 36.0 \\
+Boundary ($B_i$)  & 52.0 & 48.0 & 12.0 & 40.0 \\
+\midrule
+Pixel distance    & 44.0 & 40.0 & 4.0 & 36.0 \\
+Feature similarity ($K=1$) & 48.0 & 28.0 & 4.0 & 20.0 \\
+Target relevance ($R_i$)    & 44.0 & 36.0 & 0.0 & 24.0 \\
+\midrule
+Greedy            & 60.0 & 36.0 & 4.0 & 36.0 \\
+DPP               & 60.0 & 36.0 & 12.0 & 40.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:selection-ladder} separates the contribution of the
+different information sources used for base selection. Bottom-$m$,
+First-$m$, and Random quantify variation due to uninformed base choice;
+GraNd, EL2N, and Boundary test whether generally difficult or influential
+examples are sufficient; and the remaining criteria progressively
+incorporate information about the particular target. The comparison
+between Target relevance, Greedy, and DPP further isolates the
+contribution of boundary information and set-level diversity. Across
+the four model--attack settings, Random achieves 6.0\% ASR on average,
+compared with 40.0\% for the strongest target-independent criterion
+(EL2N), 34.0\% for Greedy, and 37.0\% for DPP.
+
+
+\paragraph{Effect of perturbation budget.}
+We additionally examine whether the importance of base selection changes
+with the perturbation radius. Using GM with ConvNetBN, we select each
+base set once and reuse it across
+$\epsilon\in\{2\times10^{-3},5\times10^{-3},1\times10^{-2}\}$. Thus, only
+the admissible perturbation neighborhood changes across columns.
+
+\begin{table}[!ht]
+\centering
+\caption{
+Effect of perturbation budget on base selection using GM with ConvNetBN
+on bird$\rightarrow$dog. The selected bases are fixed across budgets.
+Entries report mean ASR (\%).
+}
+\label{tab:selection-ladder-budget}
+\small
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Selection} &
+$\boldsymbol{2{\times}10^{-3}}$ &
+$\boldsymbol{5{\times}10^{-3}}$ &
+$\boldsymbol{1{\times}10^{-2}}$ \\
+\midrule
+Bottom-$m$      & 0.0 & 0.0 & 4.0 \\
+First-$m$       & 0.0 & 16.0 & 44.0 \\
+Random          & 4.0 & 12.0 & 40.0 \\
+Pixel distance  & 40.0 & 56.0 & 60.0 \\
+DPP             & 36.0 & 64.0 & 60.0 \\
+\midrule
+DPP $-$ Bottom-$m$ & +36.0 & +64.0 & +56.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The gap between favorable and unfavorable base choices changes from 36.0
+percentage points at $\epsilon=2\times10^{-3}$ to 56.0 at
+$\epsilon=1\times10^{-2}$. This directly tests the motivation of
+Section~\ref{sec:methodology}: when the perturbation budget is small,
+the clean base more strongly restricts the region accessible to the
+poison optimizer, whereas this dependence can weaken as the admissible
+neighborhood expands.
+
+Overall, these experiments quantify how much attack performance is
+determined by base choice before perturbation optimization begins.
+They also distinguish the benefit of simply conditioning selection on
+the target from the additional gains obtained by the proposed
+pointwise score and diversity-aware subset construction.

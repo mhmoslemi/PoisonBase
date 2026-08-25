@@ -81,6 +81,7 @@ Example:
 """
 
 import argparse
+import atexit
 import csv
 import gc
 import glob
@@ -128,8 +129,11 @@ except Exception:
     _ResNet20BN = None
 
 
-SUPPORTED_MODELS = ['ConvNetBN', 'VGG13BN', 'ResNet20BN']
-CLASS_PAIRS = ['dog-bird', 'frog-airplane']
+DSA_DEFAULT = 'color_crop_cutout_flip_scale_rotate'
+SUPPORTED_MODELS = ['ConvNetBN', 'VGG13BN', 'ResNet20BN', 'ResNet18', 'ResNet18BN']
+CLASS_PAIRS = ['dog-bird', 'frog-airplane']   # the main sweep's pairs; --class_pair
+                                             # accepts any '<adv>-<target>' whose two
+                                             # names exist in the dataset
 
 _LOG_PATH = None
 _LOG_TAG = ''          # set to '[gpu3]' inside a worker process
@@ -178,7 +182,14 @@ def stack_dataset(dst, device):
 
 
 def parse_pair(pair, class_names, order='poison-target'):
+    if pair.count('-') != 1:
+        raise SystemExit("--class_pair must be '<adversarial>-<target>', got %r" % pair)
     a, b = pair.split('-')
+    for n in (a, b):
+        if n not in class_names:
+            raise SystemExit('--class_pair: %r is not a class of this dataset. Known: %s'
+                             % (n, ', '.join(map(str, class_names[:12]))
+                                + (' ...' if len(class_names) > 12 else '')))
     if order == 'poison-target':
         return class_names.index(a), class_names.index(b)   # y_adv, target_class
     return class_names.index(b), class_names.index(a)
@@ -272,18 +283,27 @@ def predict_target(net, x_t_norm):
 # cached model pools (surrogates + clean victims), both on the real full set
 # --------------------------------------------------------------------------- #
 
+def dataset_tag(args):
+    """Cache paths were keyed on the model alone, which is unambiguous only while
+    there is one dataset: ConvNetBN on CIFAR-10 and ConvNetBN on TinyImageNet have
+    different input sizes and class counts, so they cannot share a checkpoint.
+    CIFAR-10 keeps the bare name so every net already in cache/ stays valid."""
+    ds = getattr(args, 'dataset', 'CIFAR10')
+    return '' if ds == 'CIFAR10' else ds + '_'
+
+
 def surrogate_dir(args):
     return os.path.join(args.cache_dir, 'surrogates',
-                        '%s_%dep_lr%g_bs%d_seed%d'
-                        % (args.model, args.surrogate_epochs, args.surrogate_lr,
-                           args.surrogate_bs, args.seed))
+                        '%s%s_%dep_lr%g_bs%d_seed%d'
+                        % (dataset_tag(args), args.model, args.surrogate_epochs,
+                           args.surrogate_lr, args.surrogate_bs, args.seed))
 
 
 def victim_dir(args):
     return os.path.join(args.cache_dir, 'clean_victims',
-                        '%s_%dep_lr%g_bs%d_wd%g_seed%d'
-                        % (args.model, args.victim_epochs, args.victim_lr,
-                           args.victim_bs, args.victim_wd, args.seed))
+                        '%s%s_%dep_lr%g_bs%d_wd%g_seed%d'
+                        % (dataset_tag(args), args.model, args.victim_epochs,
+                           args.victim_lr, args.victim_bs, args.victim_wd, args.seed))
 
 
 def _load_or_train(path, model_name, seed, train_imgs, train_labs, test_imgs, test_labs,
@@ -544,6 +564,52 @@ def _ours_score_and_feats(nets, images_norm, labels, x_t_norm, y_adv, lam, devic
     return cls_idx, score, feats
 
 
+@torch.no_grad()
+def select_base_topr(nets, images_norm, labels, x_t_norm, y_adv, N_p, r, lam, device,
+                     base_dist='l2'):
+    """Concentrate the poison budget into r feature-space neighbourhoods.
+
+    Same budget, fewer distinct regions: take the r best-scoring candidates as
+    seeds, then fill the remaining N_p - r slots with each seed's nearest
+    neighbours in the candidate pool, round-robin so the seeds stay balanced.
+
+    Every returned index is DISTINCT. Literally replicating one base is not
+    expressible in this threat model: a poison replaces a specific training
+    example, so m copies of one index collapse to a single poisoned image and the
+    budget would silently drop from N_p to r. Concentrating into neighbourhoods
+    keeps N_p poisoned images while still varying how many separate favourable
+    regions the budget is spread over, which is the question the ablation asks.
+
+    r >= N_p reduces to plain greedy selection.
+    """
+    cls_idx, score, feats = _ours_score_and_feats(nets, images_norm, labels, x_t_norm,
+                                                  y_adv, lam, device, base_dist=base_dist)
+    if len(cls_idx) < N_p:
+        raise ValueError('class %d has %d candidates < N_p=%d' % (y_adv, len(cls_idx), N_p))
+    if r >= N_p:
+        return cls_idx[torch.topk(score, k=N_p, largest=False).indices]
+    seeds = torch.topk(score, k=r, largest=False).indices
+    chosen, taken = seeds.tolist(), set(seeds.tolist())
+    order = [torch.argsort(feats @ feats[s], descending=True).tolist() for s in seeds]
+    ptr = [0] * r
+    while len(chosen) < N_p:
+        moved = False
+        for k in range(r):
+            if len(chosen) >= N_p:
+                break
+            while ptr[k] < len(order[k]) and order[k][ptr[k]] in taken:
+                ptr[k] += 1
+            if ptr[k] < len(order[k]):
+                j = order[k][ptr[k]]
+                ptr[k] += 1
+                chosen.append(j)
+                taken.add(j)
+                moved = True
+        if not moved:
+            raise ValueError('candidate pool exhausted before reaching N_p')
+    return cls_idx[torch.tensor(chosen, device=device)]
+
+
 def _sim_to(feats, j):
     return feats @ feats[j]
 
@@ -674,6 +740,106 @@ def select_base_random(labels, y_adv, N_p, device, gen):
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
     perm = torch.randperm(len(cls_idx), generator=gen)[:N_p].to(device)
     return cls_idx[perm]
+
+
+# --------------------------------------------------------------------------- #
+# the selection ladder of app-base.tex, tab:selection-ladder
+#
+# Every rule below picks N_p bases from the SAME adversarial-class pool that
+# select_base_ours draws from, so the rows of that table differ only in the
+# scoring rule. They fall into three groups:
+#
+#   uninformed            first, bottom
+#   target-independent    grand, el2n, boundary
+#   target-conditioned    pixel, featsim, relevance
+#
+# 'bottom' is the diagnostic reference: it is select_base_ours run backwards,
+# i.e. the N_p WORST-scoring candidates, and is the only rule here meant to
+# under-perform random.
+#
+# GraNd and EL2N follow Paul et al. (2021). EL2N is exact -- ||softmax(z) - y||_2.
+# GraNd is the standard last-layer approximation, ||softmax(z) - y||_2 * ||f(x)||_2,
+# which is the norm of the loss gradient w.r.t. the final linear layer; the full
+# parameter-gradient norm would cost a backward pass per candidate per surrogate.
+# Both score the candidate's own difficulty and never look at the target, which is
+# exactly the point of including them.
+#
+# Direction matters and differs per rule. GraNd/EL2N take the LARGEST scores (the
+# hard, high-influence examples those papers advocate); every distance-like rule
+# takes the SMALLEST (closest to the target).
+# --------------------------------------------------------------------------- #
+
+SEL_CRITERIA = ['first', 'bottom', 'grand', 'el2n', 'boundary',
+                'pixel', 'featsim', 'relevance']
+
+
+@torch.no_grad()
+def select_base_criterion(criterion, nets, images_norm, labels, x_t_norm, y_adv,
+                          N_p, lam, device, base_dist='l2', bs=512):
+    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
+    if len(cls_idx) < N_p:
+        raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
+    cand = images_norm[cls_idx]
+
+    if criterion == 'first':
+        return cls_idx[:N_p]
+
+    if criterion == 'pixel':                      # pixel-space L2 to the target
+        d = torch.empty(len(cand), device=device)
+        flat_t = x_t_norm.reshape(-1)
+        for i in range(0, len(cand), bs):
+            b = cand[i:i + bs]
+            d[i:i + len(b)] = ((b.reshape(len(b), -1) - flat_t) ** 2).sum(dim=1)
+        return cls_idx[torch.topk(d, k=N_p, largest=False).indices]
+
+    if criterion == 'featsim':                    # cosine to the target, ONE surrogate
+        net = nets[0]
+        net.eval()
+        emb = embed_of(net)
+        f_t = emb(x_t_norm.unsqueeze(0))
+        s = torch.empty(len(cand), device=device)
+        for i in range(0, len(cand), bs):
+            b = cand[i:i + bs]
+            s[i:i + len(b)] = F.cosine_similarity(emb(b), f_t.expand(len(b), -1), dim=1)
+        return cls_idx[torch.topk(s, k=N_p, largest=True).indices]
+
+    # ---- the remaining rules average a per-surrogate score over the ensemble --
+    score = torch.zeros(len(cls_idx), device=device)
+    for net in nets:
+        net.eval()
+        emb = embed_of(net)
+        f_t = emb(x_t_norm.unsqueeze(0)) if criterion in ('relevance', 'bottom') else None
+        parts = []
+        for i in range(0, len(cand), bs):
+            b = cand[i:i + bs]
+            z = net(b)
+            if criterion in ('grand', 'el2n'):
+                p = F.softmax(z, dim=1)
+                p[:, y_adv] -= 1.0                # candidates are all true class y_adv
+                e = p.norm(dim=1)
+                parts.append(e * emb(b).flatten(1).norm(dim=1) if criterion == 'grand' else e)
+                continue
+            z_adv = z[:, y_adv].clone()
+            z_o = z.clone()
+            z_o[:, y_adv] = float('-inf')
+            m = z_adv - z_o.max(dim=1).values
+            if criterion == 'boundary':
+                parts.append(m)
+                continue
+            fb = emb(b)
+            if base_dist == 'cosine':
+                d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
+            else:
+                d = ((fb - f_t) ** 2).sum(dim=1)
+            if criterion == 'relevance':
+                parts.append(d)
+            else:                                 # 'bottom' -- the full ours score
+                parts.append(standardize(d) + lam * standardize(m))
+        score += torch.cat(parts) if criterion == 'bottom' else standardize(torch.cat(parts))
+    score /= len(nets)
+
+    largest = criterion in ('grand', 'el2n', 'bottom')
+    return cls_idx[torch.topk(score, k=N_p, largest=largest).indices]
 
 
 # --------------------------------------------------------------------------- #
@@ -932,10 +1098,14 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
             if fast:
                 obj_val = 0.0
                 grad_accum = torch.zeros_like(delta)
-                for net, g_t in zip(nets, g_targets):
+                for _i, (net, g_t) in enumerate(zip(nets, g_targets)):
                     params = [p for p in net.parameters() if p.requires_grad]
                     loss_p = crit(net(x_adv_norm), y_p)
-                    all_grads = torch.autograd.grad(loss_p, params + [delta])
+                    # x_adv_norm is built once and shared by every net, so all but
+                    # the last backward must keep that subgraph alive
+                    all_grads = torch.autograd.grad(
+                        loss_p, params + [delta],
+                        retain_graph=(_i < len(nets) - 1))
                     g_p = flat_grad(list(all_grads[:-1])).detach()
                     grad_accum = grad_accum + all_grads[-1].detach()
                     obj_val += (1.0 - cosine(g_p, g_t)).item()
@@ -1058,6 +1228,62 @@ def save_poison_cache(run_dir, tidx, delta, base_list):
     os.replace(bp + '.tmp', bp)
 
 
+LOCK_STALE_S = 7200      # a lock older than this is assumed to belong to a dead job.
+                         # Must exceed the longest gap between trials: a b0.04 craft
+                         # alone runs ~77 min.
+
+
+def acquire_run_lock(run_dir):
+    """Refuse to run two processes in one run dir.
+
+    Several appendix tables legitimately share a configuration -- the ConvNetBN
+    dog-bird b0.005 runs appear in the broad, matched-architecture and
+    cross-dataset scripts -- so the same run dir can be requested twice. Sharing
+    the RESULT is fine; running both at once is not: each process merges and then
+    deletes the other's results_rank*.csv, and the survivor dies on a stale file
+    handle mid-write.
+
+    Returns the lock path, or None if someone else holds it (caller should skip).
+    """
+    path = os.path.join(run_dir, '.lock')
+    me = '%s:%d' % (os.uname().nodename, os.getpid())
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(fd, me.encode())
+        os.close(fd)
+        return path
+    except FileExistsError:
+        pass
+    try:
+        age = time.time() - os.path.getmtime(path)
+        who = open(path).read().strip()
+    except OSError:
+        return acquire_run_lock(run_dir)          # vanished between the two calls
+    if age < LOCK_STALE_S:
+        log('  another process holds this run (%s, %.0f min ago) -- skipping. '
+            'Rerun this script once it is done.' % (who, age / 60))
+        return None
+    log('  taking over a stale lock from %s (%.0f min old)' % (who, age / 60))
+    with open(path, 'w') as f:
+        f.write(me)
+    return path
+
+
+def touch_run_lock(path):
+    try:
+        os.utime(path, None)
+    except OSError:
+        pass
+
+
+def release_run_lock(path):
+    try:
+        if path:
+            os.remove(path)
+    except OSError:
+        pass
+
+
 def _shard_paths(run_dir):
     return sorted(glob.glob(os.path.join(run_dir, 'results_rank*.csv')))
 
@@ -1146,14 +1372,29 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         base_idx = torch.tensor(cached_base, dtype=torch.long, device=device)
     elif args.base == 'random':
         base_idx = select_base_random(train_labs, y_adv, N_p, device, gen)
+    elif getattr(args, 'sel_criterion', None):
+        base_idx = select_base_criterion(
+            args.sel_criterion,
+            sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+            train_imgs, train_labs, x_t_norm, y_adv, N_p, args.lambda_margin,
+            device, base_dist=args.base_dist)
+    elif args.base_topr:
+        base_idx = select_base_topr(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+                                    train_imgs, train_labs, x_t_norm, y_adv, N_p,
+                                    args.base_topr, args.lambda_margin, device,
+                                    base_dist=args.base_dist)
+        log('  target %d: budget concentrated in %d neighbourhood(s), %d distinct bases'
+            % (tidx, args.base_topr, len(base_idx)))
     elif args.sel_mode:
-        base_idx = select_base_ours_div(sel_nets, train_imgs, train_labs,
+        base_idx = select_base_ours_div(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+                                        train_imgs, train_labs,
                                         x_t_norm, y_adv, N_p, args.lambda_margin,
                                         device, base_dist=args.base_dist,
                                         mode=args.sel_mode, pool=args.sel_pool,
                                         mu=args.sel_mu, alpha=args.sel_alpha)
     else:
-        base_idx = select_base_ours(sel_nets, train_imgs, train_labs, x_t_norm,
+        base_idx = select_base_ours(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+                                    train_imgs, train_labs, x_t_norm,
                                     y_adv, N_p, args.lambda_margin, device,
                                     base_dist=args.base_dist)
 
@@ -1410,7 +1651,7 @@ def _target_worker(rank, gpu, out_q, state, lock, args, run_dir, log_path,
                                     ctx['dsa_param'])
         craft_nets = surrogates[:args.craft_ensemble] if args.craft_ensemble else surrogates
         sel_nets = surrogates
-        if args.sel_model and args.sel_model != args.model:
+        if args.sel_model and args.sel_model != args.model and args.base == 'ours':
             sel_nets = get_sel_surrogates(args, ctx['train_imgs'], ctx['train_labs'],
                                           ctx['test_imgs'], ctx['test_labs'],
                                           ctx['channel'], ctx['num_classes'],
@@ -1564,9 +1805,17 @@ def pretrain_pools_parallel(args, gpus, log_path):
 # --------------------------------------------------------------------------- #
 
 def build_run_name(args):
-    name = ('%s_%s_%s_%s_%s_b%g_eps%d_seed%d'
+    # eps%d alone rounds eps*255 to an integer, so any two radii inside the same
+    # 1/255 bucket -- 2e-3 and 5e-3 are both 'eps1' -- would share a run directory
+    # and cross-contaminate each other's poison_cache. Sub-1/255 radii therefore get
+    # a precise tag. Radii that ARE whole 1/255 steps keep the old spelling, so every
+    # run already on disk (eps8, eps16) resolves unchanged.
+    e255 = args.epsilon * 255.0
+    eps_tag = ('%d' % round(e255) if abs(e255 - round(e255)) < 1e-3
+               else ('%g' % e255).replace('.', 'p'))
+    name = ('%s_%s_%s_%s_%s_b%g_eps%s_seed%d'
             % (args.dataset, args.model, args.attack, args.base, args.class_pair,
-               args.budget, round(args.epsilon * 255), args.seed))
+               args.budget, eps_tag, args.seed))
     if args.base == 'ours':
         name += '_lam%g_%s' % (args.lambda_margin, args.base_dist)
         # a diversity mode is a DIFFERENT selection, so it must not share a run
@@ -1579,13 +1828,37 @@ def build_run_name(args):
             name += '_selmmr%g' % args.sel_mu
         elif args.sel_dpp:
             name += '_seldpp%g' % args.sel_alpha
-        # bases picked by another architecture are a different selection, so the
-        # run must not share a directory (or a poison_cache) with the S = A run.
-        # getattr, not args.sel_model: defense.py builds its own Namespace from a
-        # different parser and calls this to find the attack run it replays.
-        sel_model = getattr(args, 'sel_model', None)
-        if sel_model and sel_model != args.model:
-            name += '_selarch%s' % sel_model
+    # bases picked by another architecture are a different selection, so the run
+    # must not share a directory (or a poison_cache) with the S = A run. Outside
+    # the --base ours block on purpose: --base random ignores sel_model, but an
+    # S != A random run still needs its own directory, or it would overwrite the
+    # diagonal run it is meant to reproduce. For --base ours the suffix lands in
+    # exactly the same place it always did, so no existing run dir changes name.
+    # getattr, not args.sel_model: defense.py builds its own Namespace from a
+    # different parser and calls this to find the attack run it replays.
+    sel_model = getattr(args, 'sel_model', None)
+    if sel_model and sel_model != args.model:
+        name += '_selarch%s' % sel_model
+    # a different selector ensemble size is a different selection, so it needs its
+    # own run dir. Only when asked for explicitly -- runs that never pass --sel_K
+    # keep the name they have always had.
+    crit = getattr(args, 'sel_criterion', None)
+    if crit:
+        name += '_sel%s' % crit
+    sel_K = getattr(args, 'sel_K', None)
+    if sel_K:
+        name += '_K%d' % sel_K
+    # Craft-time augmentation changes the poisons themselves, so an unmatched and a
+    # matched craft must not share a run dir (or a poison_cache) -- without this the
+    # second one silently resumes off the first one's cache. Only non-default
+    # settings get a suffix, so every existing run dir keeps its name.
+    if not getattr(args, 'craft_aug', True):
+        name += '_craftnoaug'
+    elif getattr(args, 'dsa_strategy', DSA_DEFAULT) != DSA_DEFAULT:
+        name += '_craft%s' % args.dsa_strategy.replace('_', '')
+    topr = getattr(args, 'base_topr', None)
+    if topr:
+        name += '_top%d' % topr
     if args.attack == 'fc' and args.fc_mode != 'sample':
         name += '_%s' % args.fc_mode
     if args.attack == 'sapa':
@@ -1636,6 +1909,11 @@ def main(args):
     os.makedirs(run_dir, exist_ok=True)
     _LOG_PATH = os.path.join(run_dir, 'log.txt')
 
+    lock = acquire_run_lock(run_dir)
+    if lock is None:
+        return
+    atexit.register(release_run_lock, lock)
+
     log('=== run start: %s on %s ==='
         % (build_run_name(args), ('cuda %s' % gpus) if gpus else 'cpu'))
     log('args: %s' % json.dumps(vars(args), sort_keys=True))
@@ -1660,7 +1938,7 @@ def main(args):
     log('  crafting on %d/%d surrogates' % (len(craft_nets), len(surrogates)))
 
     sel_nets = surrogates
-    if args.sel_model and args.sel_model != args.model:
+    if args.sel_model and args.sel_model != args.model and args.base == 'ours':
         log('=== selection surrogates (%d x %s, cross-architecture) ==='
             % (args.num_surrogates, args.sel_model))
         sel_nets = get_sel_surrogates(args, train_imgs, train_labs, test_imgs,
@@ -1748,6 +2026,7 @@ def main(args):
         def emit(row):
             writer.writerow(row)
             rf.flush()
+            touch_run_lock(lock)
 
         try:
             for i, tidx in enumerate(pending):
@@ -1833,6 +2112,15 @@ def parse_args():
     p.add_argument('--dataset', type=str, default='CIFAR10')
     p.add_argument('--data_path', type=str, default='./data')
     p.add_argument('--model', type=str, default='ConvNetBN', choices=SUPPORTED_MODELS)
+    p.add_argument('--base_topr', type=int, default=None,
+                   help='concentrate the poison budget into r feature-space '
+                        'neighbourhoods: r best-scoring seeds, then their nearest '
+                        'neighbours until N_p DISTINCT bases are chosen. r >= N_p is '
+                        'plain greedy. Only affects --base ours.')
+    p.add_argument('--sel_K', type=int, default=None,
+                   help='how many surrogates the SELECTOR averages over (K in the '
+                        'ensemble-size ablation). Defaults to --num_surrogates; '
+                        'crafting still uses --craft_ensemble either way')
     p.add_argument('--sel_model', type=str, default=None, choices=SUPPORTED_MODELS,
                    help='architecture whose surrogates pick the bases (S in the '
                         'cross-architecture table). Defaults to --model; crafting '
@@ -1865,7 +2153,12 @@ def parse_args():
     p.add_argument('--attack', type=str, default='fc',
                    choices=['fc', 'gradmatch', 'sapa'])
     p.add_argument('--base', type=str, default='ours', choices=['random', 'ours'])
-    p.add_argument('--class_pair', type=str, default='dog-bird', choices=CLASS_PAIRS)
+    p.add_argument('--sel_criterion', type=str, default=None, choices=SEL_CRITERIA,
+                   help='alternative base-selection rule for the selection ladder of app-base.tex. Only meaningful with --base ours; it replaces the pointwise score entirely, so --sel_dpp / --sel_mmr / --sel_filter do not apply.')
+    p.add_argument('--class_pair', type=str, default='dog-bird',
+                   help="'<adversarial>-<target>' class names, e.g. dog-bird. Any pair "
+                        'the dataset defines is accepted; the names are validated '
+                        'against the class list once the dataset is loaded.')
     p.add_argument('--pair_order', type=str, default='poison-target',
                    choices=['poison-target', 'target-poison'],
                    help="'dog-bird' with poison-target means poisons are dogs and the "
@@ -2008,11 +2301,10 @@ def parse_args():
         p.error('%s are mutually exclusive -- pick one' % ' / '.join(on))
     if on and args.base != 'ours':
         p.error('%s only affects --base ours (got --base %s)' % (on[0], args.base))
-    if args.sel_model and args.sel_model != args.model and args.base != 'ours':
-        # --base random draws from the class pool with a per-target rng and never
-        # touches a net, so an S != A random run would silently duplicate the
-        # S = A one under a different name
-        p.error('--sel_model only affects --base ours (got --base %s)' % args.base)
+    # --sel_model with --base random is allowed but does nothing to the result:
+    # select_base_random draws from the class pool with a per-target rng and
+    # never touches a net, so such a run reproduces the S = A one exactly. It
+    # gets its own run dir (see build_run_name) so it cannot overwrite it.
     args.sel_mode = ({'--sel_filter': 'filter', '--sel_mmr': 'mmr',
                       '--sel_dpp': 'dpp', '--sel_pca': 'pca'}[on[0]] if on else None)
     return args

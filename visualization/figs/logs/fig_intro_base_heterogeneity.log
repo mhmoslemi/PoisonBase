@@ -1,0 +1,40 @@
+==========================================================================
+Figure 1 -- clean-base heterogeneity (no ASR, no victim training)
+==========================================================================
+  dataset / model:             CIFAR10 / ConvNetBN
+  class pair:                  dog-bird (poison-target)
+  target index:                8252
+  selector:                    K=20, lambda=1, alpha=2, base_dist=cosine
+  selections shown:            Random Greedy DPP (ours)
+  budget:                      0.005  (m bases per selection)
+  held-out model:              /home/mmoslem3/scratch/attack_if/cache/surrogates/ConvNetBN_60ep_lr0.1_bs128_seed42/net_20.pt
+  candidates:                  whole y_adv pool
+  utility:                     U_i = <grad_theta CE(x_t, y_adv), grad_theta CE(x_i, y_adv)>
+  mode:                        compute=True plot=True
+  outputs:                     /home/mmoslem3/scratch/attack_if/visualization/figs/fig_intro_base_heterogeneity.{pdf,png,csv,npz}
+--------------------------------------------------------------------------
+  held-out model /home/mmoslem3/scratch/attack_if/cache/surrogates/ConvNetBN_60ep_lr0.1_bs128_seed42/net_20.pt (fingerprint 941c26543ecb) is disjoint from the 20 selector surrogates
+  m = 250 bases per selection out of a pool of 5000
+  utilities for 5000 candidates (5000 in the score-independent sample)
+    utility 500 / 5000
+    utility 1000 / 5000
+    utility 1500 / 5000
+    utility 2000 / 5000
+    utility 2500 / 5000
+    utility 3000 / 5000
+    utility 3500 / 5000
+    utility 4000 / 5000
+    utility 4500 / 5000
+    utility 5000 / 5000
+  cached 65 candidate thumbnails for offline re-plotting
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_intro_base_heterogeneity.npz
+  utility concentration: top 10% of candidates carry 78.2% of the total favourable signal
+  random selected bases: median U = +0.04338, mean U = +0.7613, share of total favourable signal = 4.1%
+  greedy selected bases: median U = +0.8119, mean U = +3.242, share of total favourable signal = 17.2%
+  dpp    selected bases: median U = +0.8144, mean U = +3.284, share of total favourable signal = 17.4%
+  spearman(s, U)  = -0.523
+  spearman(B, U)  = -0.709
+  spearman(R, U)  = +0.173
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_intro_base_heterogeneity.csv (5000 rows)
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_intro_base_heterogeneity.pdf
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_intro_base_heterogeneity.png

@@ -1,0 +1,359 @@
+
+\section{Statistical Analysis of the Main Evaluation}
+\label{app:statistical-analysis}
+
+Table~\ref{tab:sweep_asr_clean_minus_cta} reports ASR aggregated over
+$10$ attack targets and $6$ independently trained victims per target.
+Because the six victim runs associated with the same target share the
+target instance and poison construction, we treat the target rather than
+the individual victim run as the unit of statistical analysis.
+
+For selection method $v\in\{\mathrm{Random},\mathrm{DPP}\}$, let
+$a^{(v)}_{t,s}\in\{0,1\}$ indicate whether the attack on target $t$
+succeeds for victim run $s$. We first compute the attack success rate
+for each target,
+\begin{equation}
+    r^{(v)}_t
+    =
+    \frac{1}{6}
+    \sum_{s=1}^{6}
+    a^{(v)}_{t,s},
+    \qquad t=1,\ldots,10.
+\end{equation}
+The ASR reported in the main table is then
+\begin{equation}
+    \mathrm{ASR}^{(v)}
+    =
+    \frac{1}{10}
+    \sum_{t=1}^{10}
+    r^{(v)}_t.
+\end{equation}
+Thus, victim-training randomness is averaged within each target before
+variation across attack targets is assessed. The corresponding standard
+error is computed across the ten target-level success rates rather than
+across the sixty individual victim outcomes.
+
+Since Random and DPP are evaluated on the same target instances, the
+comparison between selection methods is paired. For each target, we
+compute
+\begin{equation}
+    d_t
+    =
+    r^{(\mathrm{DPP})}_t
+    -
+    r^{(\mathrm{Random})}_t,
+\end{equation}
+and report the mean paired improvement
+\begin{equation}
+    \Delta
+    =
+    \frac{1}{10}
+    \sum_{t=1}^{10} d_t.
+\end{equation}
+Uncertainty in $\Delta$ is estimated by paired bootstrap resampling over
+the ten targets. In each bootstrap replicate, target indices are sampled
+with replacement and all victim runs associated with a sampled target
+are retained for both Random and DPP. We use the resulting bootstrap
+distribution to obtain a $95\%$ confidence interval for the paired
+improvement. This preserves both the clustering of victim runs within a
+target and the pairing between selection methods.
+
+Tables~\ref{tab:main-stats-convnet}--\ref{tab:main-stats-vgg} report
+this target-level analysis for every configuration in
+Table~\ref{tab:sweep_asr_clean_minus_cta}. For compactness, clean test
+accuracy is not repeated here and remains reported in the main table.
+In addition to the configuration-level analysis, we summarize the
+overall consistency of the selection advantage across the complete
+sweep in Table~\ref{tab:aggregate-statistics}. Rather than performing
+and interpreting a separate hypothesis test for every individual cell,
+we report the frequency and magnitude of positive paired improvements
+and an aggregate two-sided sign-flip permutation test on the paired
+differences.
+
+
+% ============================================================
+% Aggregate summary
+% ============================================================
+
+\begin{table}[t]
+\centering
+\caption{
+Aggregate statistical summary of DPP relative to Random over the
+matched configurations in Table~\ref{tab:sweep_asr_clean_minus_cta}.
+Improvements are computed from paired target-level ASRs. The permutation
+test evaluates the null hypothesis of no systematic signed improvement
+across matched configurations.
+}
+\label{tab:aggregate-statistics}
+\small
+\setlength{\tabcolsep}{9pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabular}{lc}
+\toprule
+\textbf{Statistic} & \textbf{Value} \\
+\midrule
+Matched configurations analyzed
+    & 108 \\
+Configurations with $\Delta>0$
+    & 101 / 108 \\
+Configurations with $\Delta=0$
+    & 2 / 108 \\
+Configurations with $\Delta<0$
+    & 5 / 108 \\
+Mean paired improvement
+    & $+23.8$ pp \\
+Median paired improvement
+    & $+23.3$ pp \\
+Range of paired improvements
+    & $[-30.0, +70.0]$ pp \\
+95\% CI strictly above zero
+    & 72 / 108 \\
+Two-sided sign-flip permutation $p$-value
+    & $<10^{-5}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================
+% ConvNet
+% ============================================================
+
+\begin{table}[p]
+\centering
+\caption{
+Target-level uncertainty for the ConvNet results in
+Table~\ref{tab:sweep_asr_clean_minus_cta}. Random and DPP report mean
+ASR (\%) across ten targets, with the standard error across target-level
+success rates in parentheses. $\Delta$ is the paired DPP--Random
+difference in percentage points. The final column reports the paired
+95\% bootstrap confidence interval for $\Delta$.
+}
+\label{tab:main-stats-convnet}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{llccccc}
+\toprule
+\textbf{Pair} &
+\textbf{Attack} &
+$\boldsymbol{\epsilon}$ &
+\textbf{Random ASR (SE)} &
+\textbf{DPP ASR (SE)} &
+$\boldsymbol{\Delta}$ &
+\textbf{95\% CI of $\boldsymbol{\Delta}$} \\
+\midrule
+
+dog--bird & FC & $1{\times}10^{-3}$ & 0.0 (0.0) & 28.3 (8.6) & $+28.3$ & $[+13.3, +45.0]$ \\
+dog--bird & FC & $2{\times}10^{-3}$ & 1.7 (1.7) & 68.3 (9.1) & $+66.7$ & $[+48.3, +83.3]$ \\
+dog--bird & FC & $5{\times}10^{-3}$ & 13.3 (6.5) & 83.3 (7.5) & $+70.0$ & $[+55.0, +83.3]$ \\
+dog--bird & FC & $1{\times}10^{-2}$ & 35.0 (8.0) & 93.3 (3.7) & $+58.3$ & $[+46.7, +70.0]$ \\
+dog--bird & FC & $2{\times}10^{-2}$ & 73.3 (9.7) & 96.7 (2.2) & $+23.3$ & $[+10.0, +40.0]$ \\
+dog--bird & FC & $4{\times}10^{-2}$ & 91.7 (3.7) & 96.7 (3.3) & $+5.0$ & $[0.0, +10.0]$ \\
+\addlinespace[2pt]
+
+dog--bird & GM & $1{\times}10^{-3}$ & 0.0 (0.0) & 26.7 (7.5) & $+26.7$ & $[+13.3, +41.7]$ \\
+dog--bird & GM & $2{\times}10^{-3}$ & 0.0 (0.0) & 31.7 (8.0) & $+31.7$ & $[+18.3, +46.7]$ \\
+dog--bird & GM & $5{\times}10^{-3}$ & 1.7 (1.7) & 50.0 (9.3) & $+48.3$ & $[+30.0, +63.3]$ \\
+dog--bird & GM & $1{\times}10^{-2}$ & 21.7 (7.9) & 76.7 (11.4) & $+55.0$ & $[+35.0, +75.0]$ \\
+dog--bird & GM & $2{\times}10^{-2}$ & 43.3 (9.4) & 86.7 (9.9) & $+43.3$ & $[+26.7, +58.3]$ \\
+dog--bird & GM & $4{\times}10^{-2}$ & 83.3 (10.5) & 96.7 (3.3) & $+13.3$ & $[0.0, +28.3]$ \\
+\addlinespace[2pt]
+
+dog--bird & SAPA & $1{\times}10^{-3}$ & 0.0 (0.0) & 13.3 (4.8) & $+13.3$ & $[+5.0, +21.7]$ \\
+dog--bird & SAPA & $2{\times}10^{-3}$ & 0.0 (0.0) & 36.7 (8.2) & $+36.7$ & $[+21.7, +51.7]$ \\
+dog--bird & SAPA & $5{\times}10^{-3}$ & 6.7 (3.7) & 38.3 (9.3) & $+31.7$ & $[+16.7, +46.7]$ \\
+dog--bird & SAPA & $1{\times}10^{-2}$ & 23.3 (7.5) & 60.0 (11.2) & $+36.7$ & $[+21.7, +51.7]$ \\
+dog--bird & SAPA & $2{\times}10^{-2}$ & 50.0 (10.5) & 86.7 (9.9) & $+36.7$ & $[+20.0, +55.0]$ \\
+dog--bird & SAPA & $4{\times}10^{-2}$ & 76.7 (10.3) & 91.7 (8.3) & $+15.0$ & $[+5.0, +26.7]$ \\
+
+\midrule
+
+frog--airplane & FC & $1{\times}10^{-3}$ & 0.0 (0.0) & 3.3 (2.2) & $+3.3$ & $[0.0, +8.3]$ \\
+frog--airplane & FC & $2{\times}10^{-3}$ & 0.0 (0.0) & 10.0 (6.7) & $+10.0$ & $[0.0, +25.0]$ \\
+frog--airplane & FC & $5{\times}10^{-3}$ & 0.0 (0.0) & 35.0 (11.0) & $+35.0$ & $[+15.0, +55.0]$ \\
+frog--airplane & FC & $1{\times}10^{-2}$ & 1.7 (1.7) & 33.3 (9.6) & $+31.7$ & $[+15.0, +48.3]$ \\
+frog--airplane & FC & $2{\times}10^{-2}$ & 10.0 (4.4) & 46.7 (9.9) & $+36.7$ & $[+21.7, +56.7]$ \\
+frog--airplane & FC & $4{\times}10^{-2}$ & 30.0 (10.2) & 58.3 (13.0) & $+28.3$ & $[+15.0, +43.3]$ \\
+\addlinespace[2pt]
+
+frog--airplane & GM & $1{\times}10^{-3}$ & 0.0 (0.0) & 1.7 (1.7) & $+1.7$ & $[0.0, +5.0]$ \\
+frog--airplane & GM & $2{\times}10^{-3}$ & 0.0 (0.0) & 5.0 (2.5) & $+5.0$ & $[0.0, +10.0]$ \\
+frog--airplane & GM & $5{\times}10^{-3}$ & 0.0 (0.0) & 11.7 (8.3) & $+11.7$ & $[0.0, +28.3]$ \\
+frog--airplane & GM & $1{\times}10^{-2}$ & 3.3 (2.2) & 11.7 (5.0) & $+8.3$ & $[-1.7, +18.3]$ \\
+frog--airplane & GM & $2{\times}10^{-2}$ & 3.3 (3.3) & 33.3 (7.5) & $+30.0$ & $[+20.0, +40.0]$ \\
+frog--airplane & GM & $4{\times}10^{-2}$ & 16.7 (7.9) & 68.3 (11.2) & $+51.7$ & $[+31.7, +70.0]$ \\
+\addlinespace[2pt]
+
+frog--airplane & SAPA & $1{\times}10^{-3}$ & 0.0 (0.0) & 6.7 (5.1) & $+6.7$ & $[0.0, +16.7]$ \\
+frog--airplane & SAPA & $2{\times}10^{-3}$ & 0.0 (0.0) & 1.7 (1.7) & $+1.7$ & $[0.0, +5.0]$ \\
+frog--airplane & SAPA & $5{\times}10^{-3}$ & 0.0 (0.0) & 6.7 (6.7) & $+6.7$ & $[0.0, +20.0]$ \\
+frog--airplane & SAPA & $1{\times}10^{-2}$ & 1.7 (1.7) & 15.0 (5.2) & $+13.3$ & $[+5.0, +21.7]$ \\
+frog--airplane & SAPA & $2{\times}10^{-2}$ & 8.3 (5.1) & 26.7 (8.3) & $+18.3$ & $[+8.3, +28.3]$ \\
+frog--airplane & SAPA & $4{\times}10^{-2}$ & 25.0 (8.3) & 60.0 (11.4) & $+35.0$ & $[+20.0, +50.0]$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================
+% ResNet20
+% ============================================================
+
+\begin{table}[p]
+\centering
+\caption{
+Target-level uncertainty for the ResNet20 results in
+Table~\ref{tab:sweep_asr_clean_minus_cta}. Reporting follows
+Table~\ref{tab:main-stats-convnet}.
+}
+\label{tab:main-stats-resnet}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{llccccc}
+\toprule
+\textbf{Pair} &
+\textbf{Attack} &
+$\boldsymbol{\epsilon}$ &
+\textbf{Random ASR (SE)} &
+\textbf{DPP ASR (SE)} &
+$\boldsymbol{\Delta}$ &
+\textbf{95\% CI of $\boldsymbol{\Delta}$} \\
+\midrule
+
+dog--bird & FC & $1{\times}10^{-3}$ & 11.7 (5.0) & 23.3 (5.7) & $+11.7$ & $[-1.7, +26.7]$ \\
+dog--bird & FC & $2{\times}10^{-3}$ & 16.7 (5.0) & 33.3 (10.5) & $+16.7$ & $[+1.7, +30.0]$ \\
+dog--bird & FC & $5{\times}10^{-3}$ & 30.0 (7.8) & 51.7 (13.5) & $+21.7$ & $[-1.7, +45.0]$ \\
+dog--bird & FC & $1{\times}10^{-2}$ & 43.3 (10.3) & 50.0 (11.9) & $+6.7$ & $[-10.0, +25.0]$ \\
+dog--bird & FC & $2{\times}10^{-2}$ & 55.0 (8.3) & 38.3 (11.1) & $-16.7$ & $[-35.0, +1.7]$ \\
+dog--bird & FC & $4{\times}10^{-2}$ & 48.3 (12.3) & 26.7 (10.6) & $-21.7$ & $[-38.4, -6.7]$ \\
+\addlinespace[2pt]
+
+dog--bird & GM & $1{\times}10^{-3}$ & 15.0 (5.2) & 51.7 (7.6) & $+36.7$ & $[+21.7, +50.0]$ \\
+dog--bird & GM & $2{\times}10^{-3}$ & 31.7 (8.4) & 56.7 (10.6) & $+25.0$ & $[+6.7, +45.0]$ \\
+dog--bird & GM & $5{\times}10^{-3}$ & 43.3 (7.5) & 78.3 (7.0) & $+35.0$ & $[+20.0, +46.7]$ \\
+dog--bird & GM & $1{\times}10^{-2}$ & 56.7 (11.4) & 91.7 (4.5) & $+35.0$ & $[+18.3, +51.7]$ \\
+dog--bird & GM & $2{\times}10^{-2}$ & 75.0 (8.7) & 100.0 (0.0) & $+25.0$ & $[+10.0, +41.7]$ \\
+dog--bird & GM & $4{\times}10^{-2}$ & 98.3 (1.7) & 100.0 (0.0) & $+1.7$ & $[0.0, +5.0]$ \\
+\addlinespace[2pt]
+
+dog--bird & SAPA & $1{\times}10^{-3}$ & 18.3 (6.3) & 41.7 (8.3) & $+23.3$ & $[+15.0, +31.7]$ \\
+dog--bird & SAPA & $2{\times}10^{-3}$ & 21.7 (7.9) & 58.3 (10.3) & $+36.7$ & $[+23.3, +50.0]$ \\
+dog--bird & SAPA & $5{\times}10^{-3}$ & 55.0 (10.6) & 85.0 (9.1) & $+30.0$ & $[+18.3, +45.0]$ \\
+dog--bird & SAPA & $1{\times}10^{-2}$ & 65.0 (8.8) & 88.3 (4.3) & $+23.3$ & $[+10.0, +36.7]$ \\
+dog--bird & SAPA & $2{\times}10^{-2}$ & 95.0 (3.6) & 96.7 (3.3) & $+1.7$ & $[0.0, +5.0]$ \\
+dog--bird & SAPA & $4{\times}10^{-2}$ & 98.3 (1.7) & 100.0 (0.0) & $+1.7$ & $[0.0, +5.0]$ \\
+
+\midrule
+
+frog--airplane & FC & $1{\times}10^{-3}$ & 8.3 (3.7) & 11.7 (4.3) & $+3.3$ & $[-5.0, +13.3]$ \\
+frog--airplane & FC & $2{\times}10^{-3}$ & 8.3 (3.7) & 11.7 (5.0) & $+3.3$ & $[-6.7, +15.0]$ \\
+frog--airplane & FC & $5{\times}10^{-3}$ & 18.3 (5.8) & 28.3 (7.0) & $+10.0$ & $[0.0, +18.3]$ \\
+frog--airplane & FC & $1{\times}10^{-2}$ & 16.7 (5.0) & 43.3 (10.0) & $+26.7$ & $[+8.3, +45.0]$ \\
+frog--airplane & FC & $2{\times}10^{-2}$ & 30.0 (10.2) & 33.3 (10.5) & $+3.3$ & $[-13.3, +20.0]$ \\
+frog--airplane & FC & $4{\times}10^{-2}$ & 33.3 (10.8) & 28.3 (10.0) & $-5.0$ & $[-15.0, +3.3]$ \\
+\addlinespace[2pt]
+
+frog--airplane & GM & $1{\times}10^{-3}$ & 1.7 (1.7) & 15.0 (5.8) & $+13.3$ & $[+5.0, +23.3]$ \\
+frog--airplane & GM & $2{\times}10^{-3}$ & 0.0 (0.0) & 31.7 (6.3) & $+31.7$ & $[+20.0, +43.3]$ \\
+frog--airplane & GM & $5{\times}10^{-3}$ & 8.3 (3.7) & 40.0 (10.0) & $+31.7$ & $[+15.0, +50.0]$ \\
+frog--airplane & GM & $1{\times}10^{-2}$ & 26.7 (9.7) & 78.3 (10.6) & $+51.7$ & $[+30.0, +73.3]$ \\
+frog--airplane & GM & $2{\times}10^{-2}$ & 45.0 (8.6) & 85.0 (5.8) & $+40.0$ & $[+25.0, +56.7]$ \\
+frog--airplane & GM & $4{\times}10^{-2}$ & 70.0 (7.8) & 96.7 (2.2) & $+26.7$ & $[+15.0, +40.0]$ \\
+\addlinespace[2pt]
+
+frog--airplane & SAPA & $1{\times}10^{-3}$ & 1.7 (1.7) & 20.0 (6.0) & $+18.3$ & $[+8.3, +30.0]$ \\
+frog--airplane & SAPA & $2{\times}10^{-3}$ & 5.0 (3.6) & 23.3 (6.7) & $+18.3$ & $[+3.3, +35.0]$ \\
+frog--airplane & SAPA & $5{\times}10^{-3}$ & 3.3 (2.2) & 46.7 (8.5) & $+43.3$ & $[+26.7, +61.7]$ \\
+frog--airplane & SAPA & $1{\times}10^{-2}$ & 21.7 (6.6) & 71.7 (9.0) & $+50.0$ & $[+35.0, +65.0]$ \\
+frog--airplane & SAPA & $2{\times}10^{-2}$ & 40.0 (7.1) & 95.0 (2.5) & $+55.0$ & $[+43.3, +68.3]$ \\
+frog--airplane & SAPA & $4{\times}10^{-2}$ & 81.7 (5.2) & 96.7 (2.2) & $+15.0$ & $[+5.0, +26.7]$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================
+% VGG13
+% ============================================================
+
+\begin{table}[p]
+\centering
+\caption{
+Target-level uncertainty for the VGG13 results in
+Table~\ref{tab:sweep_asr_clean_minus_cta}. Reporting follows
+Table~\ref{tab:main-stats-convnet}.
+}
+\label{tab:main-stats-vgg}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{llccccc}
+\toprule
+\textbf{Pair} &
+\textbf{Attack} &
+$\boldsymbol{\epsilon}$ &
+\textbf{Random ASR (SE)} &
+\textbf{DPP ASR (SE)} &
+$\boldsymbol{\Delta}$ &
+\textbf{95\% CI of $\boldsymbol{\Delta}$} \\
+\midrule
+
+dog--bird & FC & $1{\times}10^{-3}$ & 21.7 (6.1) & 35.0 (8.0) & $+13.3$ & $[+6.7, +21.7]$ \\
+dog--bird & FC & $2{\times}10^{-3}$ & 41.7 (10.3) & 51.7 (6.8) & $+10.0$ & $[-6.7, +25.0]$ \\
+dog--bird & FC & $5{\times}10^{-3}$ & 45.0 (7.9) & 53.3 (10.2) & $+8.3$ & $[-8.3, +26.7]$ \\
+dog--bird & FC & $1{\times}10^{-2}$ & 41.7 (8.7) & 65.0 (9.8) & $+23.3$ & $[+6.7, +38.3]$ \\
+dog--bird & FC & $2{\times}10^{-2}$ & 61.7 (11.7) & 51.7 (10.1) & $-10.0$ & $[-30.0, +13.3]$ \\
+dog--bird & FC & $4{\times}10^{-2}$ & 75.0 (5.7) & 45.0 (12.7) & $-30.0$ & $[-46.7, -10.0]$ \\
+\addlinespace[2pt]
+
+dog--bird & GM & $1{\times}10^{-3}$ & 13.3 (6.0) & 63.3 (10.5) & $+50.0$ & $[+31.7, +66.7]$ \\
+dog--bird & GM & $2{\times}10^{-3}$ & 21.7 (9.3) & 80.0 (8.5) & $+58.3$ & $[+36.7, +80.0]$ \\
+dog--bird & GM & $5{\times}10^{-3}$ & 55.0 (9.3) & 96.7 (3.3) & $+41.7$ & $[+25.0, +56.7]$ \\
+dog--bird & GM & $1{\times}10^{-2}$ & 76.7 (10.0) & 100.0 (0.0) & $+23.3$ & $[+6.7, +43.3]$ \\
+dog--bird & GM & $2{\times}10^{-2}$ & 96.7 (3.3) & 100.0 (0.0) & $+3.3$ & $[0.0, +10.0]$ \\
+dog--bird & GM & $4{\times}10^{-2}$ & 98.3 (1.7) & 100.0 (0.0) & $+1.7$ & $[0.0, +5.0]$ \\
+\addlinespace[2pt]
+
+dog--bird & SAPA & $1{\times}10^{-3}$ & 11.7 (5.6) & 51.7 (10.7) & $+40.0$ & $[+21.7, +58.3]$ \\
+dog--bird & SAPA & $2{\times}10^{-3}$ & 26.7 (9.0) & 76.7 (10.3) & $+50.0$ & $[+28.3, +70.0]$ \\
+dog--bird & SAPA & $5{\times}10^{-3}$ & 60.0 (9.7) & 98.3 (1.7) & $+38.3$ & $[+21.7, +55.0]$ \\
+dog--bird & SAPA & $1{\times}10^{-2}$ & 88.3 (5.6) & 100.0 (0.0) & $+11.7$ & $[+3.3, +23.3]$ \\
+dog--bird & SAPA & $2{\times}10^{-2}$ & 100.0 (0.0) & 100.0 (0.0) & $0.0$ & $[0.0, 0.0]$ \\
+dog--bird & SAPA & $4{\times}10^{-2}$ & 100.0 (0.0) & 100.0 (0.0) & $0.0$ & $[0.0, 0.0]$ \\
+
+\midrule
+
+frog--airplane & FC & $1{\times}10^{-3}$ & 1.7 (1.7) & 6.7 (3.7) & $+5.0$ & $[0.0, +11.7]$ \\
+frog--airplane & FC & $2{\times}10^{-3}$ & 1.7 (1.7) & 6.7 (3.7) & $+5.0$ & $[0.0, +10.0]$ \\
+frog--airplane & FC & $5{\times}10^{-3}$ & 3.3 (2.2) & 25.0 (9.7) & $+21.7$ & $[+6.7, +40.0]$ \\
+frog--airplane & FC & $1{\times}10^{-2}$ & 13.3 (4.8) & 30.0 (10.2) & $+16.7$ & $[+1.7, +33.3]$ \\
+frog--airplane & FC & $2{\times}10^{-2}$ & 10.0 (6.7) & 23.3 (10.9) & $+13.3$ & $[0.0, +28.3]$ \\
+frog--airplane & FC & $4{\times}10^{-2}$ & 16.7 (8.6) & 20.0 (10.8) & $+3.3$ & $[-10.0, +15.0]$ \\
+\addlinespace[2pt]
+
+frog--airplane & GM & $1{\times}10^{-3}$ & 0.0 (0.0) & 35.0 (8.8) & $+35.0$ & $[+20.0, +53.3]$ \\
+frog--airplane & GM & $2{\times}10^{-3}$ & 5.0 (3.6) & 48.3 (9.1) & $+43.3$ & $[+28.3, +56.7]$ \\
+frog--airplane & GM & $5{\times}10^{-3}$ & 16.7 (6.6) & 76.7 (9.0) & $+60.0$ & $[+41.7, +78.3]$ \\
+frog--airplane & GM & $1{\times}10^{-2}$ & 28.3 (8.6) & 78.3 (10.3) & $+50.0$ & $[+30.0, +71.7]$ \\
+frog--airplane & GM & $2{\times}10^{-2}$ & 56.7 (10.3) & 90.0 (10.0) & $+33.3$ & $[+18.3, +50.0]$ \\
+frog--airplane & GM & $4{\times}10^{-2}$ & 78.3 (10.3) & 90.0 (10.0) & $+11.7$ & $[+1.7, +23.3]$ \\
+\addlinespace[2pt]
+
+frog--airplane & SAPA & $1{\times}10^{-3}$ & 0.0 (0.0) & 25.0 (8.3) & $+25.0$ & $[+10.0, +41.7]$ \\
+frog--airplane & SAPA & $2{\times}10^{-3}$ & 10.0 (4.4) & 51.7 (11.0) & $+41.7$ & $[+25.0, +58.3]$ \\
+frog--airplane & SAPA & $5{\times}10^{-3}$ & 15.0 (6.8) & 73.3 (10.6) & $+58.3$ & $[+38.3, +75.0]$ \\
+frog--airplane & SAPA & $1{\times}10^{-2}$ & 20.0 (8.5) & 86.7 (8.2) & $+66.7$ & $[+48.3, +85.0]$ \\
+frog--airplane & SAPA & $2{\times}10^{-2}$ & 53.3 (9.9) & 88.3 (10.0) & $+35.0$ & $[+20.0, +51.7]$ \\
+frog--airplane & SAPA & $4{\times}10^{-2}$ & 85.0 (10.1) & 90.0 (10.0) & $+5.0$ & $[0.0, +11.7]$ \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+

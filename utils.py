@@ -86,23 +86,27 @@ def get_dataset(dataset, data_path):
 
         class_names = data['classes']
 
-        images_train = data['images_train']
-        labels_train = data['labels_train']
-        images_train = images_train.detach().float() / 255.0
-        labels_train = labels_train.detach()
-        for c in range(channel):
-            images_train[:,c] = (images_train[:,c] - mean[c])/std[c]
+        # 100k images at 64x64 is 4.9 GB as float32. Written the obvious way --
+        # x.float() / 255.0 -- that is TWO 4.9 GB temporaries alive at once while the
+        # uint8 source is still referenced by `data`, which is what makes this dataset
+        # OOM on a small allocation. Convert chunkwise into one preallocated buffer,
+        # normalise in place, and drop each source as soon as it is consumed.
+        def _to_float_normalized(x, chunk=4096):
+            out = torch.empty(x.shape, dtype=torch.float32)
+            for i in range(0, len(x), chunk):
+                out[i:i + chunk] = x[i:i + chunk].to(torch.float32).div_(255.0)
+            for c in range(channel):
+                out[:, c].sub_(mean[c]).div_(std[c])
+            return out
+
+        labels_train = data.pop('labels_train').detach()
+        images_train = _to_float_normalized(data.pop('images_train').detach())
         dst_train = TensorDataset(images_train, labels_train)  # no augmentation
 
-        images_val = data['images_val']
-        labels_val = data['labels_val']
-        images_val = images_val.detach().float() / 255.0
-        labels_val = labels_val.detach()
-
-        for c in range(channel):
-            images_val[:, c] = (images_val[:, c] - mean[c]) / std[c]
-
-        dst_test = TensorDataset(images_val, labels_val)  # no augmentation
+        labels_val = data.pop('labels_val').detach()
+        images_val = _to_float_normalized(data.pop('images_val').detach())
+        dst_test = TensorDataset(images_val, labels_val)       # no augmentation
+        del data
 
     else:
         exit('unknown dataset: %s'%dataset)

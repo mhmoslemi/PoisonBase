@@ -506,7 +506,11 @@ class ResNet(nn.Module):
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
+        # adaptive, not avg_pool2d(out, 4): the fixed kernel assumes a 32x32 input
+        # (layer4 -> 4x4). At 64x64 it leaves 2x2 and the classifier sees 2048
+        # features instead of 512. On 32x32 the two are identical, so no CIFAR
+        # behaviour changes -- and ResNet20BN is a different class (ResNetCIFAR).
+        out = F.adaptive_avg_pool2d(out, 1)
         out = out.view(out.size(0), -1)
         out = self.classifier(out)
         return out
@@ -517,7 +521,7 @@ class ResNet(nn.Module):
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
+        out = F.adaptive_avg_pool2d(out, 1)
         out = out.view(out.size(0), -1)
         return out
 

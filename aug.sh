@@ -69,6 +69,18 @@ SEED=42
 EPSILON=0.0313725             # 8/255, matches the attack runs
 
 NUM_VICTIMS="${NUM_VICTIMS:-6}"
+# which craft-time augmentation the poisons being replayed were built with. Empty
+# is the default DSA strategy, i.e. the main-sweep crafts.
+CRAFT_AUG="${CRAFT_AUG:-}"
+DSA_STRATEGY="${DSA_STRATEGY:-}"
+
+# Which target-selection protocol the poisons being replayed were crafted under.
+# Empty is the main sweep: the difficulty degree comes from sweep_config.json and
+# the run name carries a _tgt<N> suffix. The appendix crafts sample targets
+# uniformly instead (--target_select random, no suffix), so set TARGET_SELECT=random
+# to replay those -- otherwise build_run_name below looks for a _tgt<N> directory
+# that was never created and the combo is skipped as "no paired poisons".
+TARGET_SELECT="${TARGET_SELECT:-}"
 
 # How many of the pinned targets to actually run. 0 = all of them.
 # defense.py takes the FIRST n of the pinned list, and that list is the sorted
@@ -152,6 +164,9 @@ for pair in $CLASS_PAIR; do
     # ---- this combo's difficulty label ------------------------------------
     # It only has to match the attack run so the _tgt<N> suffix of the run name
     # lines up. Straight from sweep_config.json, same as defense.sh.
+    if [ -n "$TARGET_SELECT" ]; then
+        CFG_TGT="$TARGET_SELECT"
+    else
     CFG="$(python - "$model" "$attack" "$pair" <<'PY'
 import json, sys
 model, attack, pair = sys.argv[1:4]
@@ -166,6 +181,7 @@ PY
 )" || { SKIPPED="$SKIPPED
     $model / $attack / $pair : not in sweep_config.json"; continue; }
     eval "$CFG"
+    fi
 
     # ---- pair the selections: one pinned target set per budget -------------
     # build_run_name and the cache reader come from the real modules, so this
@@ -189,7 +205,10 @@ def ns(base, budget, dpp):
         sel_filter=False, sel_pca=False, sel_mmr=False, sel_dpp=dpp,
         sel_pool=3.0, sel_mu=1.0, sel_alpha=sel_alpha,
         fc_mode='sample', sharp_mode='worst', sharp_sigma=0.05,
-        sharp_samples=20, craft_ensemble=5, target_select=int(tgt))
+        sharp_samples=20, craft_ensemble=5,
+        target_select=(int(tgt) if tgt.lstrip('-').isdigit() else tgt),
+        craft_aug=(os.environ.get('CRAFT_AUG', '') != '--no_craft_aug'),
+        dsa_strategy=(os.environ.get('DSA_STRATEGY') or FU.DSA_DEFAULT))
 
 SPEC = {'random': ('random', False), 'ours': ('ours', False), 'dpp': ('ours', True)}
 ok = []
@@ -254,6 +273,8 @@ PY
                     --budget "$bug" --epsilon "$EPSILON" \
                     --craft_ensemble 5 --target_select "$CFG_TGT" \
                     --target_idx_file "$idx" \
+                    ${CRAFT_AUG:+$CRAFT_AUG} \
+                    ${DSA_STRATEGY:+--dsa_strategy "$DSA_STRATEGY"} \
                     --defense "$DEFENSE" --victim_aug "$aug" \
                     --num_targets "$NUM_TARGETS" \
                     --num_victims "$NUM_VICTIMS" --victim_epochs "$VICTIM_EPOCHS" \

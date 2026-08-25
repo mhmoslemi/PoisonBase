@@ -42,6 +42,18 @@ SEED=42
 EPSILON=0.0313725             # 8/255, matches the attack runs
 
 NUM_VICTIMS="${NUM_VICTIMS:-6}"
+# tab:utility-matched-defense retunes each defense so its CLEAN accuracy stays
+# within two points of the undefended model, so the strength has to be settable
+# from outside. Empty means defense.py's own default (EPIC 0.1, FRIENDS 8).
+EPIC_SUBSET="${EPIC_SUBSET:-}"
+NOISE_EPS="${NOISE_EPS:-}"
+# FRIENDS has two independent magnitudes. --noise_eps scales only the RANDOM
+# (bernoulli) component; the friendly noise itself is bounded by --friendly_clamp,
+# 16/255 by default, and is what the defense is actually named after. Sweeping
+# noise_eps alone leaves the dominant term untouched, which is why the clean-utility
+# curve is flat in noise_eps.
+FRIENDLY_CLAMP="${FRIENDLY_CLAMP:-}"
+NUM_TARGETS="${NUM_TARGETS:-}"
 VICTIM_EPOCHS=50
 VICTIM_LR=0.1
 VICTIM_BS=125
@@ -52,6 +64,15 @@ cd /home/mmoslem3/scratch/attack_if
 
 # The difficulty label only has to match the attack run so the _tgt<N> suffix of
 # the run name lines up. Straight from sweep_config.json, same as sel_dpp.sh.
+# TARGET_SELECT overrides the sweep_config.json lookup. Needed wherever the crafts
+# being replayed were not produced by the main sweep: sweep_config.json only
+# records a difficulty for the (model, attack, pair) combos table.tex reports, so
+# a combo it never covered -- ConvNetBN/sapa, for instance -- has no entry and is
+# refused here rather than guessed. Pass the degree the crafts actually used.
+TARGET_SELECT="${TARGET_SELECT:-}"
+if [ -n "$TARGET_SELECT" ]; then
+    CFG_TGT="$TARGET_SELECT"
+else
 CFG="$(python - "$MODEL" "$ATTACK" "$CLASS_PAIR" <<'PY'
 import json, sys
 model, attack, pair = sys.argv[1:4]
@@ -64,6 +85,7 @@ except KeyError:
 PY
 )" || exit 1
 eval "$CFG"
+fi
 
 sel_flags() {
     case "$1" in
@@ -155,6 +177,10 @@ for entry in $PLAN; do
                 --craft_ensemble 5 --target_select "$CFG_TGT" \
                 --target_idx_file "$idx" \
                 --defense "$def" \
+                ${EPIC_SUBSET:+--epic_subset_size "$EPIC_SUBSET"} \
+                ${NOISE_EPS:+--noise_eps "$NOISE_EPS"} \
+                ${FRIENDLY_CLAMP:+--friendly_clamp "$FRIENDLY_CLAMP"} \
+                ${NUM_TARGETS:+--num_targets "$NUM_TARGETS"} \
                 --num_victims "$NUM_VICTIMS" --victim_epochs "$VICTIM_EPOCHS" \
                 --victim_lr "$VICTIM_LR" --victim_bs "$VICTIM_BS" \
                 --victim_decay "$VICTIM_DECAY" --victim_wd 0.0 \

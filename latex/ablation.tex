@@ -1,0 +1,219 @@
+\subsection{Sensitivity and Selector Ablations}
+\label{sec:selector-sensitivity}
+
+\paragraph{Effect of DPP quality--diversity trade-off.}
+The DPP parameter $\alpha$ in Eq.~\eqref{eq:quality_term} controls the
+relative emphasis on individual candidate quality and set diversity. We
+evaluate $\alpha\in\{0.25,0.5,1,2,4\}$ while fixing the pointwise score
+weight to $\lambda=1$. Random selection and Greedy provide two reference
+points. We perform this ablation on dog--bird with SAPA using ConvNetBN
+and ResNet20BN at a tight and a larger perturbation budget.
+
+\begin{table}[t]
+\centering
+\caption{
+Sensitivity to the DPP quality parameter $\alpha$. We fix $\lambda=1$
+and evaluate SAPA on dog--bird. Random and Greedy are independent of
+$\alpha$. Entries report ASR (\%), with clean test accuracy in
+parentheses.
+}
+\label{tab:alpha-ablation}
+\small
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lc|cc|ccccc}
+\toprule
+\textbf{Model} &
+$\boldsymbol{\epsilon}$ &
+\textbf{Random} &
+\textbf{Greedy} &
+$\boldsymbol{\alpha=0.25}$ &
+$\boldsymbol{\alpha=0.5}$ &
+$\boldsymbol{\alpha=1}$ &
+$\boldsymbol{\alpha=2}$ &
+$\boldsymbol{\alpha=4}$ \\
+\midrule
+
+ConvNetBN &
+$5{\times}10^{-3}$ &
+10.0 \small{(80.50)} & 60.0 \small{(80.60)} & 80.0 \small{(80.70)} & 60.0 \small{(80.56)} & 50.0 \small{(80.65)} & 55.0 \small{(80.55)} & 60.0 \small{(80.55)} \\
+
+ConvNetBN &
+$1{\times}10^{-2}$ &
+25.0 \small{(80.54)} & 90.0 \small{(80.72)} & 85.0 \small{(80.57)} & 80.0 \small{(80.58)} & 80.0 \small{(80.48)} & 70.0 \small{(80.49)} & 80.0 \small{(80.65)} \\
+
+\midrule
+
+ResNet20BN &
+$5{\times}10^{-3}$ &
+45.0 \small{(83.83)} & 80.0 \small{(83.82)} & 85.0 \small{(83.86)} & 75.0 \small{(83.61)} & 95.0 \small{(83.64)} & 90.0 \small{(83.79)} & 85.0 \small{(83.87)} \\
+
+ResNet20BN &
+$1{\times}10^{-2}$ &
+60.0 \small{(83.62)} & 80.0 \small{(83.75)} & 95.0 \small{(83.77)} & 80.0 \small{(83.73)} & 90.0 \small{(83.75)} & 80.0 \small{(83.73)} & 85.0 \small{(83.80)} \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\paragraph{Effect of target-relevance weighting.}
+The parameter $\lambda$ in Eq.~\eqref{eq:selection-score} controls how
+strongly target relevance contributes relative to boundary proximity.
+We sweep $\lambda\in\{0,0.5,1,2,4,10,100\}$, where $\lambda=0$ removes the
+target-specific representation term entirely. For every value of
+$\lambda$, we evaluate both Greedy selection and DPP selection, allowing
+us to separate the effect of the pointwise score from the additional
+benefit of diversity-aware subset construction. DPP uses the default
+$\alpha=2$ throughout this experiment, and Random provides a
+$\lambda$-independent baseline.
+
+\begin{table}[t]
+\centering
+\caption{
+Sensitivity to the target-relevance weight $\lambda$. We evaluate
+Greedy (G) and DPP (D) selection for each value of $\lambda$, with
+$\alpha=2$ for DPP. Experiments use SAPA on dog--bird. Entries report
+ASR (\%), with clean test accuracy in parentheses.
+}
+\label{tab:lambda-ablation}
+\small
+\setlength{\tabcolsep}{3.0pt}
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lc|c|cc|cc|cc|cc|cc|cc|cc}
+\toprule
+&
+&
+&
+\multicolumn{2}{c|}{$\boldsymbol{\lambda=0}$} &
+\multicolumn{2}{c|}{$\boldsymbol{\lambda=0.5}$} &
+\multicolumn{2}{c|}{$\boldsymbol{\lambda=1}$} &
+\multicolumn{2}{c|}{$\boldsymbol{\lambda=2}$} &
+\multicolumn{2}{c|}{$\boldsymbol{\lambda=4}$} &
+\multicolumn{2}{c|}{$\boldsymbol{\lambda=10}$} &
+\multicolumn{2}{c}{$\boldsymbol{\lambda=100}$} \\
+\textbf{Model} &
+$\boldsymbol{\epsilon}$ &
+\textbf{Random} &
+\textbf{G} & \textbf{D} &
+\textbf{G} & \textbf{D} &
+\textbf{G} & \textbf{D} &
+\textbf{G} & \textbf{D} &
+\textbf{G} & \textbf{D} &
+\textbf{G} & \textbf{D} &
+\textbf{G} & \textbf{D} \\
+\midrule
+
+ConvNetBN &
+$5{\times}10^{-3}$ &
+10.0 \small{(80.50)} &
+40.0 \small{(80.45)} & 35.0 \small{(80.60)} &
+50.0 \small{(80.70)} & 40.0 \small{(80.58)} &
+60.0 \small{(80.60)} & 55.0 \small{(80.55)} &
+75.0 \small{(80.58)} & 65.0 \small{(80.67)} &
+90.0 \small{(80.55)} & 80.0 \small{(80.60)} &
+65.0 \small{(80.68)} & 50.0 \small{(80.61)} &
+55.0 \small{(80.63)} & 80.0 \small{(80.70)} \\
+
+ConvNetBN &
+$1{\times}10^{-2}$ &
+25.0 \small{(80.54)} &
+60.0 \small{(80.42)} & 80.0 \small{(80.52)} &
+85.0 \small{(80.56)} & 75.0 \small{(80.70)} &
+90.0 \small{(80.72)} & 70.0 \small{(80.49)} &
+85.0 \small{(80.60)} & 85.0 \small{(80.64)} &
+100.0 \small{(80.59)} & 90.0 \small{(80.57)} &
+85.0 \small{(80.65)} & 95.0 \small{(80.76)} &
+100.0 \small{(80.72)} & 95.0 \small{(80.75)} \\
+
+\midrule
+
+ResNet20BN &
+$5{\times}10^{-3}$ &
+45.0 \small{(83.83)} &
+60.0 \small{(83.72)} & 65.0 \small{(83.72)} &
+75.0 \small{(83.77)} & 85.0 \small{(83.75)} &
+80.0 \small{(83.82)} & 90.0 \small{(83.79)} &
+75.0 \small{(83.69)} & 80.0 \small{(83.76)} &
+90.0 \small{(83.82)} & 90.0 \small{(83.81)} &
+90.0 \small{(83.85)} & 90.0 \small{(83.66)} &
+95.0 \small{(83.84)} & 85.0 \small{(83.91)} \\
+
+ResNet20BN &
+$1{\times}10^{-2}$ &
+60.0 \small{(83.62)} &
+85.0 \small{(83.75)} & 60.0 \small{(83.74)} &
+80.0 \small{(83.73)} & 85.0 \small{(83.81)} &
+80.0 \small{(83.75)} & 80.0 \small{(83.73)} &
+100.0 \small{(83.75)} & 95.0 \small{(83.81)} &
+95.0 \small{(83.85)} & 95.0 \small{(83.86)} &
+100.0 \small{(83.68)} & 90.0 \small{(83.92)} &
+100.0 \small{(83.97)} & 95.0 \small{(83.94)} \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\paragraph{Effect of surrogate ensemble size.}
+Our selector averages boundary and representation statistics across
+independently trained surrogate models. We vary the ensemble size
+$K\in\{1,3,5,10,20,50\}$ while keeping all selection and attack
+hyperparameters fixed at their default values. The $K=1$ setting
+corresponds to selection from a single surrogate and therefore measures
+the importance of cross-model consistency directly. We report the final
+DPP selector together with Random selection as a common reference.
+
+\begin{table}[t]
+\centering
+\caption{
+Effect of surrogate ensemble size. We fix $\lambda=1$ and $\alpha=2$
+and evaluate DPP selection using
+$K\in\{1,3,5,10,20,50\}$ independently trained surrogates.
+Experiments use SAPA on dog--bird. Entries report ASR (\%), with clean
+test accuracy in parentheses.
+}
+\label{tab:ensemble-size-ablation}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.10}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lc|ccccccc}
+\toprule
+\textbf{Model} &
+$\boldsymbol{\epsilon}$ &
+\textbf{Random} &
+$\boldsymbol{K=1}$ &
+$\boldsymbol{K=3}$ &
+$\boldsymbol{K=5}$ &
+$\boldsymbol{K=10}$ &
+$\boldsymbol{K=20}$ &
+$\boldsymbol{K=50}$ \\
+\midrule
+
+ConvNetBN &
+$5{\times}10^{-3}$ &
+10.0 \small{(80.50)} & 60.0 \small{(80.57)} & 65.0 \small{(80.57)} & 55.0 \small{(80.62)} & 70.0 \small{(80.66)} & 55.0 \small{(80.55)} & 50.0 \small{(80.73)} \\
+
+ConvNetBN &
+$1{\times}10^{-2}$ &
+25.0 \small{(80.54)} & 75.0 \small{(80.62)} & 85.0 \small{(80.51)} & 80.0 \small{(80.56)} & 85.0 \small{(80.51)} & 70.0 \small{(80.49)} & 85.0 \small{(80.75)} \\
+
+\midrule
+
+ResNet20BN &
+$5{\times}10^{-3}$ &
+45.0 \small{(83.83)} & 35.0 \small{(83.57)} & 85.0 \small{(83.77)} & 70.0 \small{(83.77)} & 75.0 \small{(83.71)} & 90.0 \small{(83.79)} & 65.0 \small{(83.83)} \\
+
+ResNet20BN &
+$1{\times}10^{-2}$ &
+60.0 \small{(83.62)} & 90.0 \small{(83.70)} & 90.0 \small{(83.71)} & 85.0 \small{(83.68)} & 85.0 \small{(83.70)} & 80.0 \small{(83.73)} & 90.0 \small{(83.88)} \\
+
+\bottomrule
+\end{tabular}
+}
+\end{table}

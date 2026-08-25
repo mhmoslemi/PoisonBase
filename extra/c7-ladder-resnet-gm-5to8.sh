@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# app-base.tex tab:selection-ladder -- the ResNet20BN/GRADMATCH column, rules 5-8.
+#
+# ResNet20BN is ~1.2 h a rule here (472 s craft plus five 130 s victims per target), so this column is split three ways.
+#
+# Estimated ~4.8 h on an L40S. Self-contained: it takes no arguments, skips any
+# unit already on disk, and a killed allocation just needs this same file rerun.
+#
+#   sh appendix/final/c7-ladder-resnet-gm-5to8.sh
+
+set -u
+cd /home/mmoslem3/scratch/attack_if
+source /home/mmoslem3/ENV/bin/activate
+
+if [ -z "${DRY_RUN:-}" ]; then
+python -c 'import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)' || {
+    echo "c7-ladder-resnet-gm-5to8.sh: no CUDA device visible -- get a GPU allocation first"; exit 1; }
+fi
+
+MODELS=ResNet20BN ATTACKS=gradmatch CRITS="el2n boundary pixel featsim" sh appendix/fin3-ladder.sh
+echo "=== c7-ladder-resnet-gm-5to8.sh finished ==="

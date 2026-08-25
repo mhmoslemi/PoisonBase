@@ -1,0 +1,57 @@
+[2026-08-18 02:25:54] === run start: CIFAR10_ConvNetBN_gradmatch_ours_airplane-bird_b0.005_eps8_seed42_lam1_cosine_seldpp2_ce5 on cuda [0] ===
+[2026-08-18 02:25:54] args: {"FORCE": false, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "./cache", "class_pair": "airplane-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 5, "num_victims": 5, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/appx_broad_ConvNetBN_airplane-bird.json", "target_select": "random", "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-18 02:25:54] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=0(airplane) target_class=2(bird)
+[2026-08-18 02:25:54] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-08-18 02:25:54]   crafting on 5/20 surrogates
+[2026-08-18 02:25:54] === clean victims (5 x ConvNetBN) ===
+[2026-08-18 02:25:55]   clean baseline CTA = 0.8105 +/- 0.0070
+[2026-08-18 02:25:55]   target pool 1000 -> eligible 960 (40 already predicted as y_adv or dropped)
+[2026-08-18 02:25:55]   chosen 5 targets (file), p_adv range 0.0000..0.0290
+[2026-08-18 02:25:55]   targets: [1083, 160, 6277, 9915, 8956]
+[2026-08-18 02:25:55] === target 1083 (1/5) ===
+[2026-08-18 02:29:59]   target 1083: crafted 250 poisons in 242 s, obj=0.27435
+[2026-08-18 02:29:59]   target 1083: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-18 02:30:49]   [t1083 v1/5] fail (pred=bird) CTA=0.8108
+[2026-08-18 02:31:40]   [t1083 v2/5] SUCCESS (pred=airplane) CTA=0.8163
+[2026-08-18 02:32:30]   [t1083 v3/5] fail (pred=bird) CTA=0.7978
+[2026-08-18 02:33:20]   [t1083 v4/5] SUCCESS (pred=airplane) CTA=0.7994
+[2026-08-18 02:34:10]   [t1083 v5/5] SUCCESS (pred=airplane) CTA=0.8070
+[2026-08-18 02:34:10]   target 1083, 5 victims on this gpu: ASR=60.0% CTA=0.8063 +/- 0.0069
+[2026-08-18 02:34:10] === target 160 (2/5) ===
+[2026-08-18 02:38:14]   target 160: crafted 250 poisons in 242 s, obj=0.24299
+[2026-08-18 02:38:14]   target 160: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-18 02:39:04]   [t160 v1/5] SUCCESS (pred=airplane) CTA=0.8142
+[2026-08-18 02:39:54]   [t160 v2/5] SUCCESS (pred=airplane) CTA=0.8054
+[2026-08-18 02:40:44]   [t160 v3/5] fail (pred=bird) CTA=0.7591
+[2026-08-18 02:41:34]   [t160 v4/5] SUCCESS (pred=airplane) CTA=0.8113
+[2026-08-18 02:42:24]   [t160 v5/5] SUCCESS (pred=airplane) CTA=0.8098
+[2026-08-18 02:42:24]   target 160, 5 victims on this gpu: ASR=80.0% CTA=0.8000 +/- 0.0206
+[2026-08-18 02:42:24] === target 6277 (3/5) ===
+[2026-08-18 02:46:28]   target 6277: crafted 250 poisons in 242 s, obj=0.17361
+[2026-08-18 02:46:28]   target 6277: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-18 02:47:18]   [t6277 v1/5] SUCCESS (pred=airplane) CTA=0.8135
+[2026-08-18 02:48:08]   [t6277 v2/5] fail (pred=bird) CTA=0.7601
+[2026-08-18 02:48:58]   [t6277 v3/5] SUCCESS (pred=airplane) CTA=0.8109
+[2026-08-18 02:49:48]   [t6277 v4/5] SUCCESS (pred=airplane) CTA=0.7856
+[2026-08-18 02:50:39]   [t6277 v5/5] SUCCESS (pred=airplane) CTA=0.8070
+[2026-08-18 02:50:39]   target 6277, 5 victims on this gpu: ASR=80.0% CTA=0.7954 +/- 0.0202
+[2026-08-18 02:50:39] === target 9915 (4/5) ===
+[2026-08-18 02:54:42]   target 9915: crafted 250 poisons in 242 s, obj=0.27729
+[2026-08-18 02:54:42]   target 9915: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-18 02:55:32]   [t9915 v1/5] fail (pred=bird) CTA=0.7981
+[2026-08-18 02:56:22]   [t9915 v2/5] SUCCESS (pred=airplane) CTA=0.8168
+[2026-08-18 02:57:12]   [t9915 v3/5] SUCCESS (pred=airplane) CTA=0.7996
+[2026-08-18 02:58:02]   [t9915 v4/5] SUCCESS (pred=airplane) CTA=0.7981
+[2026-08-18 02:58:52]   [t9915 v5/5] SUCCESS (pred=airplane) CTA=0.8103
+[2026-08-18 02:58:52]   target 9915, 5 victims on this gpu: ASR=80.0% CTA=0.8046 +/- 0.0076
+[2026-08-18 02:58:52] === target 8956 (5/5) ===
+[2026-08-18 03:02:56]   target 8956: crafted 250 poisons in 242 s, obj=0.26002
+[2026-08-18 03:02:56]   target 8956: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-18 03:03:46]   [t8956 v1/5] SUCCESS (pred=airplane) CTA=0.7934
+[2026-08-18 03:04:37]   [t8956 v2/5] SUCCESS (pred=airplane) CTA=0.7962
+[2026-08-18 03:05:27]   [t8956 v3/5] SUCCESS (pred=airplane) CTA=0.8017
+[2026-08-18 03:06:17]   [t8956 v4/5] SUCCESS (pred=airplane) CTA=0.8127
+[2026-08-18 03:07:07]   [t8956 v5/5] SUCCESS (pred=airplane) CTA=0.8077
+[2026-08-18 03:07:07]   target 8956, 5 victims on this gpu: ASR=100.0% CTA=0.8023 +/- 0.0071
+[2026-08-18 03:07:07] ==== CIFAR10_ConvNetBN_gradmatch_ours_airplane-bird_b0.005_eps8_seed42_lam1_cosine_seldpp2_ce5 : ASR = 80.0% +/- 12.6% | CTA = 0.8017 (baseline 0.8105) ====
+[2026-08-18 03:07:07]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [20, 0, 5, 0, 0, 0, 0, 0, 0, 0]

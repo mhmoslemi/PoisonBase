@@ -1,0 +1,672 @@
+
+\section{Additional Experiments}
+\label{sec:additional-experiments}
+
+We complement the main evaluation with experiments that broaden the
+distribution of attack instances, control target difficulty across
+architectures, and further examine robustness and computational cost.
+Unless otherwise stated, we use ConvNetBN, the same poison budget $m$
+and attack-specific optimization hyperparameters as in the main
+experiments, and the default selector configuration
+$\lambda=1$, $\alpha=2$, and $K=20$. The surrogate ensemble consists of
+$20$ independently trained models instantiated from a fixed base seed,
+which is also the ensemble reused by the main experiments.
+
+\paragraph{Notation.} We write an attack instance as
+$a\!\rightarrow\!b$, where $a$ is the ground-truth class of the target
+test example and $b$ is the adversarial class from which the poison
+bases are drawn. In this notation the two pairs of the main sweep,
+labelled dog--bird and frog--airplane in
+Table~\ref{tab:sweep_asr_clean_minus_cta}, are
+bird$\rightarrow$dog and airplane$\rightarrow$frog; the labels there
+list the adversarial class first. We use the arrow notation throughout
+this appendix.
+
+\paragraph{Protocol.} For every configuration, we select five target
+test examples before running any attack and evaluate each target using
+five independently initialized victims. Target examples are sampled
+uniformly without replacement from the corresponding target class using
+a fixed sampling seed. Following the main experiments, we exclude test
+examples that the clean victim ensemble already assigns to the
+adversarial class, since these are successes for any attack; no other
+filtering is applied and no target is selected on the basis of an attack
+outcome. Victims differ only in their initialization and batch ordering,
+which are derived from the target index and a victim index; because
+GPU kernels are not bitwise deterministic, matched seeds give matched
+initializations rather than identical trained models. Random and DPP are
+always evaluated using the same targets, victim indices, poison budget,
+and downstream attack hyperparameters. The exact target indices are
+reported in Appendix~\ref{app:additional-targets}.
+
+These additional experiments use a reduced protocol relative to the main
+sweep, which evaluates ten targets with six victims, in order to keep the
+extended evaluation within our compute budget. Every comparison reported
+in a given table uses the identical protocol, so the Random--DPP
+contrast within a row is unaffected; absolute ASR values are not directly
+comparable to the main tables.
+
+\paragraph{Reporting.} We report ASR by first computing the success rate
+of each target over its five victim runs and then averaging over the
+five targets. With five targets and five victims, a single cell is
+resolved to four percentage points and the sampling error over targets is
+correspondingly large, so we treat individual cells as indicative and
+base our conclusions on the direction and consistency of the
+Random--DPP difference across configurations. Because Random and DPP are
+evaluated on the same targets, we report the difference $\Delta$ as a
+paired quantity and, where it is the quantity of interest, accompany it
+with a $95\%$ bootstrap confidence interval obtained by resampling
+targets.
+
+
+\subsection{Generalization}
+\label{sec:broader-generalization}
+
+The main evaluation in Table~\ref{tab:sweep_asr_clean_minus_cta}
+considers two attack instances, bird$\rightarrow$dog and
+airplane$\rightarrow$frog. We conduct two additional evaluations to
+determine whether the observed advantage of base selection extends
+beyond them.
+
+\paragraph{Additional CIFAR-10 class pairs.}
+We extend the CIFAR-10 evaluation to six additional ordered class pairs:
+$\mathrm{cat}\!\rightarrow\!\mathrm{dog}$,
+$\mathrm{deer}\!\rightarrow\!\mathrm{horse}$,
+$\mathrm{automobile}\!\rightarrow\!\mathrm{truck}$,
+$\mathrm{bird}\!\rightarrow\!\mathrm{airplane}$,
+$\mathrm{ship}\!\rightarrow\!\mathrm{frog}$, and
+$\mathrm{truck}\!\rightarrow\!\mathrm{cat}$,
+where the class on the left is the ground-truth class of the target and
+the class on the right is the desired adversarial class. These pairs are
+fixed before attack evaluation and cover both semantically similar and
+dissimilar class combinations. For each pair, we sample five test
+examples from the target class and keep these targets fixed across all
+selection methods and poisoning objectives. Candidate bases are drawn
+from the corresponding adversarial-class training examples, following
+the threat model in Section~\ref{sec:preliminaries}.
+
+We evaluate FC, GM, and SAPA using ConvNetBN at
+$\epsilon=5\times10^{-3}$, with the same poison budget, attack
+optimization settings, and victim-training procedure used in the main
+experiments. ConvNetBN is used throughout this appendix so that the six
+additional pairs, the cross-dataset evaluation, and the redundancy and
+cost analyses share one architecture; the cross-architecture question is
+addressed separately in Table~\ref{tab:matched-architecture}. We note
+that ConvNetBN is also the architecture with the largest Random--DPP gap
+in the main sweep, so the absolute margins reported here should not be
+read as representative of all architectures. Each target is evaluated
+over five independently trained victims, and Random and DPP use identical
+targets and victim indices. For reference, the last row repeats the main
+pair bird$\rightarrow$dog under this protocol, so that the six new pairs
+can be compared against a familiar instance rather than against the
+main sweep, which uses a different number of targets and victims.
+Table~\ref{tab:broad-cifar} reports the resulting ASR for each ordered
+class pair and the average across the six additional pairs.
+
+
+
+
+
+\begin{table}[t]
+\centering
+\caption{
+Generalization across six additional ordered CIFAR-10 class pairs.
+The notation $a\!\rightarrow\!b$ denotes target class $a$ and
+adversarial class $b$. Experiments use ConvNetBN,
+$\epsilon=5\times10^{-3}$, five fixed targets per pair, and five victim
+runs per target. Entries report mean ASR (\%) across targets.
+}
+\label{tab:broad-cifar}
+\small
+\setlength{\tabcolsep}{4.8pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{l|cc|cc|cc}
+\toprule
+&
+\multicolumn{2}{c|}{\textbf{FC}} &
+\multicolumn{2}{c|}{\textbf{GM}} &
+\multicolumn{2}{c}{\textbf{SAPA}} \\
+\textbf{Target $\rightarrow$ Adv.} &
+\textbf{Random} & \textbf{DPP} &
+\textbf{Random} & \textbf{DPP} &
+\textbf{Random} & \textbf{DPP} \\
+\midrule
+cat $\rightarrow$ dog
+    & 40.0 & 100.0 & 44.0 & 80.0 & 36.0 & 80.0 \\
+deer $\rightarrow$ horse
+    & 8.0 & 100.0 & 4.0 & 72.0 & 4.0 & 72.0 \\
+automobile $\rightarrow$ truck
+    & 4.0 & 68.0 & 12.0 & 48.0 & 12.0 & 48.0 \\
+bird $\rightarrow$ airplane
+    & 24.0 & 88.0 & 12.0 & 80.0 & 32.0 & 64.0 \\
+ship $\rightarrow$ frog
+    & 0.0 & 4.0 & 0.0 & 0.0 & 0.0 & 0.0 \\
+truck $\rightarrow$ cat
+    & 0.0 & 28.0 & 0.0 & 0.0 & 0.0 & 4.0 \\
+\midrule
+\textbf{Average}
+    & 12.7 & 64.7 & 12.0 & 46.7 & 14.0 & 44.7 \\
+\midrule
+bird $\rightarrow$ dog \small{(main pair, this protocol)}
+    & 24.0 & 80.0 & 12.0 & 64.0 & 24.0 & 68.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\paragraph{Cross-dataset evaluation.}
+We next evaluate whether the same selector remains effective outside
+CIFAR-10, using CIFAR-100. Unlike the rest of this appendix we use
+ResNet18 rather than ConvNetBN here: the $100$-way problem requires a
+stronger backbone for the clean victim to be an informative base
+classifier. ResNet18 is trained with the identical schedule and the
+selector itself is unchanged. We sample five ordered
+target--adversarial-class pairs uniformly without replacement from the
+$100$ CIFAR-100 classes using a fixed seed, and then sample one target
+test example for each pair. These five attack instances are fixed before
+poison construction and shared between Random and DPP. Their class names
+and target indices are listed in
+Appendix~\ref{app:additional-targets}.
+
+We additionally evaluate SVHN, which shares CIFAR-10's $32\times32$ inputs
+and ten classes but consists of street-view house numbers rather than
+natural objects. Because the input size and class count match CIFAR-10,
+SVHN keeps ConvNetBN; the SVHN row therefore isolates a change of data
+distribution, whereas the CIFAR-100 row changes the dataset and the
+backbone together. SVHN's training split contains $73{,}257$ images, so
+the same budget fraction buys $146$ poisons per target rather than
+CIFAR-10's $100$ at $2\times10^{-3}$; the budget is a fraction of the
+training set, and that is the quantity held fixed across rows. The five
+digit pairs are sampled by the same seeded procedure, which for ten
+classes consumes all of them exactly once.
+
+We evaluate GM and SAPA at $\epsilon=5\times10^{-3}$ on CIFAR-10 and at
+$\epsilon=2\times10^{-3}$ on CIFAR-100 and SVHN. The budgets differ because the
+quantity that determines how much freedom the selector has is the ratio
+between the poison budget and the size of the candidate pool, not the
+budget alone. CIFAR-100 contains $500$ training images per class, one
+tenth of the CIFAR-10 pool, so a budget of $1\times10^{-2}$ of the
+$50{,}000$ training images would require $500$ poisons and consume the
+entire adversarial class; every selection method would then return the
+same set and the comparison would be vacuous by construction. At
+$2\times10^{-3}$ the attacker selects $100$ of $500$ candidates. The
+corresponding CIFAR-10 setting selects $250$ of $5{,}000$, so the
+CIFAR-100 selector still operates on a substantially smaller pool and a
+larger fraction of it; this makes the CIFAR-100 comparison the more
+constrained of the two. Each attack instance is evaluated over the five
+victim runs specified above. The comparison of interest is the
+improvement from Random to DPP within each dataset rather than the
+absolute ASR across datasets, which differ in number of classes and
+candidate-pool size.
+
+\begin{table}[t]
+\centering
+\caption{
+Cross-dataset evaluation of base selection. The CIFAR-10 and SVHN rows
+use ConvNetBN and the CIFAR-100 rows use ResNet18, in all cases with
+five fixed attack instances and five victim runs per target.
+Perturbation budgets are $\epsilon=5\times10^{-3}$ on CIFAR-10 and
+$\epsilon=2\times10^{-3}$ on CIFAR-100 and SVHN, chosen so that the
+poison budget does not exhaust the $500$-image candidate pool of a
+CIFAR-100 class. Within each dataset, Random and DPP use identical
+targets and attack settings. $\Delta$ denotes DPP minus Random.
+}
+\label{tab:cross-dataset}
+\small
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset} &
+\textbf{Attack} &
+\textbf{Random} &
+\textbf{DPP} &
+$\boldsymbol{\Delta}$ \\
+\midrule
+CIFAR-10 \small{(ConvNetBN)}     & GM   & 12.0 & 64.0 & +52.0 \\
+CIFAR-10 \small{(ConvNetBN)}     & SAPA & 24.0 & 68.0 & +44.0 \\
+\midrule
+CIFAR-100 \small{(ResNet18)}      & GM   & 12.0 & 24.0 & +12.0 \\
+CIFAR-100 \small{(ResNet18)}      & SAPA & 4.0 & 16.0 & +12.0 \\
+\midrule
+SVHN \small{(ConvNetBN)}          & GM   & 36.0 & 80.0 & +44.0 \\
+SVHN \small{(ConvNetBN)}          & SAPA & 28.0 & 88.0 & +60.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\paragraph{Matched-target architecture evaluation.}
+The architecture results in the main sweep use independently sampled
+target sets for different model--attack configurations. We therefore
+perform an additional controlled comparison in which the attacked
+examples are held fixed across architectures. We use the
+bird$\rightarrow$dog instance of the main sweep, that is five bird-class
+targets with dog as the adversarial class, and evaluate the exact same
+targets with ConvNetBN, ResNet20BN, and VGG13. For every architecture,
+the Random and DPP variants use the same five victim indices.
+
+We evaluate GM and SAPA at
+$\epsilon=5\times10^{-3}$ and retain the architecture-specific training
+and attack hyperparameters used in the main experiments. Base selection
+is performed using surrogates of the corresponding architecture, with
+$K=20$, $\lambda=1$, and $\alpha=2$ in every case.
+Table~\ref{tab:matched-architecture} therefore varies only the model
+architecture while keeping the target set, adversarial class,
+perturbation budget, attack objective, selector configuration, and
+victim seeds matched.
+
+\begin{table}[t]
+\centering
+\caption{
+Matched-target evaluation across architectures. All configurations use
+the same five bird$\rightarrow$dog targets,
+$\epsilon=5\times10^{-3}$, and five victim runs per target.
+Entries report mean ASR (\%) across targets.
+}
+\label{tab:matched-architecture}
+\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{l|cc|cc}
+\toprule
+&
+\multicolumn{2}{c|}{\textbf{GM}} &
+\multicolumn{2}{c}{\textbf{SAPA}} \\
+\textbf{Architecture} &
+\textbf{Random} & \textbf{DPP} &
+\textbf{Random} & \textbf{DPP} \\
+\midrule
+ConvNetBN  & 12.0 & 64.0 & 24.0 & 68.0 \\
+ResNet20BN & 48.0 & 80.0 & 52.0 & 80.0 \\
+VGG13      & 72.0 & 80.0 & 72.0 & 80.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Augmentation Robustness}
+\label{sec:augmentation-aware}
+
+Table~\ref{tab:augmentation-robustness} keeps the optimized poisons
+fixed and changes only the victim-side augmentation. The poisons in that
+table are constructed with the differentiable augmentation used by our
+attacks throughout, which is not matched to the victim pipeline, so the
+experiment measures robustness to an unanticipated change in victim
+training. It does not distinguish sensitivity of the selected bases from
+sensitivity of the downstream poison optimizer. We therefore additionally
+evaluate an attacker that accounts for the victim transformation during
+poison construction.
+
+We use ConvNetBN on dog$\rightarrow$bird and the same five attack targets
+throughout. We evaluate GM and SAPA at
+$\epsilon=5\times10^{-3}$ under Crop+Flip and RandAugment. Crop+Flip
+uses random $32\times32$ crops with four-pixel padding followed by a
+horizontal flip with probability $0.5$. RandAugment uses the same
+Crop+Flip pipeline followed by RandAugment with two operations and
+magnitude $9$, matching the augmentation setting used in
+Table~\ref{tab:augmentation-robustness}.
+
+For each augmentation, we compare two poison-construction procedures.
+In the \emph{unmatched} setting, the attack is optimized on the
+unaugmented training examples and augmentation is introduced only when
+training the victim. In the \emph{matched} setting, transformations from
+the same augmentation distribution are sampled during poison
+optimization and during victim training. All other attack settings,
+including the poison budget, optimization iterations, perturbation
+constraint, and victim-training schedule, are unchanged.
+
+Matched optimization requires the augmentation to be differentiable, so
+that transformed poisons can be backpropagated through during poison
+construction. This holds for Crop+Flip, which we sample from the same
+differentiable augmentation family used by the attack. RandAugment
+includes discrete photometric operations that admit no such gradient, so
+a matched attacker is not defined for it under our threat model; we
+therefore report RandAugment in the unmatched setting only and mark the
+matched entries as not applicable. Table~\ref{tab:augmentation-aware}
+reports Random and DPP under both conditions.
+
+\begin{table}[t]
+\centering
+\caption{
+Augmentation-aware poison optimization on dog$\rightarrow$bird using
+ConvNetBN and $\epsilon=5\times10^{-3}$. ``Unmatched'' applies
+augmentation only during victim training; ``Matched'' additionally uses
+the same augmentation distribution during poison optimization. Matched
+optimization is defined only for differentiable augmentations, so it does
+not apply to RandAugment. All settings use the same five targets and five
+victim runs per target. Entries report mean ASR (\%).
+}
+\label{tab:augmentation-aware}
+\small
+\setlength{\tabcolsep}{5.5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{ll|cc|cc}
+\toprule
+&
+&
+\multicolumn{2}{c|}{\textbf{Unmatched}} &
+\multicolumn{2}{c}{\textbf{Matched}} \\
+\textbf{Attack} &
+\textbf{Augmentation} &
+\textbf{Random} & \textbf{DPP} &
+\textbf{Random} & \textbf{DPP} \\
+\midrule
+GM   & Crop+Flip   & 4.0 & 20.0 & 4.0 & 16.0 \\
+GM   & RandAugment & 0.0 & 8.0 & \multicolumn{2}{c}{n/a} \\
+\midrule
+SAPA & Crop+Flip   & 0.0 & 16.0 & 0.0 & 16.0 \\
+SAPA & RandAugment & 4.0 & 4.0 & \multicolumn{2}{c}{n/a} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Defense Evaluation}
+\label{sec:utility-matched-defense}
+
+The defense results in Table~\ref{tab:defense-robustness} use the
+default configurations of EPIC and FRIENDS. Because these settings can
+produce different reductions in clean accuracy, part of the observed
+decrease in ASR may result from degradation of the classifier itself.
+We therefore complement the default-setting evaluation with a
+clean-utility-matched comparison.
+
+We first train ConvNetBN on clean CIFAR-10 data while varying the
+strength of each defense. Defense calibration uses no poisoned data and
+no attack outcomes. For EPIC we vary the fraction of the training set
+retained at each selection round, and for FRIENDS the magnitude of the
+friendly noise; in both cases we order configurations from weakest to
+strongest by that parameter and choose the strongest configuration whose
+clean test accuracy remains within two percentage points of the
+undefended ConvNetBN trained under the identical schedule. Once selected,
+the defense hyperparameters are frozen and used identically for Random
+and DPP.
+
+Because the calibration reference is the undefended ConvNetBN under this
+protocol, the comparison in Table~\ref{tab:utility-defense} is internal
+to that table. Table~\ref{tab:defense-robustness} uses ResNet20BN with
+the default defense configurations, so absolute ASR values should not be
+compared across the two tables; the quantity of interest here is whether
+the Random--DPP ordering survives once the defense is prevented from
+recovering ASR by degrading the classifier.
+
+We evaluate GM and SAPA on both bird$\rightarrow$dog and
+airplane$\rightarrow$frog at $\epsilon=2\times10^{-2}$. For each
+pair--attack combination, we use five fixed targets and the same five
+victim seeds for Random and DPP. The poison budget, poison optimization,
+and victim-training settings are otherwise identical to the
+corresponding undefended experiments. Table~\ref{tab:utility-defense}
+reports the clean accuracy obtained by each calibrated defense and the
+resulting attack success.
+
+\begin{table}[t]
+\centering
+\caption{
+Utility-matched evaluation of EPIC and FRIENDS using ConvNetBN and
+$\epsilon=2\times10^{-2}$. Defense strength is chosen using clean data
+and subsequently fixed for all poisoned runs. Clean CTA is the accuracy
+of the defended model trained without poisons; Random and DPP report
+mean ASR (\%) across five targets and five victim runs per target.
+}
+\label{tab:utility-defense}
+\small
+\setlength{\tabcolsep}{5.5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{lllccc}
+\toprule
+\textbf{Defense} &
+\textbf{Target $\rightarrow$ Adv.} &
+\textbf{Attack} &
+\textbf{Clean CTA} &
+\textbf{Random} &
+\textbf{DPP} \\
+\midrule
+EPIC &
+bird $\rightarrow$ dog &
+GM &
+80.33 & 36.0 & 52.0 \\
+
+EPIC &
+bird $\rightarrow$ dog &
+SAPA &
+80.33 & 36.0 & 64.0 \\
+
+EPIC &
+airplane $\rightarrow$ frog &
+GM &
+80.33 &  0.0 &  0.0 \\
+
+EPIC &
+airplane $\rightarrow$ frog &
+SAPA &
+80.33 &  0.0 &  0.0 \\
+
+\midrule
+
+FRIENDS &
+bird $\rightarrow$ dog &
+GM &
+80.02 & 28.0 & 72.0 \\
+
+FRIENDS &
+bird $\rightarrow$ dog &
+SAPA &
+80.02 & 32.0 & 80.0 \\
+
+FRIENDS &
+airplane $\rightarrow$ frog &
+GM &
+80.02 &  0.0 &  8.0 \\
+
+FRIENDS &
+airplane $\rightarrow$ frog &
+SAPA &
+80.02 &  0.0 & 20.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Base Redundancy}
+\label{sec:base-redundancy}
+
+Greedy and DPP use the same pointwise score $s_i(x_t)$, but DPP
+additionally discourages selecting candidates with similar
+representations. We isolate this effect by controlling how many distinct
+clean examples are used to initialize a poison set while holding the
+total poison budget fixed.
+
+This experiment uses ConvNetBN, SAPA, bird$\rightarrow$dog,
+$\epsilon=5\times10^{-3}$, and the same five targets and victim indices
+used above. Under our threat model a poison replaces a specific clean
+training example, so the poison budget cannot be spent on repeated copies
+of one image: $m$ copies of a single base occupy one training slot and
+would reduce the effective budget from $m$ to one. We therefore vary
+redundancy through the region a poison set occupies rather than through
+literal duplication. Given the standard budget $m$, we take the $r$
+highest-scoring candidates under $s_i(x_t)$ as seeds and fill the
+remaining $m-r$ slots with the seeds' nearest neighbours in the surrogate
+representation, cycling over the seeds so that the neighbourhoods grow at
+the same rate. All $m$ selected bases are distinct and every one receives
+its own independently optimized perturbation satisfying
+$\|\delta_i\|_\infty\leq\epsilon$. The number of poisoned training
+examples, the optimization objective, the number of optimization steps,
+and the victim-training procedure are therefore identical across
+configurations; only the number of distinct favourable regions the budget
+is spread over varies, with $r\in\{1,2,5,10,m\}$.
+
+Top-$1$ concentrates the entire budget in the single neighbourhood
+around the highest-scoring base, while Top-$m$ places every poison at a
+separately scored candidate and is equivalent to Greedy. Random and DPP
+provide the two reference points. Comparing Top-$r$ against DPP separates
+two effects that the pointwise score alone cannot: whether it is
+sufficient to exploit the strongest region repeatedly, or whether
+spreading the same budget over distinct regions is what matters.
+Table~\ref{tab:base-redundancy} reports the resulting ASR.
+
+\begin{table}[t]
+\centering
+\caption{
+Effect of base redundancy at fixed poison budget $m$. Top-$r$ concentrates
+the budget in the neighbourhoods of the $r$ highest-scoring clean
+examples, using $m$ distinct and independently optimized poisons in every
+configuration; Top-$m$ is equivalent to Greedy. Experiments use
+ConvNetBN, SAPA, bird$\rightarrow$dog, and
+$\epsilon=5\times10^{-3}$. Entries report mean ASR (\%) across five
+targets and five victim runs per target.
+}
+\label{tab:base-redundancy}
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{c|ccccccc}
+\toprule
+&
+\textbf{Random} &
+\textbf{Top-1} &
+\textbf{Top-2} &
+\textbf{Top-5} &
+\textbf{Top-10} &
+\textbf{Greedy} &
+\textbf{DPP} \\
+\midrule
+\textbf{ASR (\%)} &
+ 24.0 & 52.0 & 52.0 & 32.0 & 48.0 & 60.0 & 68.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Computational Cost}
+\label{sec:computational-cost}
+
+We finally quantify the computation introduced by base selection.
+Measurements use ConvNetBN, the default $K=20$ surrogate ensemble, and
+the full adversarial-class candidate pool used in the CIFAR-10
+experiments. All timings are collected on the same hardware and averaged
+over the five bird$\rightarrow$dog targets.
+
+The selector has two types of cost. Training the $20$ surrogate models
+is performed once on the clean training set and the resulting models can
+be reused across targets and poisoning objectives. For each new target,
+we compute $B_i$ and $R_i(x_t)$ for every adversarial-class candidate,
+form the corresponding candidate scores, and then perform either Greedy
+or DPP subset selection. Greedy and DPP therefore share the surrogate
+training and candidate-scoring cost, while only DPP incurs the
+diversity-aware subset-selection step.
+
+The upper part of Table~\ref{tab:computational-cost} reports wall-clock
+time and peak GPU memory for these components. The lower part reports
+the complete attack-construction time for FC, GM, and SAPA. For each
+attack, Random and DPP use the same target, poison budget, optimization
+iterations, and attack hyperparameters. DPP runtime includes all
+target-dependent selection computation but excludes the one-time
+surrogate-training cost, which is reported separately above. The
+overhead column reports the relative increase in total per-target
+attack-construction time from replacing Random with DPP selection. This
+ratio is attack-dependent by construction: the selection cost is the same
+for all three attacks, so it is largest relative to FC, whose poison
+optimization is by far the cheapest, and smallest relative to GM and
+SAPA. The absolute selection time is the quantity to compare across
+attacks.
+
+\begin{table}[t]
+\centering
+\caption{
+Computational cost of base selection and poison construction using
+ConvNetBN. Surrogate training is performed once and reused across
+targets and poisoning objectives; all remaining timings are per target.
+Measurements use the same hardware and are averaged over five targets.
+}
+\label{tab:computational-cost}
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{lccc}
+\toprule
+\multicolumn{4}{c}{\textbf{Selection cost}} \\
+\midrule
+\textbf{Stage} &
+\textbf{Time} &
+\textbf{Peak Memory} &
+\textbf{Frequency} \\
+\midrule
+Train $K=20$ surrogates & 1220 s & 1748.2 MB & Once \\
+Candidate scoring       & 0.68 s & 1336.7 MB & Per target \\
+Greedy subset selection & $<0.01$ s & 1336.7 MB & Per target \\
+DPP subset selection    & 0.19 s & 3208.6 MB & Per target \\
+\midrule
+\multicolumn{4}{c}{\textbf{End-to-end attack cost}} \\
+\midrule
+\textbf{Attack} &
+\textbf{Random} &
+\textbf{DPP} &
+\textbf{Overhead (\%)} \\
+\midrule
+FC   & 5.0 s & 5.9 s & 17.3 \\
+GM   & 241.0 s & 241.9 s & 0.4 \\
+SAPA & 242.0 s & 242.9 s & 0.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{Additional Target Sets}
+\label{app:additional-targets}
+
+For reproducibility, we report the exact target examples used in the
+additional experiments after sampling them according to the protocol
+above. CIFAR-10 indices refer to the standard test split. CIFAR-100
+entries report the sampled class pair and the index of the target within
+the standard CIFAR-100 test split.
+
+\begin{table}[t]
+\centering
+\caption{
+Target sets used in the additional experiments. All targets are fixed
+before attack construction and shared between Random and DPP.
+}
+\label{tab:additional-target-indices}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{lll}
+\toprule
+\textbf{Dataset} &
+\textbf{Target $\rightarrow$ Adv.} &
+\textbf{Target indices} \\
+\midrule
+CIFAR-10 & cat $\rightarrow$ dog
+    & 2034, 607, 4375, 5493, 5530 \\
+CIFAR-10 & deer $\rightarrow$ horse
+    & 2180, 1341, 5296, 2353, 5414 \\
+CIFAR-10 & automobile $\rightarrow$ truck
+    & 2477, 8215, 726, 261, 1396 \\
+CIFAR-10 & bird $\rightarrow$ airplane
+    & 1083, 160, 6277, 9915, 8956 \\
+CIFAR-10 & ship $\rightarrow$ frog
+    & 1347, 7485, 3695, 132, 73 \\
+CIFAR-10 & truck $\rightarrow$ cat
+    & 9378, 6579, 4761, 2174, 9743 \\
+CIFAR-10 & bird $\rightarrow$ dog
+    & 3741, 6857, 8252, 1126, 3522 \\
+\midrule
+CIFAR-100 & willow\_tree $\rightarrow$ sea
+    & 3818 \\
+CIFAR-100 & bicycle $\rightarrow$ plain
+    & 4646 \\
+CIFAR-100 & lawn\_mower $\rightarrow$ wardrobe
+    & 3576 \\
+CIFAR-100 & road $\rightarrow$ bottle
+    & 4167 \\
+CIFAR-100 & cattle $\rightarrow$ sunflower
+    & 4276 \\
+\midrule
+SVHN & 2 $\rightarrow$ 9 & 14586 \\
+SVHN & 1 $\rightarrow$ 6 & 23802 \\
+SVHN & 3 $\rightarrow$ 8 & 11465 \\
+SVHN & 5 $\rightarrow$ 7 & 59 \\
+SVHN & 4 $\rightarrow$ 0 & 7975 \\
+\bottomrule
+\end{tabular}
+\end{table}

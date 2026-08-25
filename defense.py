@@ -92,6 +92,7 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.nn.functional as TF
 
+import atexit
 import final_update as FU
 import victim_aug as VA
 from final_update import (build_network, log, predict_target, set_requires_grad,
@@ -585,8 +586,9 @@ def train_victim_defended(args, ctx, net, poison_mask=None, tag=''):
 
 def defended_victim_dir(args):
     return os.path.join(args.cache_dir, 'defended_victims',
-                        '%s_%s_%dep_lr%g_bs%d_wd%g_seed%d'
-                        % (args.model, defense_tag(args), args.victim_epochs,
+                        '%s%s_%s_%dep_lr%g_bs%d_wd%g_seed%d'
+                        % (FU.dataset_tag(args), args.model, defense_tag(args),
+                           args.victim_epochs,
                            args.victim_lr, args.victim_bs, args.victim_wd,
                            args.seed))
 
@@ -752,10 +754,15 @@ def _trial_worker(rank, gpu, job_q, out_q, args, attack_dir, def_dir, log_path,
         ctx = FU.build_context(args, device)
         legacy = FU.load_legacy_cache(attack_dir, False)
         rf, writer = open_shard(def_dir, rank)
+        lock_path = os.path.join(def_dir, '.lock')
 
         def emit(row):
             writer.writerow(row)
             rf.flush()
+            # the parent is blocked in _run_pool and cannot refresh; a RandAugment
+            # run is ~4.5 h against a 2 h staleness threshold, so without this the
+            # lock would expire mid-run and a second process could take it over
+            FU.touch_run_lock(lock_path)
 
         tally = np.zeros(ctx['num_classes'], dtype=np.int64)
         cur_tidx, prep = None, None
@@ -816,6 +823,17 @@ def main(args):
     def_dir = defense_run_dir(args)
     os.makedirs(def_dir, exist_ok=True)
     FU._LOG_PATH = os.path.join(def_dir, 'log.txt')
+
+    # Same guard final_update.py uses, for the same reason: two processes in one run
+    # dir merge and then delete each other's results_rank*.csv, and the survivor dies
+    # on a stale file handle mid-write. defense_result/ needs it just as much as
+    # ours_result/ -- several appendix scripts legitimately name the same defended run
+    # (the aug shards and the older full ra_* sweeps overlap exactly), and until this
+    # was here they would collide instead of one of them standing down.
+    lock = FU.acquire_run_lock(def_dir)
+    if lock is None:
+        return
+    atexit.register(FU.release_run_lock, lock)
 
     log('=== defense run: %s ===' % os.path.basename(def_dir))
     log('    poisons replayed from %s' % attack_dir)
@@ -916,6 +934,7 @@ def main(args):
         def emit(row):
             writer.writerow(row)
             rf.flush()
+            FU.touch_run_lock(lock)
 
         cur_tidx, prep = None, None
         try:
@@ -1025,13 +1044,18 @@ def parse_args():
                    help='where the ATTACK runs live (read-only here)')
     p.add_argument('--defense_out_dir', type=str, default='./defense_result',
                    help='where this run writes its results')
+    p.add_argument('--craft_aug', action='store_true', default=True,
+                   help='naming only: which craft-time augmentation the poisons being '
+                        'replayed were built with, so the right run dir is found')
+    p.add_argument('--no_craft_aug', dest='craft_aug', action='store_false')
     p.add_argument('--dsa_strategy', type=str,
                    default='color_crop_cutout_flip_scale_rotate')
     p.add_argument('--attack', type=str, default='fc',
                    choices=['fc', 'gradmatch', 'sapa'])
     p.add_argument('--base', type=str, default='ours', choices=['random', 'ours'])
     p.add_argument('--class_pair', type=str, default='dog-bird',
-                   choices=FU.CLASS_PAIRS)
+                   help="'<adversarial>-<target>' class names; validated against the "
+                        'dataset once it is loaded, as in final_update.py')
     p.add_argument('--pair_order', type=str, default='poison-target',
                    choices=['poison-target', 'target-poison'])
     p.add_argument('--budget', type=float, default=0.01)

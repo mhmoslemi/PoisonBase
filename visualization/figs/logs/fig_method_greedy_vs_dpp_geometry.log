@@ -1,0 +1,59 @@
+==========================================================================
+Figure 2 -- Random vs Greedy vs DPP set geometry (no ASR)
+==========================================================================
+  dataset / model:             CIFAR10 / ConvNetBN
+  class pair:                  dog-bird (poison-target)
+  targets:                     /home/mmoslem3/scratch/attack_if/target_sets/ConvNetBN_gradmatch_dog-bird.json
+  budget:                      0.005  (m = round(budget * N_train))
+  selector:                    K=20, lambda=1, alpha=2, base_dist=cosine
+  selections:                  select_base_random / select_base_ours / select_base_ours_div(dpp)
+  metrics:                     Q(S), mean off-diagonal C_ij, effective rank, set overlap
+  mode:                        compute=True plot=True
+  outputs:                     /home/mmoslem3/scratch/attack_if/visualization/figs/fig_method_greedy_vs_dpp_geometry.{pdf,png,csv,npz}
+--------------------------------------------------------------------------
+  m = 250 poisons (budget 0.005 of 50000 training images)
+    target 843: |Greedy AND DPP| = 247/250 bases (98.8%)
+      random Q=-0.056  Red=0.2933  r_eff=221.90
+      greedy Q=-2.397  Red=0.3139  r_eff=219.40
+      dpp    Q=-2.396  Red=0.3134  r_eff=219.60
+    target 1257: |Greedy AND DPP| = 246/250 bases (98.4%)
+      random Q=+0.111  Red=0.2919  r_eff=221.64
+      greedy Q=-2.391  Red=0.3108  r_eff=220.32
+      dpp    Q=-2.391  Red=0.3101  r_eff=220.44
+    target 8252: |Greedy AND DPP| = 244/250 bases (97.6%)
+      random Q=+0.002  Red=0.2943  r_eff=221.34
+      greedy Q=-2.444  Red=0.3340  r_eff=219.51
+      dpp    Q=-2.443  Red=0.3328  r_eff=220.01
+    target 8730: |Greedy AND DPP| = 244/250 bases (97.6%)
+      random Q=+0.091  Red=0.2979  r_eff=221.65
+      greedy Q=-2.349  Red=0.3206  r_eff=221.04
+      dpp    Q=-2.347  Red=0.3188  r_eff=221.49
+    target 8055: |Greedy AND DPP| = 245/250 bases (98.0%)
+      random Q=-0.067  Red=0.2934  r_eff=221.81
+      greedy Q=-2.787  Red=0.3163  r_eff=216.67
+      dpp    Q=-2.786  Red=0.3139  r_eff=216.94
+    target 5859: |Greedy AND DPP| = 245/250 bases (98.0%)
+      random Q=+0.043  Red=0.2979  r_eff=221.11
+      greedy Q=-2.490  Red=0.3416  r_eff=219.15
+      dpp    Q=-2.489  Red=0.3404  r_eff=219.32
+    target 8954: |Greedy AND DPP| = 245/250 bases (98.0%)
+      random Q=-0.082  Red=0.2966  r_eff=221.83
+      greedy Q=-3.006  Red=0.3394  r_eff=215.45
+      dpp    Q=-3.004  Red=0.3366  r_eff=215.74
+    target 821: |Greedy AND DPP| = 242/250 bases (96.8%)
+      random Q=-0.019  Red=0.2949  r_eff=221.91
+      greedy Q=-2.336  Red=0.3355  r_eff=217.28
+      dpp    Q=-2.335  Red=0.3333  r_eff=217.70
+    target 1547: |Greedy AND DPP| = 247/250 bases (98.8%)
+      random Q=+0.021  Red=0.2932  r_eff=222.12
+      greedy Q=-2.660  Red=0.3008  r_eff=217.88
+      dpp    Q=-2.660  Red=0.2998  r_eff=218.07
+    target 4427: |Greedy AND DPP| = 243/250 bases (97.2%)
+      random Q=-0.030  Red=0.2874  r_eff=222.29
+      greedy Q=-2.531  Red=0.3145  r_eff=216.79
+      dpp    Q=-2.530  Red=0.3133  r_eff=217.32
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_method_greedy_vs_dpp_geometry.npz
+  Greedy AND DPP overlap across 10 targets: mean 244.8/250 bases (97.9%)
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_method_greedy_vs_dpp_geometry.csv (30 rows)
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_method_greedy_vs_dpp_geometry.pdf
+  wrote /home/mmoslem3/scratch/attack_if/visualization/figs/fig_method_greedy_vs_dpp_geometry.png

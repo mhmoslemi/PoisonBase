@@ -92,7 +92,7 @@ def main():
     p.add_argument('--num_victims', type=int, default=4, help='0 = all')
     p.add_argument('--out_dir', default='ours_result')
     p.add_argument('--defense_out_dir', default='defense_result')
-    p.add_argument('--out', default='aug_table.tex')
+    p.add_argument('--out', default='latex/aug_table.tex')
     a = p.parse_args()
 
     import json
