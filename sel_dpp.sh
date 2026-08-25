@@ -12,6 +12,12 @@
 #            q_i = exp(-SEL_ALPHA * score_i). Small alpha = more diversity,
 #            large alpha reproduces plain 'ours'.
 #
+# Set USE_JACOBIAN_SCORE=1 to add the exact standardized backbone-gradient
+# interaction to the pointwise quality cost for ours or dpp. JACOBIAN_WEIGHT is
+# beta and JACOBIAN_BATCH_SIZE controls memory without changing run identity:
+#
+#     USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 SELECT=dpp sh sel_dpp.sh
+#
 # SELECT is the authority: SEL_ALPHA is read ONLY when SELECT=dpp. Under
 # random / ours it is ignored, no --sel_* flag is passed, and it does not appear
 # in the run name -- so setting it cannot silently change a non-dpp run.
@@ -67,6 +73,13 @@ SELECT="${SELECT:-dpp}"
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
 
 SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
+USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
+JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
+JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
+case "$USE_JACOBIAN_SCORE" in
+    0|1) ;;
+    *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
+esac
 
 # Difficulty degree to select targets with the FIRST time a combo is run, i.e.
 # when target_sets/<MODEL>_<ATTACK>_<PAIR>.json does not exist yet. 0..100
@@ -181,6 +194,17 @@ for sel in $SELECT; do
         ours)   BASE=ours;   SEL_FLAGS="";                              SEL_NOTE="ours (plain greedy top-N_p by score)" ;;
         dpp)    BASE=ours;   SEL_FLAGS="--sel_dpp --sel_alpha $SEL_ALPHA"; SEL_NOTE="dpp (alpha=$SEL_ALPHA)" ;;
     esac
+    JACOBIAN_FLAGS=""
+    JACOBIAN_NOTE="Jacobian score disabled"
+    if [ "$USE_JACOBIAN_SCORE" = "1" ]; then
+        if [ "$sel" = "random" ]; then
+            JACOBIAN_NOTE="Jacobian score not applicable to random; run unchanged"
+            echo "    Jacobian score not applicable to SELECT=random; leaving random run unchanged"
+        else
+            JACOBIAN_FLAGS="--use_jacobian_score --jacobian_weight $JACOBIAN_WEIGHT --jacobian_batch_size $JACOBIAN_BATCH_SIZE"
+            JACOBIAN_NOTE="Jacobian score enabled (weight=$JACOBIAN_WEIGHT, batch=$JACOBIAN_BATCH_SIZE)"
+        fi
+    fi
 
     # sigma is a real loop for sapa and a single no-op pass for everything else,
     # so setting SHARP_SIGMA can never duplicate an fc / gradmatch run
@@ -199,6 +223,7 @@ for sig in $SIGMAS; do
     echo "=== $SEL_NOTE | $model / $attack / $pair$SHARP_NOTE ==="
     echo "    targets: $TGT_NOTE"
     echo "    difficulty label tgt$TGT_DEG   craft flags: ${CFG_MEM:-none}"
+    echo "    $JACOBIAN_NOTE"
     echo "    budgets: $BUDGETS"
     echo
 
@@ -213,7 +238,7 @@ for sig in $SIGMAS; do
             --craft_steps 250 --craft_alpha 0.0039216 \
             --restarts 8 --craft_ensemble 5 $CFG_MEM \
             --base_dist cosine --lambda_margin 1.0 \
-            $SEL_FLAGS $SHARP_FLAGS \
+            $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets 10 --target_select "$TGT_DEG" \
             $TGT_FLAGS \

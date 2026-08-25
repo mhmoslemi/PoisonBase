@@ -39,7 +39,9 @@ Base selection (--base):
   ours       standardized d(x) + lambda * M(x), lowest first, ensemble averaged.
              d = feature distance to the target (l2 or cosine), M = logit margin
              toward y_adv. Low score means close to the target in feature space
-             AND sitting near the y_adv decision boundary.
+             AND sitting near the y_adv decision boundary. With
+             --use_jacobian_score, subtract beta times the standardized exact
+             candidate/target backbone-gradient interaction per surrogate.
 
 Class pair naming follows MetaPoison: 'dog-bird' means poisons are drawn from
 'dog' (y_adv) and the target image is a 'bird'. Use --pair_order target-poison
@@ -137,6 +139,7 @@ CLASS_PAIRS = ['dog-bird', 'frog-airplane']   # the main sweep's pairs; --class_
 
 _LOG_PATH = None
 _LOG_TAG = ''          # set to '[gpu3]' inside a worker process
+_JACOBIAN_BACKENDS_LOGGED = set()
 
 RESULT_FIELDS = ['model', 'attack', 'base', 'class_pair', 'seed', 'budget',
                  'num_poisons', 'epsilon', 'target_idx', 'target_score', 'victim_id',
@@ -475,35 +478,243 @@ def select_targets(args, nets, test_imgs, test_labs, y_adv, target_class, gen):
 # base selection
 # --------------------------------------------------------------------------- #
 
+def _restore_training_states(states):
+    """Restore per-module train/eval flags without changing any other state."""
+    for module, training in states:
+        module.training = training
+
+
+def _log_jacobian_backend(backend, reason=None):
+    if backend in _JACOBIAN_BACKENDS_LOGGED:
+        return
+    _JACOBIAN_BACKENDS_LOGGED.add(backend)
+    if reason:
+        log('  Jacobian score exact backend: %s (functional JVP unavailable: %s)'
+            % (backend, reason))
+    else:
+        log('  Jacobian score exact backend: %s' % backend)
+
+
+def _jacobian_backend_metadata():
+    backends = set(_JACOBIAN_BACKENDS_LOGGED)
+    marker = 'Jacobian score exact backend: '
+    if _LOG_PATH and os.path.exists(_LOG_PATH):
+        with open(_LOG_PATH) as handle:
+            for line in handle:
+                if marker in line:
+                    value = line.split(marker, 1)[1].split(
+                        ' (functional JVP unavailable:', 1)[0].strip()
+                    if value:
+                        backends.add(value)
+    return ', '.join(sorted(backends)) if backends else None
+
+
+def _backbone_gradient_interactions(net, candidates, x_t_norm, y_adv,
+                                    batch_size=64):
+    """Return exact candidate/target CE-gradient dots over non-head parameters.
+
+    The production path computes one target reverse-mode gradient and then one
+    functional JVP per candidate batch.  No parameter gradients are accumulated
+    and no candidate-by-parameter tensor is constructed.  If forward AD is not
+    supported by an operator, the exact dummy-loss-weight double-backward
+    identity computes the same batch vector.
+    """
+    if batch_size <= 0:
+        raise ValueError('jacobian batch size must be positive, got %d' % batch_size)
+    core = net.module if isinstance(net, nn.DataParallel) else net
+    if not hasattr(core, 'classifier'):
+        raise ValueError('Jacobian scoring requires the model to expose its final '
+                         'linear head as .classifier; got %s' % type(core).__name__)
+    if not isinstance(core.classifier, nn.Linear):
+        raise ValueError('Jacobian scoring requires .classifier to be nn.Linear; got %s'
+                         % type(core.classifier).__name__)
+
+    named_params = dict(core.named_parameters())
+    head_ids = {id(p) for p in core.classifier.parameters()}
+    backbone = {name: p for name, p in named_params.items() if id(p) not in head_ids}
+    fixed = {name: p for name, p in named_params.items() if id(p) in head_ids}
+    if not backbone:
+        raise ValueError('Jacobian scoring found no parameters outside .classifier')
+    buffers = dict(core.named_buffers())
+    states = [(module, module.training) for module in core.modules()]
+    core.eval()
+    target = x_t_norm.unsqueeze(0) if x_t_norm.ndim == candidates.ndim - 1 else x_t_norm
+    label_target = torch.full((target.shape[0],), int(y_adv), dtype=torch.long,
+                              device=target.device)
+
+    def functional_logits(backbone_params, x):
+        params = dict(fixed)
+        params.update(backbone_params)
+        return torch.func.functional_call(core, (params, buffers), (x,))
+
+    target_grad = None
+    jvp_error = None
+    try:
+        with torch.enable_grad():
+            try:
+                if not all(hasattr(torch.func, name)
+                           for name in ('functional_call', 'grad', 'jvp')):
+                    raise RuntimeError('torch.func functional_call/grad/jvp is unavailable')
+
+                def target_loss(backbone_params):
+                    return F.cross_entropy(functional_logits(backbone_params, target),
+                                           label_target)
+
+                target_grad = torch.func.grad(target_loss)(backbone)
+                target_grad = {name: grad.detach() for name, grad in target_grad.items()}
+
+                values = []
+                for start in range(0, len(candidates), batch_size):
+                    batch = candidates[start:start + batch_size]
+
+                    def candidate_losses(backbone_params):
+                        logits = functional_logits(backbone_params, batch)
+                        labels = torch.full((len(batch),), int(y_adv), dtype=torch.long,
+                                            device=batch.device)
+                        return F.cross_entropy(logits, labels, reduction='none')
+
+                    _, tangent = torch.func.jvp(candidate_losses, (backbone,),
+                                                (target_grad,))
+                    values.append(tangent.detach())
+                result = torch.cat(values)
+                backend = 'torch.func JVP'
+            except Exception as exc:
+                jvp_error = exc
+                # Discard any partial JVP output and recompute every batch with the
+                # exact fallback, so a run never mixes or silently approximates.
+                fallback_backbone = {
+                    name: value.detach().requires_grad_(True)
+                    for name, value in backbone.items()
+                }
+
+                def fallback_logits(x):
+                    params = dict(fixed)
+                    params.update(fallback_backbone)
+                    return torch.func.functional_call(core, (params, buffers), (x,))
+
+                values = []
+                try:
+                    if target_grad is None:
+                        loss_t = F.cross_entropy(fallback_logits(target), label_target)
+                        grads_t = torch.autograd.grad(
+                            loss_t, tuple(fallback_backbone.values()))
+                        target_grad = {
+                            name: grad.detach()
+                            for name, grad in zip(fallback_backbone, grads_t)
+                        }
+                    backbone_values = tuple(fallback_backbone.values())
+                    target_values = tuple(target_grad.values())
+                    for start in range(0, len(candidates), batch_size):
+                        batch = candidates[start:start + batch_size]
+                        weights = torch.zeros(len(batch), device=batch.device,
+                                              dtype=batch.dtype, requires_grad=True)
+                        labels = torch.full((len(batch),), int(y_adv), dtype=torch.long,
+                                            device=batch.device)
+                        losses = F.cross_entropy(
+                            fallback_logits(batch), labels, reduction='none')
+                        mixed = torch.autograd.grad(
+                            torch.dot(weights, losses), backbone_values,
+                            create_graph=True)
+                        directional = sum((g * v).sum()
+                                          for g, v in zip(mixed, target_values))
+                        interaction = torch.autograd.grad(directional, weights)[0]
+                        values.append(interaction.detach())
+                    result = torch.cat(values)
+                    backend = 'dummy-weight double backward'
+                except Exception as fallback_error:
+                    raise RuntimeError(
+                        'exact Jacobian scoring failed with both batched backends; '
+                        'torch.func JVP error: %s; double-backward error: %s'
+                        % (jvp_error, fallback_error)) from fallback_error
+    finally:
+        _restore_training_states(states)
+
+    reason = None
+    if jvp_error is not None:
+        reason = '%s: %s' % (type(jvp_error).__name__, str(jvp_error).split('\n')[0])
+    _log_jacobian_backend(backend, reason)
+    return result, backend
+
+
+def _log_interaction_diagnostics(surrogate_idx, interaction):
+    finite = torch.isfinite(interaction)
+    vals = interaction[finite]
+    if len(vals):
+        mean = float(vals.mean())
+        std = float(vals.std()) if len(vals) > 1 else 0.0
+        lo, hi = float(vals.min()), float(vals.max())
+        frac_pos = float((vals > 0).float().mean())
+    else:
+        mean = std = lo = hi = frac_pos = float('nan')
+    log('  Jacobian A surrogate %d: finite=%s mean=%g std=%g min=%g max=%g positive=%g'
+        % (surrogate_idx, bool(finite.all()), mean, std, lo, hi, frac_pos))
+
+
+@torch.no_grad()
+def _ours_pointwise_score(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
+                          base_dist='l2', bs=512, collect_feats=False,
+                          use_jacobian_score=False, jacobian_weight=1.0,
+                          jacobian_batch_size=64):
+    """Shared per-surrogate proposed score, optionally with exact Jacobian A."""
+    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
+    cand = images_norm[cls_idx]
+    score = torch.zeros(len(cls_idx), device=device)
+    blocks = []
+    for surrogate_idx, net in enumerate(nets):
+        states = [(module, module.training) for module in net.modules()]
+        net.eval()
+        try:
+            emb = embed_of(net)
+            f_t = emb(x_t_norm.unsqueeze(0))
+            ds, ms, fs = [], [], []
+            for i in range(0, len(cand), bs):
+                b = cand[i:i + bs]
+                fb = emb(b)
+                if base_dist == 'cosine':
+                    d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
+                else:
+                    d = ((fb - f_t) ** 2).sum(dim=1)
+                z = net(b)
+                z_adv = z[:, y_adv].clone()
+                z_o = z.clone()
+                z_o[:, y_adv] = float('-inf')
+                m = z_adv - z_o.max(dim=1).values
+                ds.append(d)
+                ms.append(m)
+                if collect_feats:
+                    fs.append(F.normalize(fb.detach().flatten(1), dim=1))
+            component = standardize(torch.cat(ds)) + lam * standardize(torch.cat(ms))
+            if use_jacobian_score:
+                interaction, _ = _backbone_gradient_interactions(
+                    net, cand, x_t_norm, y_adv, jacobian_batch_size)
+                _log_interaction_diagnostics(surrogate_idx, interaction)
+                # Smaller costs are selected, while positive interaction is good.
+                # Avoid even a zero-times-NaN perturbation when beta is exactly 0.
+                if jacobian_weight != 0:
+                    component = component - jacobian_weight * standardize(interaction)
+                del interaction
+            score += component
+            if collect_feats:
+                blocks.append(torch.cat(fs))
+        finally:
+            _restore_training_states(states)
+    score /= len(nets)
+    feats = (torch.cat(blocks, dim=1) / math.sqrt(len(nets))
+             if collect_feats else None)
+    return cls_idx, score, feats
+
+
 @torch.no_grad()
 def select_base_ours(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam, device,
-                     base_dist='l2', bs=512):
+                     base_dist='l2', bs=512, use_jacobian_score=False,
+                     jacobian_weight=1.0, jacobian_batch_size=64):
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
-    cand = images_norm[cls_idx]
-    score = torch.zeros(len(cls_idx), device=device)
-    for net in nets:
-        net.eval()
-        emb = embed_of(net)
-        f_t = emb(x_t_norm.unsqueeze(0))
-        ds, ms = [], []
-        for i in range(0, len(cand), bs):
-            b = cand[i:i + bs]
-            fb = emb(b)
-            if base_dist == 'cosine':
-                d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
-            else:
-                d = ((fb - f_t) ** 2).sum(dim=1)
-            z = net(b)
-            z_adv = z[:, y_adv].clone()
-            z_o = z.clone()
-            z_o[:, y_adv] = float('-inf')
-            m = z_adv - z_o.max(dim=1).values
-            ds.append(d)
-            ms.append(m)
-        score += standardize(torch.cat(ds)) + lam * standardize(torch.cat(ms))
-    score /= len(nets)
+    cls_idx, score, _ = _ours_pointwise_score(
+        nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
+        use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
+        jacobian_batch_size=jacobian_batch_size)
     sel = torch.topk(score, k=N_p, largest=False).indices
     return cls_idx[sel]
 
@@ -528,45 +739,23 @@ def select_base_ours(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam, devic
 @torch.no_grad()          # selection is pure inference -- without this the graph
                           # over 5000 candidates x 5 surrogates exhausts the GPU
 def _ours_score_and_feats(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
-                          base_dist='l2', bs=512):
+                          base_dist='l2', bs=512, use_jacobian_score=False,
+                          jacobian_weight=1.0, jacobian_batch_size=64):
     """score_i identical to select_base_ours, plus the candidate features needed
     for a pairwise similarity. Per-surrogate features are L2-normalised and
     concatenated, so a single cosine on the result equals the MEAN of the
     per-surrogate cosines -- the same ensemble averaging the score already uses."""
-    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
-    cand = images_norm[cls_idx]
-    score = torch.zeros(len(cls_idx), device=device)
-    blocks = []
-    for net in nets:
-        net.eval()
-        emb = embed_of(net)
-        f_t = emb(x_t_norm.unsqueeze(0))
-        ds, ms, fs = [], [], []
-        for i in range(0, len(cand), bs):
-            b = cand[i:i + bs]
-            fb = emb(b)
-            if base_dist == 'cosine':
-                d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
-            else:
-                d = ((fb - f_t) ** 2).sum(dim=1)
-            z = net(b)
-            z_adv = z[:, y_adv].clone()
-            z_o = z.clone()
-            z_o[:, y_adv] = float('-inf')
-            m = z_adv - z_o.max(dim=1).values
-            ds.append(d)
-            ms.append(m)
-            fs.append(F.normalize(fb.detach().flatten(1), dim=1))
-        score += standardize(torch.cat(ds)) + lam * standardize(torch.cat(ms))
-        blocks.append(torch.cat(fs))
-    score /= len(nets)
-    feats = torch.cat(blocks, dim=1) / math.sqrt(len(nets))   # cosine == mean cosine
-    return cls_idx, score, feats
+    return _ours_pointwise_score(
+        nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
+        collect_feats=True, use_jacobian_score=use_jacobian_score,
+        jacobian_weight=jacobian_weight,
+        jacobian_batch_size=jacobian_batch_size)
 
 
 @torch.no_grad()
 def select_base_topr(nets, images_norm, labels, x_t_norm, y_adv, N_p, r, lam, device,
-                     base_dist='l2'):
+                     base_dist='l2', use_jacobian_score=False,
+                     jacobian_weight=1.0, jacobian_batch_size=64):
     """Concentrate the poison budget into r feature-space neighbourhoods.
 
     Same budget, fewer distinct regions: take the r best-scoring candidates as
@@ -583,7 +772,9 @@ def select_base_topr(nets, images_norm, labels, x_t_norm, y_adv, N_p, r, lam, de
     r >= N_p reduces to plain greedy selection.
     """
     cls_idx, score, feats = _ours_score_and_feats(nets, images_norm, labels, x_t_norm,
-                                                  y_adv, lam, device, base_dist=base_dist)
+        y_adv, lam, device, base_dist=base_dist,
+        use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
+        jacobian_batch_size=jacobian_batch_size)
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d candidates < N_p=%d' % (y_adv, len(cls_idx), N_p))
     if r >= N_p:
@@ -617,12 +808,15 @@ def _sim_to(feats, j):
 @torch.no_grad()
 def select_base_ours_div(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam, device,
                          base_dist='l2', bs=512, mode='filter', pool=3.0, mu=0.5,
-                         alpha=1.0):
+                         alpha=1.0, use_jacobian_score=False,
+                         jacobian_weight=1.0, jacobian_batch_size=64):
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
     cls_idx, score, feats = _ours_score_and_feats(
-        nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs)
+        nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
+        use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
+        jacobian_batch_size=jacobian_batch_size)
     N = len(cls_idx)
     score = standardize(score)          # monotone: does not change plain ranking
 
@@ -1366,6 +1560,11 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
 
     x_t_norm = ctx['test_imgs'][tidx]
     cached_delta, cached_base = load_poison_cache(run_dir, tidx, legacy, recompute)
+    jacobian_kwargs = {
+        'use_jacobian_score': getattr(args, 'use_jacobian_score', False),
+        'jacobian_weight': getattr(args, 'jacobian_weight', 1.0),
+        'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
+    }
 
     # ---- base selection ----------------------------------------------------
     if cached_base is not None:
@@ -1382,7 +1581,7 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         base_idx = select_base_topr(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
                                     train_imgs, train_labs, x_t_norm, y_adv, N_p,
                                     args.base_topr, args.lambda_margin, device,
-                                    base_dist=args.base_dist)
+                                    base_dist=args.base_dist, **jacobian_kwargs)
         log('  target %d: budget concentrated in %d neighbourhood(s), %d distinct bases'
             % (tidx, args.base_topr, len(base_idx)))
     elif args.sel_mode:
@@ -1391,12 +1590,13 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
                                         x_t_norm, y_adv, N_p, args.lambda_margin,
                                         device, base_dist=args.base_dist,
                                         mode=args.sel_mode, pool=args.sel_pool,
-                                        mu=args.sel_mu, alpha=args.sel_alpha)
+                                        mu=args.sel_mu, alpha=args.sel_alpha,
+                                        **jacobian_kwargs)
     else:
         base_idx = select_base_ours(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
                                     train_imgs, train_labs, x_t_norm,
                                     y_adv, N_p, args.lambda_margin, device,
-                                    base_dist=args.base_dist)
+                                    base_dist=args.base_dist, **jacobian_kwargs)
 
     # ---- crafting ----------------------------------------------------------
     base01 = denorm(train_imgs[base_idx]).clamp(0.0, 1.0).detach()
@@ -1828,6 +2028,10 @@ def build_run_name(args):
             name += '_selmmr%g' % args.sel_mu
         elif args.sel_dpp:
             name += '_seldpp%g' % args.sel_alpha
+    # The exact interaction changes selected bases and must never reuse a baseline
+    # poison cache.  Batch size/backend affect performance only, not run identity.
+    if getattr(args, 'use_jacobian_score', False):
+        name += '_jacw%g' % getattr(args, 'jacobian_weight', 1.0)
     # bases picked by another architecture are a different selection, so the run
     # must not share a directory (or a poison_cache) with the S = A run. Outside
     # the --base ours block on purpose: --base random ignores sel_model, but an
@@ -1917,6 +2121,12 @@ def main(args):
     log('=== run start: %s on %s ==='
         % (build_run_name(args), ('cuda %s' % gpus) if gpus else 'cpu'))
     log('args: %s' % json.dumps(vars(args), sort_keys=True))
+    if getattr(args, 'use_jacobian_score', False):
+        log('Jacobian score: enabled, weight=%g, batch_size=%d'
+            % (getattr(args, 'jacobian_weight', 1.0),
+               getattr(args, 'jacobian_batch_size', 64)))
+    else:
+        log('Jacobian score: disabled')
 
     y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
     N_p = int(round(args.budget * N_total)) if args.budget else args.num_poisons
@@ -2059,6 +2269,11 @@ def main(args):
         'seed': args.seed, 'budget': args.budget, 'num_poisons': N_p,
         'epsilon': args.epsilon, 'fc_mode': args.fc_mode,
         'lambda_margin': args.lambda_margin, 'base_dist': args.base_dist,
+        'use_jacobian_score': getattr(args, 'use_jacobian_score', False),
+        'jacobian_weight': getattr(args, 'jacobian_weight', 1.0),
+        'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
+        'jacobian_backend': (_jacobian_backend_metadata()
+                             if getattr(args, 'use_jacobian_score', False) else None),
         'num_surrogates': args.num_surrogates,
         'craft_ensemble': args.craft_ensemble or args.num_surrogates,
         'restarts': args.restarts, 'craft_steps': args.craft_steps,
@@ -2105,7 +2320,7 @@ def main(args):
                            % len(worker_errors))
 
 
-def parse_args():
+def parse_args(argv=None):
     p = argparse.ArgumentParser(description='Clean-label poisoning: FC / gradmatch '
                                             'crafting x random / ours base selection.')
     # data + model
@@ -2215,6 +2430,13 @@ def parse_args():
     # base selection
     p.add_argument('--lambda_margin', type=float, default=1.0)
     p.add_argument('--base_dist', type=str, default='l2', choices=['l2', 'cosine'])
+    p.add_argument('--use_jacobian_score', action='store_true', default=False,
+                   help='augment the proposed pointwise score with the exact '
+                        'backbone-gradient interaction')
+    p.add_argument('--jacobian_weight', type=float, default=1.0,
+                   help='nonnegative beta multiplying the standardized Jacobian term')
+    p.add_argument('--jacobian_batch_size', type=int, default=64,
+                   help='positive candidate batch size for exact Jacobian interactions')
 
     # --- diversity-aware base selection (--base ours only) --------------------
     # All three reuse the SAME per-candidate score as plain --base ours and only
@@ -2289,7 +2511,7 @@ def parse_args():
     p.add_argument('--precompute_part', type=str, default='both',
                    choices=['surrogate', 'victim', 'both'])
     p.add_argument('--precompute_id', type=int, default=None)
-    args = p.parse_args()
+    args = p.parse_args(argv)
 
     if args.FORCE:
         args.no_resume = True
@@ -2301,6 +2523,15 @@ def parse_args():
         p.error('%s are mutually exclusive -- pick one' % ' / '.join(on))
     if on and args.base != 'ours':
         p.error('%s only affects --base ours (got --base %s)' % (on[0], args.base))
+    if not math.isfinite(args.jacobian_weight) or args.jacobian_weight < 0:
+        p.error('--jacobian_weight must be a finite nonnegative value')
+    if args.jacobian_batch_size <= 0:
+        p.error('--jacobian_batch_size must be positive')
+    if args.use_jacobian_score and args.base == 'random':
+        p.error('--use_jacobian_score is not applicable to --base random')
+    if args.use_jacobian_score and args.sel_criterion:
+        p.error('--use_jacobian_score cannot be combined with --sel_criterion, '
+                'which replaces the proposed pointwise score')
     # --sel_model with --base random is allowed but does nothing to the result:
     # select_base_random draws from the class pool with a per-target rng and
     # never touches a net, so such a run reproduces the S = A one exactly. It
