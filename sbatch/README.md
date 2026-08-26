@@ -7,13 +7,13 @@ and `run_defense.txt` into one `sbatch` script per table cell:
   using 8 targets and 5 victims.
 - `defense/`: 62 jobs, one model/attack/budget/selection/defense cell per job,
   using 7 targets and 5 victims.
+- `remaining/`: one cache-building attack plus a dependency-aware submitter for
+  the only two defense cells that did not complete.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
-Every job requests one L40S and one CPU core. Most jobs request 7 GB of host
-memory; a configuration with an unresolved memory-related termination requests
-15 GB for its retry. Walltime is the configuration-specific L40S estimate plus
-45 minutes. Standard
-cells request at most 7 hours. Attack cells estimated to take more than 7 hours
+Every job requests one L40S, one CPU core, and 7 GB of host memory. Walltime is
+the configuration-specific L40S estimate plus 45 minutes. Standard cells
+request at most 7 hours. Attack cells estimated to take more than 7 hours
 are not capped: they request their full estimate plus 45 minutes and appear at
 the end of `submit_attack.sh`. A timed-out cell can be submitted again and
 resumes from its saved target/trial artifacts.
@@ -22,12 +22,15 @@ resumes from its saved target/trial artifacts.
 
 From `/home/mmoslem3/scratch/attack_if`:
 
+The current log audit found all 129 attacks complete and 60 of 62 defenses
+complete. Submit only the missing cache and its two dependent defense retries:
+
 ```bash
-sh submit_attack.sh
-sh submit_defense.sh
-sh submit_attack-retry.sh
-sh submit_defense_done.sh
+sh submit_remaining.sh
 ```
+
+The original `submit_attack.sh` and `submit_defense.sh` remain available for a
+fresh full rerun; do not use them for the current remaining-work pass.
 
 Submit an individual configuration with, for example:
 
@@ -35,8 +38,9 @@ Submit an individual configuration with, for example:
 sbatch sbatch/attack/attack_001_convnet_gradmatch_dog_bird_b0_001_ours_std.sh
 ```
 
-Wait for any attack jobs that create perturbations required by defense jobs
-before submitting those defense jobs.
+`submit_remaining.sh` expresses this ordering with SLURM `afterok`
+dependencies, so the two defenses cannot start until the missing random-poison
+cache has been created and synced successfully.
 
 ## What is staged
 

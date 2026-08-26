@@ -160,16 +160,6 @@ def make_script(kind: str, index: int, source_command: str,
     long_attack = kind == "attack" and estimate > 7 * 60
     wall = estimate + 45 if long_attack else min(estimate + 45, 7 * 60)
     cushion_capped = not long_attack and estimate + 45 > 7 * 60
-    retry_15g = (
-        kind == "attack"
-        and env["MODEL"] == "ConvNetBN"
-        and env["ATTACK"] == "gradmatch"
-        and env["CLASS_PAIR"] == "dog-bird"
-        and env["BUDGETS"] == "0.01"
-        and env["SELECT"] == "ours"
-        and env.get("USE_JACOBIAN_SCORE", "0") == "0"
-    )
-    memory_gb = 15 if retry_15g else 7
     method = env.get("SELECT", env.get("SELS", "selection"))
     jac = "j" if env.get("USE_JACOBIAN_SCORE", "0") == "1" else "std"
     parts = [kind, f"{index:03d}", slug(env["MODEL"].replace("BN", "")),
@@ -198,7 +188,7 @@ def make_script(kind: str, index: int, source_command: str,
         "#SBATCH --nodes=1",
         "#SBATCH --ntasks=1",
         "#SBATCH --cpus-per-task=1",
-        f"#SBATCH --mem={memory_gb}G",
+        "#SBATCH --mem=7G",
         "#SBATCH --gres=gpu:l40s:1",
         "#SBATCH --signal=B:USR1@300",
         f"#SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/{label}-%j.out",
