@@ -9,8 +9,10 @@ and `run_defense.txt` into one `sbatch` script per table cell:
   using 7 targets and 5 victims.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
-Every job requests one L40S, one CPU core, and 7 GB of host memory. Its
-walltime is the configuration-specific L40S estimate plus 45 minutes. Standard
+Every job requests one L40S and one CPU core. Most jobs request 7 GB of host
+memory; a configuration with an unresolved memory-related termination requests
+15 GB for its retry. Walltime is the configuration-specific L40S estimate plus
+45 minutes. Standard
 cells request at most 7 hours. Attack cells estimated to take more than 7 hours
 are not capped: they request their full estimate plus 45 minutes and appear at
 the end of `submit_attack.sh`. A timed-out cell can be submitted again and
@@ -23,6 +25,8 @@ From `/home/mmoslem3/scratch/attack_if`:
 ```bash
 sh submit_attack.sh
 sh submit_defense.sh
+sh submit_attack-retry.sh
+sh submit_defense_done.sh
 ```
 
 Submit an individual configuration with, for example:
