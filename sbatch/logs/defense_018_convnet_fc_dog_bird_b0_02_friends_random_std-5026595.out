@@ -1,0 +1,19 @@
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/ours_result/CIFAR10_ConvNetBN_fc_random_dog-bird_b0.02_eps8_seed42_ce5_tgt50
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/defense_result/CIFAR10_ConvNetBN_fc_random_dog-bird_b0.02_eps8_seed42_ce5_tgt50__def-friends-friendly.bernoulli-e8-p5-clp16
+job: 5026595 defense_018_convnet_fc_dog_bird_b0_02_friends_random_std on kn067
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=0 CLASS_PAIR="dog-bird" MODEL="ConvNetBN" ATTACK="fc" BUDGETS=0.02 SELS=random SEL_ALPHA=2.0 DEFENSES="friends" NUM_TARGETS=7 NUM_VICTIMS=5 sh defense.sh
+protocol: attack=8 targets x 5 victims; defense=7 targets x 5 victims
+gpu: NVIDIA L40S
+#  b0.02   random=0                     -> 0 paired target(s)
+#  b0.02 skipped: no target has poisons under every selection
+=== defense sweep | ConvNetBN / fc / dog-bird (tgt50) ===
+    selections : random   (dpp alpha 2.0)
+    selector   : Jacobian disabled (historical attack-run names)
+    defenses   : friends
+    poisons    : replayed from /tmp/attack_if/ours_result, results into /tmp/attack_if/defense_result
+
+nothing to run: no budget has poisons under every selection
+srun: error: kn067: task 0: Exited with exit code 1
+sync: preserving outputs in /home/mmoslem3/scratch/attack_if
+sync: complete

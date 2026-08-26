@@ -1,0 +1,103 @@
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/defense_result/CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50__def-friends-friendly.bernoulli-e8-p5-clp16
+job: 5026597 defense_020_convnet_fc_dog_bird_b0_02_friends_dpp_std on kn067
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=0 CLASS_PAIR="dog-bird" MODEL="ConvNetBN" ATTACK="fc" BUDGETS=0.02 SELS=dpp SEL_ALPHA=2.0 DEFENSES="friends" NUM_TARGETS=7 NUM_VICTIMS=5 sh defense.sh
+protocol: attack=8 targets x 5 victims; defense=7 targets x 5 victims
+gpu: NVIDIA L40S
+#  b0.02   dpp=10                       -> 10 paired target(s)
+=== defense sweep | ConvNetBN / fc / dog-bird (tgt50) ===
+    selections : dpp   (dpp alpha 2.0)
+    selector   : Jacobian disabled (historical attack-run names)
+    defenses   : friends
+    poisons    : replayed from /tmp/attack_if/ours_result, results into /tmp/attack_if/defense_result
+
+--- budget 0.02 | defense friends | selection dpp ---
+[2026-08-26 00:41:38] === defense run: CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50__def-friends-friendly.bernoulli-e8-p5-clp16 ===
+[2026-08-26 00:41:38]     poisons replayed from /tmp/attack_if/ours_result/CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50
+[2026-08-26 00:41:38]     defense = friends  (friends-friendly.bernoulli-e8-p5-clp16)
+[2026-08-26 00:41:38]     victim augmentation = none  (applied to the poisoned image, resampled every epoch)
+[2026-08-26 00:41:38] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "fc", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "ours", "base_dist": "cosine", "budget": 0.02, "cache_dir": "/tmp/attack_if/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/data", "dataset": "CIFAR10", "defense": "friends", "defense_out_dir": "/tmp/attack_if/defense_result", "defense_parts": ["friends"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "ConvNetBN", "no_resume": false, "noise_eps": 8.0, "noise_type": ["friendly", "bernoulli"], "num_targets": 7, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 2.0, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "target_sets/def_ConvNetBN_fc_dog-bird_b0.02.json", "target_select": 50, "use_jacobian_score": false, "victim_aug": "none", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-26 00:42:02]   7 target(s) with saved poisons: [2540, 3725, 3875, 5169, 5705, 6335, 7488]
+[2026-08-26 00:42:02] === defended clean victims (5 x ConvNetBN, defense friends-friendly.bernoulli-e8-p5-clp16) ===
+[2026-08-26 00:42:03]   defended clean CTA = 0.7538 +/- 0.0081
+[2026-08-26 00:42:03] === target 2540: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 00:42:37]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0428 (10.92/255)
+[2026-08-26 00:43:29]   [t2540 v1/5] SUCCESS (pred=dog) CTA=0.7456 (86 s)
+[2026-08-26 00:44:03]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0397 (10.13/255)
+[2026-08-26 00:44:55]   [t2540 v2/5] SUCCESS (pred=dog) CTA=0.7343 (86 s)
+[2026-08-26 00:45:29]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0431 (10.99/255)
+[2026-08-26 00:46:22]   [t2540 v3/5] SUCCESS (pred=dog) CTA=0.7520 (87 s)
+[2026-08-26 00:46:56]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0429 (10.94/255)
+[2026-08-26 00:47:48]   [t2540 v4/5] SUCCESS (pred=dog) CTA=0.7492 (86 s)
+[2026-08-26 00:48:22]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0410 (10.45/255)
+[2026-08-26 00:49:13]   [t2540 v5/5] SUCCESS (pred=dog) CTA=0.7469 (85 s)
+[2026-08-26 00:49:13] === target 3725: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 00:49:47]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0422 (10.76/255)
+[2026-08-26 00:50:38]   [t3725 v1/5] SUCCESS (pred=dog) CTA=0.7467 (85 s)
+[2026-08-26 00:51:12]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0432 (11.00/255)
+[2026-08-26 00:52:03]   [t3725 v2/5] SUCCESS (pred=dog) CTA=0.7361 (85 s)
+[2026-08-26 00:52:36]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0420 (10.71/255)
+[2026-08-26 00:53:28]   [t3725 v3/5] SUCCESS (pred=dog) CTA=0.7477 (86 s)
+[2026-08-26 00:54:02]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0421 (10.73/255)
+[2026-08-26 00:54:52]   [t3725 v4/5] SUCCESS (pred=dog) CTA=0.7271 (83 s)
+[2026-08-26 00:55:25]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0436 (11.12/255)
+[2026-08-26 00:56:17]   [t3725 v5/5] SUCCESS (pred=dog) CTA=0.7421 (85 s)
+[2026-08-26 00:56:17] === target 3875: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 00:56:51]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0436 (11.12/255)
+[2026-08-26 00:57:41]   [t3875 v1/5] fail (pred=horse) CTA=0.7424 (84 s)
+[2026-08-26 00:58:14]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0405 (10.32/255)
+[2026-08-26 00:59:04]   [t3875 v2/5] fail (pred=bird) CTA=0.7494 (83 s)
+[2026-08-26 00:59:38]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0436 (11.13/255)
+[2026-08-26 01:00:26]   [t3875 v3/5] fail (pred=bird) CTA=0.7582 (82 s)
+[2026-08-26 01:00:59]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0406 (10.34/255)
+[2026-08-26 01:01:47]   [t3875 v4/5] SUCCESS (pred=dog) CTA=0.7382 (81 s)
+[2026-08-26 01:02:20]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0415 (10.59/255)
+[2026-08-26 01:03:09]   [t3875 v5/5] fail (pred=bird) CTA=0.7453 (82 s)
+[2026-08-26 01:03:09] === target 5169: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 01:03:42]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0423 (10.78/255)
+[2026-08-26 01:04:29]   [t5169 v1/5] SUCCESS (pred=dog) CTA=0.7511 (80 s)
+[2026-08-26 01:05:02]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0420 (10.70/255)
+[2026-08-26 01:05:51]   [t5169 v2/5] SUCCESS (pred=dog) CTA=0.7306 (82 s)
+[2026-08-26 01:06:24]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0443 (11.29/255)
+[2026-08-26 01:07:14]   [t5169 v3/5] SUCCESS (pred=dog) CTA=0.7430 (83 s)
+[2026-08-26 01:07:47]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0426 (10.87/255)
+[2026-08-26 01:08:35]   [t5169 v4/5] SUCCESS (pred=dog) CTA=0.7545 (81 s)
+[2026-08-26 01:09:08]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0428 (10.91/255)
+[2026-08-26 01:09:56]   [t5169 v5/5] SUCCESS (pred=dog) CTA=0.7507 (81 s)
+[2026-08-26 01:09:56] === target 5705: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 01:10:29]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0438 (11.17/255)
+[2026-08-26 01:11:18]   [t5705 v1/5] SUCCESS (pred=dog) CTA=0.7327 (82 s)
+[2026-08-26 01:11:52]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0417 (10.64/255)
+[2026-08-26 01:12:39]   [t5705 v2/5] SUCCESS (pred=dog) CTA=0.7520 (81 s)
+[2026-08-26 01:13:13]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0462 (11.77/255)
+[2026-08-26 01:14:02]   [t5705 v3/5] SUCCESS (pred=dog) CTA=0.7320 (82 s)
+[2026-08-26 01:14:35]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0430 (10.97/255)
+[2026-08-26 01:15:25]   [t5705 v4/5] SUCCESS (pred=dog) CTA=0.7509 (83 s)
+[2026-08-26 01:15:58]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0414 (10.56/255)
+[2026-08-26 01:16:47]   [t5705 v5/5] SUCCESS (pred=dog) CTA=0.7392 (82 s)
+[2026-08-26 01:16:47] === target 6335: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 01:17:20]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0424 (10.81/255)
+[2026-08-26 01:18:09]   [t6335 v1/5] SUCCESS (pred=dog) CTA=0.7516 (82 s)
+[2026-08-26 01:18:42]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0416 (10.62/255)
+[2026-08-26 01:19:30]   [t6335 v2/5] SUCCESS (pred=dog) CTA=0.7510 (81 s)
+[2026-08-26 01:20:03]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0433 (11.04/255)
+[2026-08-26 01:20:53]   [t6335 v3/5] SUCCESS (pred=dog) CTA=0.7553 (83 s)
+[2026-08-26 01:21:26]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0391 (9.96/255)
+[2026-08-26 01:22:15]   [t6335 v4/5] SUCCESS (pred=dog) CTA=0.7583 (82 s)
+[2026-08-26 01:22:48]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0409 (10.43/255)
+[2026-08-26 01:23:35]   [t6335 v5/5] SUCCESS (pred=dog) CTA=0.7526 (80 s)
+[2026-08-26 01:23:35] === target 7488: 1000 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 01:24:08]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0444 (11.33/255)
+[2026-08-26 01:24:56]   [t7488 v1/5] fail (pred=bird) CTA=0.7407 (81 s)
+[2026-08-26 01:25:29]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0385 (9.82/255)
+[2026-08-26 01:26:17]   [t7488 v2/5] fail (pred=bird) CTA=0.6851 (81 s)
+[2026-08-26 01:26:51]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0441 (11.26/255)
+[2026-08-26 01:27:39]   [t7488 v3/5] SUCCESS (pred=dog) CTA=0.7374 (82 s)
+[2026-08-26 01:28:12]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0437 (11.14/255)
+[2026-08-26 01:29:00]   [t7488 v4/5] SUCCESS (pred=dog) CTA=0.7479 (81 s)
+[2026-08-26 01:29:33]   friendly noise: 50000 images in 28 s, mean|eps| = 0.0441 (11.24/255)
+[2026-08-26 01:30:23]   [t7488 v5/5] fail (pred=bird) CTA=0.7478 (83 s)
+[2026-08-26 01:30:23] ==== CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50 | defense friends-friendly.bernoulli-e8-p5-clp16 : ASR = 80.0% +/- 32.1% | CTA = 0.7436 (defended clean 0.7538) ====
+[2026-08-26 01:30:23]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 6, 0, 0, 28, 0, 1, 0, 0]
+sync: preserving outputs in /home/mmoslem3/scratch/attack_if
+sync: complete
