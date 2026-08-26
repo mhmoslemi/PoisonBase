@@ -9,6 +9,9 @@ and `run_defense.txt` into one `sbatch` script per table cell:
   using 7 targets and 5 victims.
 - `remaining/`: one cache-building attack plus a dependency-aware submitter for
   the only two defense cells that did not complete.
+- `missing_defense/`: 50 defense cells that are blank in the current
+  `defense.tex` and were never part of the original 62-job set. This set
+  deliberately excludes the two cells already handled by `remaining/`.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
 Every job requests one L40S, one CPU core, and 7 GB of host memory. Walltime is
@@ -22,8 +25,14 @@ resumes from its saved target/trial artifacts.
 
 From `/home/mmoslem3/scratch/attack_if`:
 
-The current log audit found all 129 attacks complete and 60 of 62 defenses
-complete. Submit only the missing cache and its two dependent defense retries:
+Submit the newly discovered, previously unsubmitted defense cells with:
+
+```bash
+sh submit_defense-missing.sh
+```
+
+This submits 50 independent one-cell jobs. If the earlier missing-cache retry
+chain has not been submitted yet, submit it separately with:
 
 ```bash
 sh submit_remaining.sh
@@ -68,6 +77,12 @@ Regenerate after either command list changes:
 
 ```bash
 python3 sbatch/generate_jobs.py
+```
+
+Regenerate only the newly blank defense-cell set after editing `defense.tex`:
+
+```bash
+python3 sbatch/generate_missing_defense.py
 ```
 
 ## Twenty-five-minute smoke tests

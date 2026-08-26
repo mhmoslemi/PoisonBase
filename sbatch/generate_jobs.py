@@ -155,14 +155,16 @@ def exports(env: dict[str, str], kind: str) -> list[str]:
 
 
 def make_script(kind: str, index: int, source_command: str,
-                effective_command: str, env: dict[str, str]):
+                effective_command: str, env: dict[str, str],
+                name_prefix: str = ""):
     estimate = attack_minutes(env) if kind == "attack" else defense_minutes(env)
     long_attack = kind == "attack" and estimate > 7 * 60
     wall = estimate + 45 if long_attack else min(estimate + 45, 7 * 60)
     cushion_capped = not long_attack and estimate + 45 > 7 * 60
     method = env.get("SELECT", env.get("SELS", "selection"))
     jac = "j" if env.get("USE_JACOBIAN_SCORE", "0") == "1" else "std"
-    parts = [kind, f"{index:03d}", slug(env["MODEL"].replace("BN", "")),
+    parts = [name_prefix + kind, f"{index:03d}",
+             slug(env["MODEL"].replace("BN", "")),
              slug(env["ATTACK"]), slug(env["CLASS_PAIR"]),
              "b" + slug(env["BUDGETS"])]
     if kind == "defense":
