@@ -1,0 +1,33 @@
+job: 5033436 b2040_attack_031_vgg13_gradmatch_dog_bird_b0_02_ours_std on kn121
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=0 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=gradmatch BUDGETS=0.02 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
+protocol: attack=8 targets x 6 victims
+gpu: NVIDIA L40S
+=== ours (plain greedy top-N_p by score) | VGG13BN / gradmatch / dog-bird ===
+    targets: pinned from target_sets/VGG13BN_gradmatch_dog-bird.json (same 10 the random-base run attacked)
+    difficulty label tgt50   craft flags: --craft_lowmem --craft_batch 256 --fast_gradmatch
+    Jacobian score disabled
+    budgets: 0.02
+
+--- ours | VGG13BN / gradmatch / dog-bird | budget 0.02 ---
+[2026-08-26 10:32:16] === run start: CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_ce5_tgt50 on cuda [0] ===
+[2026-08-26 10:32:16] args: {"FORCE": false, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.02, "cache_dir": "/tmp/attack_if/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": true, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": true, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 8, "num_victims": 6, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/VGG13BN_gradmatch_dog-bird.json", "target_select": 50, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-26 10:32:16] Jacobian score: disabled
+[2026-08-26 10:32:16] N_total=50000 budget=0.02 -> N_p=1000 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-08-26 10:32:16] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-08-26 10:32:18]   crafting on 5/20 surrogates
+[2026-08-26 10:32:18] === clean victims (6 x VGG13BN) ===
+[2026-08-26 10:32:20]   clean baseline CTA = 0.8476 +/- 0.0158
+[2026-08-26 10:32:20]   target pool 1000 -> eligible 970 (30 already predicted as y_adv or dropped)
+[2026-08-26 10:32:20]   chosen 8 targets (file), p_adv range 0.0000..0.0000
+[2026-08-26 10:32:20]   targets: [630, 409, 2270, 9870, 1656, 5022, 9090, 6033]
+[2026-08-26 10:32:20]   resume: 30 (target, victim) trials already done
+[2026-08-26 10:32:20] === target 5022 (1/3) ===
+srun: Job step aborted: Waiting up to 62 seconds for job step to finish.
+[2026-08-26T10:36:14.778] error: *** JOB 5033436 ON kn121 CANCELLED AT 2026-08-26T10:36:14 DUE to SIGNAL Terminated ***
+signal: received TERM; stopping the job step before final sync
+[2026-08-26T10:36:14.778] error: *** STEP 5033436.0 ON kn121 CANCELLED AT 2026-08-26T10:36:14 DUE to SIGNAL Terminated ***
+srun: forcing job termination
+srun: error: kn121: task 0: Terminated
+sync: preserving outputs in /home/mmoslem3/scratch/attack_if
+sync: complete

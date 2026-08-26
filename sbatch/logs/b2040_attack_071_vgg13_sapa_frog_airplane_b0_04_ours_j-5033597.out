@@ -1,0 +1,29 @@
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/ours_result/CIFAR10_VGG13BN_sapa_ours_frog-airplane_b0.04_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt12
+job: 5033597 b2040_attack_071_vgg13_sapa_frog_airplane_b0_04_ours_j on kn161
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=frog-airplane MODEL=VGG13BN ATTACK=sapa SHARP_MODE=worst SHARP_SIGMA=0.05 BUDGETS=0.04 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
+protocol: attack=8 targets x 6 victims
+gpu: NVIDIA L40S
+=== ours (plain greedy top-N_p by score) | VGG13BN / sapa / frog-airplane | sharp worst sigma=0.05 ===
+    targets: pinned from target_sets/VGG13BN_gradmatch_frog-airplane.json (same 10 the random-base run attacked)
+    difficulty label tgt12   craft flags: --craft_lowmem --craft_batch 256 --fast_gradmatch
+    Jacobian score enabled (weight=1.0, batch=64)
+    budgets: 0.04
+
+--- ours | VGG13BN / sapa / frog-airplane | sharp worst sigma=0.05 | budget 0.04 ---
+Traceback (most recent call last):
+  File "/tmp/attack_if/final_update.py", line 2545, in <module>
+    main(parse_args())
+  File "/tmp/attack_if/final_update.py", line 2086, in main
+    torch.cuda.set_device(gpus[0])
+  File "/home/mmoslem3/ENV/lib/python3.11/site-packages/torch/cuda/__init__.py", line 567, in set_device
+    torch._C._cuda_setDevice(device)
+torch.AcceleratorError: CUDA error: uncorrectable ECC error encountered
+Search for `cudaErrorECCUncorrectable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+
+sync: preserving outputs in /home/mmoslem3/scratch/attack_if
+sync: complete
