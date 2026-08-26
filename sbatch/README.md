@@ -95,6 +95,28 @@ python3 sbatch/generate_full_b20_b40.py
 sh submit_full-b20-b40.sh
 ```
 
+## Expanded cross-architecture tables
+
+`cross-table.tex` contains the $K=1$, $K=3$, and legacy $K=20$ tables. Each
+table now covers BP, GM, and SAPA at budgets 0.002 and 0.005, with Random,
+Greedy, and DPP columns. The paired-target protocol remains five pinned targets
+by four victims. SAPA reuses the corresponding GM target set, and budget 0.002
+uses the same pinned b0.005 target indices so budget comparisons remain paired.
+
+The 439 still-blank cells are under `sbatch/cross_expanded/`; every script is
+exactly one K/budget/attack/selector/victim/method cell. The first five entries
+in `manifest.tsv` are interrupted H200 runs. `_cross_job_common.sh` stages their
+saved poison caches and completed trial shards from
+`last_night_H200_2026-08-26/ours_result/` before resuming them.
+
+Regenerate the table/job set after filling more table cells, then submit all
+remaining cells with:
+
+```bash
+python3 sbatch/generate_cross_expanded.py
+sh submit_cross.sh
+```
+
 ## Twenty-five-minute smoke tests
 
 These two jobs use isolated `toy_result/`, `toy_defense_result/`, and

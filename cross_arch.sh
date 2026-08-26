@@ -3,9 +3,9 @@
 # Cross-architecture dog--bird table launcher.
 #
 # S (SELECTOR_MODELS) chooses bases. A=V (MODELS) crafts poisons and trains
-# victims. The paper's BP rows use --attack fc; GM uses --attack gradmatch.
-# Every cell uses the xa* protocol: 20 surrogates, five pinned targets, four
-# victims per target, budget 0.005, and DPP alpha 2.
+# victims. BP uses --attack fc, GM uses --attack gradmatch, and SAPA uses the
+# same pinned targets as GM. Every cell uses the xa* protocol: 20 trained
+# surrogates, five pinned targets, four victims per target, and DPP alpha 2.
 #
 # Examples:
 #   sh cross_arch.sh
@@ -22,12 +22,13 @@ set -u
 # Whitespace-separated sweep axes. Supported names come from final_update.py.
 MODELS="${MODELS:-ConvNetBN ResNet20BN VGG13BN}"       # attack/victim A=V
 SELECTOR_MODELS="${SELECTOR_MODELS:-ConvNetBN ResNet20BN VGG13BN}"  # S
-ATTACKS="${ATTACKS:-fc gradmatch}"                    # fc = BP in the table
-SELECTIONS="${SELECTIONS:-random dpp}"
+ATTACKS="${ATTACKS:-fc gradmatch sapa}"               # fc = BP in the table
+SELECTIONS="${SELECTIONS:-random greedy dpp}"
 
 DATASET="${DATASET:-CIFAR10}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 BUDGET="${BUDGET:-0.005}"
+TARGET_SET_BUDGET="${TARGET_SET_BUDGET:-0.005}"       # pair budgets on one target set
 EPSILON="${EPSILON:-0.0313725}"                       # 8/255 pixel budget
 SEED="${SEED:-42}"
 
@@ -42,6 +43,9 @@ VICTIM_EPOCHS="${VICTIM_EPOCHS:-50}"
 BASE_DIST="${BASE_DIST:-cosine}"
 LAMBDA_MARGIN="${LAMBDA_MARGIN:-1.0}"
 SEL_ALPHA="${SEL_ALPHA:-2.0}"
+SEL_K="${SEL_K:-20}"                                  # 20 omits the legacy run-name tag
+SHARP_MODE="${SHARP_MODE:-worst}"
+SHARP_SIGMA="${SHARP_SIGMA:-0.05}"
 
 # Exact Jacobian-aware pointwise score. It applies to DPP only; Random is
 # deliberately unchanged. Batch size affects speed/memory, not run identity.
@@ -49,11 +53,9 @@ USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"         # must be 0 or 1
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"             # beta, must be >= 0
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"      # must be > 0
 
-# The historical xa* launchers cover off-diagonal S != A cells. "auto" also
-# runs matched DPP cells when Jacobian is enabled, since their _jacw* run names
-# are isolated from historical caches. Set to 1 to request matched DPP cells in
-# a fresh baseline tree, or 0 to always leave them to sel_dpp.sh.
-RUN_MATCHED_DPP="${RUN_MATCHED_DPP:-auto}"             # auto | 0 | 1
+# Historical sweeps skipped S=A cells. The expanded tables need them too, so
+# generated one-cell jobs explicitly set RUN_MATCHED=1.
+RUN_MATCHED="${RUN_MATCHED:-0}"                        # 0 | 1
 
 PROJECT_DIR="${PROJECT_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)}"
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
@@ -83,9 +85,9 @@ case "$USE_JACOBIAN_SCORE" in
     0|1) ;;
     *) die "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected 0 or 1)" ;;
 esac
-case "$RUN_MATCHED_DPP" in
-    auto|0|1) ;;
-    *) die "RUN_MATCHED_DPP=$RUN_MATCHED_DPP (expected auto, 0, or 1)" ;;
+case "$RUN_MATCHED" in
+    0|1) ;;
+    *) die "RUN_MATCHED=$RUN_MATCHED (expected 0 or 1)" ;;
 esac
 case "$DRY_RUN" in
     0|1) ;;
@@ -108,16 +110,20 @@ PY
 
 for selection in $SELECTIONS; do
     case "$selection" in
-        random|dpp) ;;
-        *) die "unknown selection '$selection' (expected random or dpp)" ;;
+        random|greedy|dpp) ;;
+        *) die "unknown selection '$selection' (expected random, greedy, or dpp)" ;;
     esac
 done
 for attack in $ATTACKS; do
     case "$attack" in
-        fc|gradmatch) ;;
-        *) die "unknown attack '$attack' (expected fc or gradmatch)" ;;
+        fc|gradmatch|sapa) ;;
+        *) die "unknown attack '$attack' (expected fc, gradmatch, or sapa)" ;;
     esac
 done
+case "$SEL_K" in
+    1|3|20) ;;
+    *) die "SEL_K=$SEL_K (expected 1, 3, or 20 for the three tables)" ;;
+esac
 
 cd "$PROJECT_DIR" || exit 1
 [ -f final_update.py ] || die "final_update.py not found in PROJECT_DIR=$PROJECT_DIR"
@@ -139,11 +145,11 @@ fi
 target_degree() {
     case "$1:$2" in
         ConvNetBN:fc)        echo 50 ;;
-        ConvNetBN:gradmatch) echo 70 ;;
+        ConvNetBN:gradmatch|ConvNetBN:sapa) echo 70 ;;
         ResNet20BN:fc)       echo 10 ;;
-        ResNet20BN:gradmatch) echo 14 ;;
+        ResNet20BN:gradmatch|ResNet20BN:sapa) echo 14 ;;
         VGG13BN:fc)          echo 3 ;;
-        VGG13BN:gradmatch)   echo 50 ;;
+        VGG13BN:gradmatch|VGG13BN:sapa) echo 50 ;;
         *) die "no xa target-degree setting for model=$1 attack=$2" ;;
     esac
 }
@@ -165,7 +171,9 @@ run_cell() {
     selector_model="$3"
     selection="$4"
     degree="$(target_degree "$model" "$attack")"
-    idx="target_sets/xarch_${model}_${attack}_${CLASS_PAIR}_b${BUDGET}.json"
+    target_attack="$attack"
+    [ "$target_attack" = sapa ] && target_attack=gradmatch
+    idx="target_sets/xarch_${model}_${target_attack}_${CLASS_PAIR}_b${TARGET_SET_BUDGET}.json"
     [ -s "$idx" ] || die "missing pinned target file: $idx"
 
     set -- python final_update.py \
@@ -186,13 +194,21 @@ run_cell() {
         --clean_baseline
 
     # Match the one low-memory combination in xa6/xr3.
-    if [ "$model" = VGG13BN ] && [ "$attack" = gradmatch ]; then
+    if [ "$model" = VGG13BN ] && { [ "$attack" = gradmatch ] || [ "$attack" = sapa ]; }; then
         set -- "$@" --craft_lowmem --craft_batch "$CRAFT_BATCH" --fast_gradmatch
+    fi
+
+    if [ "$attack" = sapa ]; then
+        set -- "$@" --sharp_mode "$SHARP_MODE" --sharp_sigma "$SHARP_SIGMA"
     fi
 
     case "$selection" in
         random)
             set -- "$@" --base random
+            ;;
+        greedy)
+            set -- "$@" --base ours --base_dist "$BASE_DIST" \
+                --lambda_margin "$LAMBDA_MARGIN"
             ;;
         dpp)
             set -- "$@" --base ours --base_dist "$BASE_DIST" \
@@ -205,12 +221,20 @@ run_cell() {
             ;;
     esac
 
+    # K=20 is the historical/default all-surrogate selector, whose existing run
+    # directories have no _K20 suffix. K=1/3 retain their explicit suffixes.
+    if [ "$SEL_K" != 20 ]; then
+        set -- "$@" --sel_K "$SEL_K"
+    fi
+
     echo "=== S=$selector_model -> A=V=$model | $attack | $selection ==="
     echo "    targets=$idx ($NUM_TARGETS), victims=$NUM_VICTIMS, surrogates=$NUM_SURROGATES"
     if [ "$selection" = dpp ]; then
         echo "    Jacobian: enabled=$USE_JACOBIAN_SCORE weight=$JACOBIAN_WEIGHT batch=$JACOBIAN_BATCH_SIZE"
-    else
+    elif [ "$selection" = random ]; then
         echo "    Jacobian: not applicable to Random; run is unchanged"
+    else
+        echo "    Jacobian: disabled for Greedy in this table"
     fi
 
     if [ "$DRY_RUN" = 1 ]; then
@@ -226,7 +250,9 @@ echo "    A=V models : $MODELS"
 echo "    S models   : $SELECTOR_MODELS"
 echo "    attacks    : $ATTACKS (fc is BP)"
 echo "    selections : $SELECTIONS"
+echo "    budget     : $BUDGET (targets pinned from b$TARGET_SET_BUDGET)"
 echo "    protocol   : $NUM_TARGETS targets x $NUM_VICTIMS victims, $NUM_SURROGATES surrogates"
+echo "    selector K : $SEL_K"
 echo "    Jacobian   : enabled=$USE_JACOBIAN_SCORE weight=$JACOBIAN_WEIGHT batch=$JACOBIAN_BATCH_SIZE"
 echo
 
@@ -234,16 +260,10 @@ for model in $MODELS; do
 for attack in $ATTACKS; do
 for selector_model in $SELECTOR_MODELS; do
 for selection in $SELECTIONS; do
-    if [ "$selector_model" = "$model" ]; then
-        run_matched="$RUN_MATCHED_DPP"
-        if [ "$run_matched" = auto ]; then
-            run_matched="$USE_JACOBIAN_SCORE"
-        fi
-        if [ "$selection" != dpp ] || [ "$run_matched" != 1 ]; then
-            echo "=== S=A=V=$model | $attack | $selection: matched cell; reused/skipped ==="
-            echo
-            continue
-        fi
+    if [ "$selector_model" = "$model" ] && [ "$RUN_MATCHED" != 1 ]; then
+        echo "=== S=A=V=$model | $attack | $selection: matched cell; skipped ==="
+        echo
+        continue
     fi
     run_cell "$model" "$attack" "$selector_model" "$selection"
 done
