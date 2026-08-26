@@ -100,6 +100,8 @@ CACHE_DIR="${CACHE_DIR:-./cache}"
 SEED="${SEED:-42}"
 PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
+NUM_TARGETS="${NUM_TARGETS:-8}"
+NUM_VICTIMS="${NUM_VICTIMS:-5}"
 
 source "$PYTHON_ENV/bin/activate"
 cd "$PROJECT_ROOT"
@@ -242,9 +244,9 @@ for sig in $SIGMAS; do
             --base_dist cosine --lambda_margin 1.0 \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
-            --num_targets 8 --target_select "$TGT_DEG" \
+            --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
             $TGT_FLAGS \
-            --num_victims 5 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+            --num_victims "$NUM_VICTIMS" --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
             --victim_decay 40 --victim_wd 0.0 \
             --clean_baseline
     done

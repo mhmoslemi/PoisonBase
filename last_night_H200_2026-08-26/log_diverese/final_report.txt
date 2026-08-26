@@ -1,0 +1,34 @@
+DPP alpha=0.25, Jacobian-off defense experiment report
+Host: H200-1 (ubuntu)
+Authorized GPU window: 2026-08-26 05:15:25 through 12:15:24 UTC
+GPUs used: physical 1,2,3 only
+Requested workload: 12 configurations x EPIC and FRIENDS, 5 targets x 4 victims
+
+Final configuration states
+  complete: 2/12 (04 ConvNet SAPA b0.02; 11 VGG13 SAPA b0.005)
+  partial: 3/12 (01 attack-only complete; 06 attack optimization partial; 08 defense partial)
+  not started: 7/12
+
+Table-ready completed defense results: ASR% (CTA%)
+  04 ConvNetBN SAPA dog-bird b0.02: EPIC 40.0 (76.87), FRIENDS 60.0 (74.74) [20/20 each]
+  08 ResNet20BN SAPA dog-bird b0.01: EPIC 55.0 (80.19) [20/20]
+  11 VGG13BN SAPA dog-bird b0.005: EPIC 40.0 (77.59), FRIENDS 20.0 (80.33) [20/20 each]
+
+Partial result (not table-final)
+  08 ResNet20BN SAPA dog-bird b0.01 FRIENDS: 33.3 (74.39), 18/20 trials.
+  A merged immutable snapshot is resnet20_sapa_b0_01_friends_partial_18.csv.
+
+Attack/precomputation state
+  Configs 04,08,11: 5/5 perturbation deltas and defenses evaluated.
+  Config 01: 5/5 perturbation deltas complete; one-victim verification ASR 100%; defenses not started.
+  Config 06: optimization began but was paused because it monopolized GPU SM and starved defense work; 0/5 completed deltas retained.
+
+Integrity and cleanup
+  No traceback, OOM, CUDA error, segmentation fault, or no-space error was found in log_diverese logs.
+  At deadline only experiment process groups 290689 and 449747 were terminated.
+  Post-cleanup GPUs 0-6 all reported 0% utilization and 1 MiB use.
+  No experiment worker remains running.
+
+Machine-readable details: final_deadline_summary.tsv
+Per-run logs: 04_convnet_sapa_dog_bird_b0_02.log, 08_resnet20_sapa_dog_bird_b0_01.log, 11_vgg13_sapa_dog_bird_b0_005.log
+Cross-table K1/K3 report: cross_k13/final_report.txt

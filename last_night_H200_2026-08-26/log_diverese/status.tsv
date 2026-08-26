@@ -1,0 +1,40 @@
+timestamp	run	phase	state	rc	detail
+2026-08-26T05:15:25+00:00	wave_1	scheduler	started	-	3 configurations
+2026-08-26T05:15:25+00:00	04_convnet_sapa_dog_bird_b0_02	scheduler	launched	-	pid=290699 wave=1
+2026-08-26T05:15:25+00:00	04_convnet_sapa_dog_bird_b0_02	pipeline	started	-	model=ConvNetBN attack=sapa pair=dog-bird budget=0.02 target=70
+2026-08-26T05:15:25+00:00	08_resnet20_sapa_dog_bird_b0_01	scheduler	launched	-	pid=290702 wave=1
+2026-08-26T05:15:25+00:00	08_resnet20_sapa_dog_bird_b0_01	pipeline	started	-	model=ResNet20BN attack=sapa pair=dog-bird budget=0.01 target=14
+2026-08-26T05:15:25+00:00	11_vgg13_sapa_dog_bird_b0_005	scheduler	launched	-	pid=290706 wave=1
+2026-08-26T05:15:25+00:00	11_vgg13_sapa_dog_bird_b0_005	pipeline	started	-	model=VGG13BN attack=sapa pair=dog-bird budget=0.005 target=50
+2026-08-26T05:15:25+00:00	04_convnet_sapa_dog_bird_b0_02	attack	running	-	generating alpha=0.25 perturbations
+2026-08-26T05:15:25+00:00	08_resnet20_sapa_dog_bird_b0_01	attack	running	-	generating alpha=0.25 perturbations
+2026-08-26T05:15:25+00:00	11_vgg13_sapa_dog_bird_b0_005	attack	running	-	generating alpha=0.25 perturbations
+2026-08-26T06:27:45+00:00	04_convnet_sapa_dog_bird_b0_02	attack	complete	0	5 delta files
+2026-08-26T06:27:45+00:00	04_convnet_sapa_dog_bird_b0_02	defense	running	-	epic friends
+2026-08-26T06:34:04+00:00	11_vgg13_sapa_dog_bird_b0_005	attack	complete	0	5 delta files
+2026-08-26T06:34:04+00:00	11_vgg13_sapa_dog_bird_b0_005	defense	running	-	epic friends
+2026-08-26T07:37:42+00:00	08_resnet20_sapa_dog_bird_b0_01	attack	complete	0	5 delta files
+2026-08-26T07:37:42+00:00	08_resnet20_sapa_dog_bird_b0_01	defense	running	-	epic friends
+2026-08-26T07:46:36+00:00	epic_clean_victim3	precompute	running	-	physical_gpu=3 pids=421593,421594,421595 models=ConvNetBN,VGG13BN,ResNet20BN exact shared EPIC cache
+2026-08-26T07:48:36+00:00	epic_clean_victim3	precompute	active	-	setsid forked; actual isolated pids/pgids=421597,421598,421599 on physical_gpu=3; three trainings within cap
+2026-08-26T08:06:38+00:00	epic_clean_ResNet20BN_victim2	precompute	active	-	isolated pid/pgid=437245 physical_gpu=2 exact shared EPIC cache
+2026-08-26T08:08:58+00:00	epic_clean_ResNet20BN_victim3	precompute	complete	0	checkpoint_bytes=1139631 physical_gpu=3 elapsed=1228s
+2026-08-26T08:10:34+00:00	epic_clean_ConvNetBN_victim3	precompute	complete	0	physical_gpu=3 elapsed=1317s checkpoint_bytes=1291462
+2026-08-26T08:10:34+00:00	epic_clean_VGG13BN_victim3	precompute	complete	0	physical_gpu=3 elapsed=1356s checkpoint_bytes=37712187
+2026-08-26T08:10:34+00:00	epic_clean_victim3	precompute	complete	0	all three model checkpoints atomically cached; main pipelines will skip victim3
+2026-08-26T08:16:19+00:00	epic_clean_ResNet20BN_victim2	precompute	complete	0	physical_gpu=2 elapsed=260s checkpoint_bytes=1139631; main will skip victims2,3 after victim1
+2026-08-26T08:19:17+00:00	prefetch_01_convnet_fc_dog_bird_b0_01	attack	running	-	physical_gpus=1,2,3 alpha=0.25 Jacobian-off 5 targets 1 verification victim; normal pipeline will reuse
+2026-08-26T08:19:34+00:00	prefetch_01_convnet_fc_dog_bird_b0_01	attack	active	-	actual isolated pgid=445515 physical_gpus=1,2,3 exact run target_file=target_sets/ConvNetBN_fc_dog-bird.json target_label=50
+2026-08-26T08:22:52+00:00	prefetch_wave2_attacks	scheduler	paused	-	only launcher pid290689 SIGSTOP; active wave1 defense children continue; prevents wave2 lock race while attacks precompute
+2026-08-26T08:24:20+00:00	prefetch_01_convnet_fc_dog_bird_b0_01	attack	complete	0	5 finite delta files max_linf=0.031372517 verification_ASR=100.0%
+2026-08-26T08:24:20+00:00	prefetch_06_resnet20_gradmatch_dog_bird_b0_02	attack	running	-	physical_gpus=1,2,3 alpha=0.25 Jacobian-off 5 targets 1 verification victim
+2026-08-26T08:24:37+00:00	prefetch_06_resnet20_gradmatch_dog_bird_b0_02	attack	active	-	actual isolated pgid=449747 target_file=target_sets/ResNet20BN_gradmatch_dog-bird.json target_label=14
+2026-08-26T09:07:39+00:00	prefetch_06_resnet20_gradmatch_dog_bird_b0_02	attack	paused	-	SIGSTOP isolated pgid=449747 after pmon showed 84-98% SM monopoly and EPIC starvation; state retained
+2026-08-26T11:21:03+00:00	04_convnet_sapa_dog_bird_b0_02	defense	complete	0	epic friends
+2026-08-26T11:21:03+00:00	04_convnet_sapa_dog_bird_b0_02	pipeline	complete	0	all requested work finished
+2026-08-26T12:00:46+00:00	11_vgg13_sapa_dog_bird_b0_005	defense	complete	0	epic friends
+2026-08-26T12:00:46+00:00	11_vgg13_sapa_dog_bird_b0_005	pipeline	complete	0	all requested work finished
+2026-08-26T12:15:38+00:00	prefetch_06_resnet20_gradmatch_dog_bird_b0_02	attack	deadline_reached	-	terminating only isolated pgid=449747
+2026-08-26T12:17:38+00:00	alpha025_queue	scheduler	deadline_reached	-	authorized window ended; terminated only pgids 290689 and 449747; all GPUs idle
+2026-08-26T12:17:38+00:00	08_resnet20_sapa_dog_bird_b0_01	defense	partial	-	EPIC 20/20 complete; FRIENDS 18/20 retained at deadline
+2026-08-26T12:17:38+00:00	08_resnet20_sapa_dog_bird_b0_01	pipeline	partial	-	attack 5/5; EPIC complete; FRIENDS 18/20

@@ -1,0 +1,72 @@
+[2026-08-26T07:25:40+00:00] START x07_K1_gradmatch_AConvNetBN_SResNet20BN
+DPP alpha=2; Jacobian off; selector K=1; attack surrogates=20
+A=V=ConvNetBN; S=ResNet20BN; attack=gradmatch; physical GPUs=4,5
+=== cross-architecture sweep ===
+    A=V models : ConvNetBN
+    S models   : ResNet20BN
+    attacks    : gradmatch (fc is BP)
+    selections : dpp
+    protocol   : 5 targets x 4 victims, 20 surrogates
+    selector K : 1 (20 attack surrogates retained)
+    Jacobian   : enabled=0 weight=1.0 batch=64
+
+=== S=ResNet20BN -> A=V=ConvNetBN | gradmatch | dpp ===
+    targets=target_sets/xarch_ConvNetBN_gradmatch_dog-bird_b0.005.json (5), victims=4, surrogates=20
+    Jacobian: enabled=0 weight=1.0 batch=64
+[2026-08-26 07:26:00] === run start: CIFAR10_ConvNetBN_gradmatch_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_seldpp2_selarchResNet20BN_K1_ce5_tgt70 on cuda [0, 1] ===
+[2026-08-26 07:26:00] args: {"FORCE": false, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/mohammad/PoisonBase/cache_cross_k13_live", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/mohammad/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 5, "num_victims": 4, "out_dir": "/home/ubuntu/mohammad/PoisonBase/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": 1, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": "ResNet20BN", "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/xarch_ConvNetBN_gradmatch_dog-bird_b0.005.json", "target_select": 70, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-26 07:26:00] Jacobian score: disabled
+[2026-08-26 07:26:00] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-08-26 07:26:00] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-08-26 07:26:06]   crafting on 5/20 surrogates
+[2026-08-26 07:26:06] === selection surrogates (20 x ResNet20BN, cross-architecture) ===
+[2026-08-26 07:27:09] === clean victims (4 x ConvNetBN) ===
+[2026-08-26 07:27:11]   clean baseline CTA = 0.8120 +/- 0.0058
+[2026-08-26 07:27:11]   target pool 1000 -> eligible 961 (39 already predicted as y_adv or dropped)
+[2026-08-26 07:27:11]   chosen 5 targets (file), p_adv range 0.0000..0.0000
+[2026-08-26 07:27:11]   targets: [821, 843, 1257, 1547, 4427]
+[2026-08-26 07:27:11] === 5 target(s), 20 trials over 2 gpus [0, 1]: one target per gpu while there are targets left to start, then idle gpus help with the victims of the targets still running ===
+[2026-08-26 07:27:49] [gpu0] === target 821 (crafting here) ===
+[2026-08-26 07:28:10] [gpu1] === target 843 (crafting here) ===
+[2026-08-26 07:33:43] [gpu0]   target 821: crafted 250 poisons in 352 s, obj=0.33276
+[2026-08-26 07:33:43] [gpu0]   target 821: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 07:34:23] [gpu1]   target 843: crafted 250 poisons in 370 s, obj=0.35514
+[2026-08-26 07:34:23] [gpu1]   target 843: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 07:36:19] [gpu0]   [t821 v1/4] fail (pred=horse) CTA=0.8061
+[2026-08-26 07:36:57] [gpu1]   [t843 v1/4] fail (pred=bird) CTA=0.8063
+[2026-08-26 07:38:54] [gpu0]   [t821 v2/4] SUCCESS (pred=dog) CTA=0.8117
+[2026-08-26 07:39:33] [gpu1]   [t843 v2/4] fail (pred=bird) CTA=0.8067
+[2026-08-26 07:41:28] [gpu0]   [t821 v3/4] fail (pred=bird) CTA=0.7960
+[2026-08-26 07:42:08] [gpu1]   [t843 v3/4] fail (pred=bird) CTA=0.8038
+[2026-08-26 07:44:04] [gpu0]   [t821 v4/4] fail (pred=bird) CTA=0.8019
+[2026-08-26 07:44:04] [gpu0] === target 1257 (crafting here) ===
+[2026-08-26 07:44:43] [gpu1]   [t843 v4/4] fail (pred=bird) CTA=0.8127
+[2026-08-26 07:44:43] [gpu1] === target 1547 (crafting here) ===
+[2026-08-26 07:51:45] [gpu0]   target 1257: crafted 250 poisons in 455 s, obj=0.26236
+[2026-08-26 07:51:45] [gpu0]   target 1257: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 07:52:23] [gpu1]   target 1547: crafted 250 poisons in 454 s, obj=0.37515
+[2026-08-26 07:52:23] [gpu1]   target 1547: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 07:54:19] [gpu0]   [t1257 v1/4] fail (pred=bird) CTA=0.7990
+[2026-08-26 07:54:57] [gpu1]   [t1547 v1/4] fail (pred=bird) CTA=0.8100
+[2026-08-26 07:56:33] [gpu0]   [t1257 v2/4] fail (pred=bird) CTA=0.8108
+[2026-08-26 07:57:33] [gpu1]   [t1547 v2/4] fail (pred=bird) CTA=0.8101
+[2026-08-26 07:58:30] [gpu0]   [t1257 v3/4] fail (pred=bird) CTA=0.8105
+[2026-08-26 08:00:08] [gpu1]   [t1547 v3/4] fail (pred=airplane) CTA=0.7403
+[2026-08-26 08:00:26] [gpu0]   [t1257 v4/4] SUCCESS (pred=dog) CTA=0.8000
+[2026-08-26 08:00:26] [gpu0] === target 4427 (crafting here) ===
+[2026-08-26 08:02:34] [gpu1]   [t1547 v4/4] fail (pred=airplane) CTA=0.8099
+[2026-08-26 08:02:34] [gpu1]   no target left to start; waiting to help with the victims of a target another gpu is still crafting
+[2026-08-26 08:06:22] [gpu0]   target 4427: crafted 250 poisons in 352 s, obj=0.39497
+[2026-08-26 08:06:22] [gpu0]   target 4427: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 08:06:24] [gpu1] === target 4427 victim 1 (helping out) ===
+[2026-08-26 08:06:24] [gpu1]   target 4427: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 08:08:19] [gpu1]   [t4427 v2/4] fail (pred=bird) CTA=0.8034
+[2026-08-26 08:08:56] [gpu0]   [t4427 v1/4] fail (pred=bird) CTA=0.8056
+[2026-08-26 08:10:43] [gpu1]   [t4427 v3/4] fail (pred=bird) CTA=0.8006
+[2026-08-26 08:11:32] [gpu0]   [t4427 v4/4] fail (pred=bird) CTA=0.8052
+[2026-08-26 08:11:33] === all workers finished in 2662 s ===
+[2026-08-26 08:11:33] ==== CIFAR10_ConvNetBN_gradmatch_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_seldpp2_selarchResNet20BN_K1_ce5_tgt70 : ASR = 10.0% +/- 12.2% | CTA = 0.8025 (baseline 0.8120) ====
+[2026-08-26 08:11:33]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [2, 0, 15, 0, 0, 2, 0, 1, 0, 0]
+
+=== cross-architecture sweep finished ===
+[2026-08-26T08:11:35+00:00] END rc=0

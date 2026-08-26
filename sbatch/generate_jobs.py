@@ -61,7 +61,12 @@ def attack_minutes(env: dict[str, str]) -> int:
         if jacobian:
             base = max(base, jacobian_observed[model].get(budget, base * 1.5))
         per_target.append(base)
-    estimate = 8 * sum(per_target) + 15
+    num_targets = int(env.get("NUM_TARGETS", "8"))
+    num_victims = int(env.get("NUM_VICTIMS", "5"))
+    victim_minutes = {"ConvNetBN": 1.5, "ResNet20BN": 2.2, "VGG13BN": 1.7}
+    estimate = num_targets * sum(per_target) + 15
+    estimate += (max(0, num_victims - 5) * num_targets *
+                 victim_minutes[model] * len(budgets))
     if env.get("SELECT") == "dpp":
         estimate += 5 * len(budgets)
     return max(60, int(math.ceil(estimate / 15.0) * 15))
@@ -131,6 +136,8 @@ def exports(env: dict[str, str], kind: str) -> list[str]:
             "SHARP_MODE": env.get("SHARP_MODE", "worst"),
             "SHARP_SIGMA": env.get("SHARP_SIGMA", "0.05"),
             "TARGET_SELECT": env.get("TARGET_SELECT", ""),
+            "NUM_TARGETS": env.get("NUM_TARGETS", "8"),
+            "NUM_VICTIMS": env.get("NUM_VICTIMS", "5"),
         }
     else:
         values = {

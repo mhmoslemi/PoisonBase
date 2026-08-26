@@ -1,0 +1,19 @@
+Cross K1/K3 effective-target protocol notes
+============================================
+Nominal request: NUM_TARGETS=5, NUM_VICTIMS=4 for each cell.
+Pinned target files contain the five indices used by cross-table-K3.tex.
+
+Historical-cache limitation
+---------------------------
+The historical table logs used CACHE_DIR=./cache. That checkpoint directory is absent on H200-1; only cache_alpha025_live and cache_cross_k13_live exist. Therefore the old checkpoint ensemble cannot be reused exactly. The live cross cache was trained with the same architecture/seed/training settings and is isolated from other jobs, but model predictions can differ because training is not bitwise reproducible across the old and current systems.
+
+VGG13BN / FC effective-target exception
+----------------------------------------
+- Pinned indices: 2127, 2171, 2597, 3728, 4462.
+- With cache_cross_k13_live, target 2171 is already a baseline free win.
+- final_update.py applies its established safeguard and excludes that target.
+- Effective protocol is 4 targets x 4 victims (16 rows) for VGG13BN/FC K1 and K3 cells.
+- The target is not counted as an attack success and is not replaced by a new index; either choice would make the comparison less defensible.
+- Historical output logs happened to retain all five under their now-missing cache, so this effective count difference must be disclosed with results.
+
+All run logs retain NUM_TARGETS=5 and emit the actual chosen-target count.

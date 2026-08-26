@@ -12,6 +12,9 @@ and `run_defense.txt` into one `sbatch` script per table cell:
 - `missing_defense/`: 50 defense cells that are blank in the current
   `defense.tex` and were never part of the original 62-job set. This set
   deliberately excludes the two cells already handled by `remaining/`.
+- `full_b20_b40/`: one-cell attack jobs for the Greedy, Greedy-J, and DPP-J
+  blanks in the added ResNet20/VGG13 budget-20 and budget-40 rows of `full.tex`,
+  using 8 targets and 6 victims per target.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
 Every job requests one L40S, one CPU core, and 7 GB of host memory. Walltime is
@@ -83,6 +86,13 @@ Regenerate only the newly blank defense-cell set after editing `defense.tex`:
 
 ```bash
 python3 sbatch/generate_missing_defense.py
+```
+
+Regenerate and submit the added ResNet20/VGG13 budget-20/40 cells with:
+
+```bash
+python3 sbatch/generate_full_b20_b40.py
+sh submit_full-b20-b40.sh
 ```
 
 ## Twenty-five-minute smoke tests

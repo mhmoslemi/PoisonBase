@@ -257,7 +257,11 @@ main() {
     say "job: $SLURM_JOB_ID $SLURM_JOB_NAME on $(hostname)"
     say "work: $RUN_ROOT"
     say "config: $ORIGINAL_COMMAND"
-    say "protocol: attack=8 targets x 5 victims; defense=7 targets x 5 victims"
+    if [ "$JOB_KIND" = attack ]; then
+        say "protocol: attack=${NUM_TARGETS:-8} targets x ${NUM_VICTIMS:-5} victims"
+    else
+        say "protocol: defense=${NUM_TARGETS:-7} targets x ${NUM_VICTIMS:-5} victims"
+    fi
     python -c 'import torch; assert torch.cuda.is_available(); print("gpu:", torch.cuda.get_device_name(0))'
 
     if [ "$JOB_KIND" = attack ]; then
