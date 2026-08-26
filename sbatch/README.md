@@ -1,28 +1,34 @@
 # PoisonBase SLURM jobs
 
-This directory contains one `sbatch` script for every executable command in
-`remaining_full_tex_commands.txt` and `run_defense.txt`:
+This directory expands the grouped commands in `remaining_full_tex_commands.txt`
+and `run_defense.txt` into one `sbatch` script per table cell:
 
-- `attack/`: 46 jobs, using 8 targets and 5 victims.
-- `defense/`: 26 jobs, adjusted to 7 targets and 5 victims.
+- `attack/`: 129 jobs, one model/pair/attack/budget/selection cell per job,
+  using 8 targets and 5 victims.
+- `defense/`: 62 jobs, one model/attack/budget/selection/defense cell per job,
+  using 7 targets and 5 victims.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
 Every job requests one L40S, four CPU cores, and 7 GB of host memory. Its
-walltime is the configuration-specific L40S estimate plus 45 minutes.
+walltime is the configuration-specific L40S estimate plus 45 minutes. Standard
+cells request at most 7 hours. Attack cells estimated to take more than 7 hours
+are not capped: they request their full estimate plus 45 minutes and appear at
+the end of `submit_attack.sh`. A timed-out cell can be submitted again and
+resumes from its saved target/trial artifacts.
 
 ## Submission
 
 From `/home/mmoslem3/scratch/attack_if`:
 
 ```bash
-sh sbatch/submit_attack.sh
-sh sbatch/submit_defense.sh
+sh submit_attack.sh
+sh submit_defense.sh
 ```
 
 Submit an individual configuration with, for example:
 
 ```bash
-sbatch sbatch/attack/attack_001_convnet_gradmatch_dog_bird_ours_std.sh
+sbatch sbatch/attack/attack_001_convnet_gradmatch_dog_bird_b0_001_ours_std.sh
 ```
 
 Wait for any attack jobs that create perturbations required by defense jobs

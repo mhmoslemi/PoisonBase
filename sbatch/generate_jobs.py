@@ -89,6 +89,33 @@ def duration(minutes: int) -> str:
     return f"{days}-{hours:02d}:{mins:02d}:00"
 
 
+def replace_assignment(command: str, key: str, value: str) -> str:
+    pattern = rf"\b{re.escape(key)}=(?:\"[^\"]*\"|'[^']*'|\S+)"
+    replacement = f"{key}={shlex.quote(value)}"
+    updated, count = re.subn(pattern, replacement, command, count=1)
+    if count != 1:
+        raise ValueError(f"could not replace {key} in: {command}")
+    return updated
+
+
+def expand_cells(kind: str, command: str, env: dict[str, str]):
+    """Split grouped launcher commands into one table cell per SLURM job."""
+    for budget in env["BUDGETS"].split():
+        selections = [env["SELECT"]] if kind == "attack" else env["SELS"].split()
+        for selection in selections:
+            cell = dict(env)
+            cell["BUDGETS"] = budget
+            effective = replace_assignment(command, "BUDGETS", budget)
+            if kind == "attack":
+                cell["SELECT"] = selection
+            else:
+                cell["SELS"] = selection
+                effective = replace_assignment(effective, "SELS", selection)
+                effective = replace_assignment(effective, "NUM_TARGETS", "7")
+                effective = replace_assignment(effective, "NUM_VICTIMS", "5")
+            yield cell, effective
+
+
 def exports(env: dict[str, str], kind: str) -> list[str]:
     if kind == "attack":
         values = {
@@ -127,13 +154,17 @@ def exports(env: dict[str, str], kind: str) -> list[str]:
     return [f"export {key}={shlex.quote(value)}" for key, value in values.items()]
 
 
-def make_script(kind: str, index: int, command: str, env: dict[str, str]):
+def make_script(kind: str, index: int, source_command: str,
+                effective_command: str, env: dict[str, str]):
     estimate = attack_minutes(env) if kind == "attack" else defense_minutes(env)
-    wall = estimate + 45
+    long_attack = kind == "attack" and estimate > 7 * 60
+    wall = estimate + 45 if long_attack else min(estimate + 45, 7 * 60)
+    cushion_capped = not long_attack and estimate + 45 > 7 * 60
     method = env.get("SELECT", env.get("SELS", "selection"))
     jac = "j" if env.get("USE_JACOBIAN_SCORE", "0") == "1" else "std"
     parts = [kind, f"{index:03d}", slug(env["MODEL"].replace("BN", "")),
-             slug(env["ATTACK"]), slug(env["CLASS_PAIR"])]
+             slug(env["ATTACK"]), slug(env["CLASS_PAIR"]),
+             "b" + slug(env["BUDGETS"])]
     if kind == "defense":
         parts.extend((slug(env["DEFENSES"]), slug(method)))
     else:
@@ -141,10 +172,14 @@ def make_script(kind: str, index: int, command: str, env: dict[str, str]):
     parts.append(jac)
     label = "_".join(parts)
     filename = label + ".sh"
-    adjusted = command
-    if kind == "defense":
-        adjusted = re.sub(r"NUM_TARGETS=\S+", "NUM_TARGETS=7", adjusted)
-        adjusted = re.sub(r"NUM_VICTIMS=\S+", "NUM_VICTIMS=5", adjusted)
+    if long_attack:
+        time_note = (f"estimated {duration(estimate)}; long attack gets its full "
+                     "estimate plus the 00:45 cushion")
+    elif cushion_capped:
+        time_note = (f"estimated {duration(estimate)}; requested at the standard "
+                     "0-07:00:00 maximum")
+    else:
+        time_note = f"estimated {duration(estimate)}; includes the 00:45 cushion"
     body = [
         "#!/bin/bash",
         "#SBATCH --account=aip-boyuwang",
@@ -160,24 +195,25 @@ def make_script(kind: str, index: int, command: str, env: dict[str, str]):
         "#SBATCH --mail-user=mhmoslemi2338@gmail.com",
         "#SBATCH --mail-type=ALL",
         "",
-        f"# Estimated L40S runtime: {duration(estimate)}; requested walltime adds 00:45.",
-        f"# Source command: {command}",
-        f"# Effective command: {adjusted}",
+        f"# L40S walltime: {time_note}.",
+        f"# Grouped source command: {source_command}",
+        f"# This-cell command: {effective_command}",
         "",
         f"export JOB_KIND={kind}",
-        f"export ORIGINAL_COMMAND={shlex.quote(adjusted)}",
+        f"export ORIGINAL_COMMAND={shlex.quote(effective_command)}",
         *exports(env, kind),
         "",
         'source /home/mmoslem3/scratch/attack_if/sbatch/_job_common.sh',
         "",
     ]
-    return filename, "\n".join(body), estimate, wall, adjusted
+    return (filename, "\n".join(body), estimate, wall, long_attack,
+            cushion_capped, effective_command)
 
 
 def write_submitter(kind: str, names: list[str]):
     body = [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
+        "#!/bin/sh",
+        "set -eu",
         'ROOT="/home/mmoslem3/scratch/attack_if"',
         'mkdir -p "$ROOT/sbatch/logs"',
         *[line for name in names
@@ -188,7 +224,7 @@ def write_submitter(kind: str, names: list[str]):
 
 
 def main():
-    manifests = ["kind\tindex\tfile\testimate\twalltime\tcommand"]
+    manifests = ["kind\tindex\tfile\testimate\twalltime\tschedule_class\tcommand"]
     all_names = {}
     specs = (("attack", ROOT / "remaining_full_tex_commands.txt"),
              ("defense", ROOT / "run_defense.txt"))
@@ -198,21 +234,33 @@ def main():
         for old in out.glob("*.sh"):
             old.unlink()
         names = []
-        for index, (_line_number, command, env) in enumerate(parse_commands(source), 1):
-            filename, text, estimate, wall, adjusted = make_script(
-                kind, index, command, env)
+        cells = []
+        for _line_number, command, env in parse_commands(source):
+            cells.extend((command, cell_env, effective)
+                         for cell_env, effective in expand_cells(kind, command, env))
+        if kind == "attack":
+            # Stable partition: normal cells retain table order, while genuinely
+            # >7h cells are submitted last with their uncapped requested time.
+            cells.sort(key=lambda item: attack_minutes(item[1]) > 7 * 60)
+        for index, (source_command, env, effective) in enumerate(cells, 1):
+            (filename, text, estimate, wall, long_attack, cushion_capped,
+             adjusted) = make_script(
+                kind, index, source_command, effective, env)
             (out / filename).write_text(text)
             names.append(filename)
             manifests.append("\t".join((kind, str(index), f"{kind}/{filename}",
-                                         duration(estimate), duration(wall), adjusted)))
+                                         duration(estimate), duration(wall),
+                                         "long_attack" if long_attack else
+                                         "standard_7h" if cushion_capped else
+                                         "standard", adjusted)))
         all_names[kind] = names
         write_submitter(kind, names)
 
     (SBATCH / "manifest.tsv").write_text("\n".join(manifests) + "\n")
     for path in SBATCH.rglob("*.sh"):
         path.chmod(0o755)
-    print(f"generated {len(all_names['attack'])} attack and "
-          f"{len(all_names['defense'])} defense jobs")
+    print(f"generated {len(all_names['attack'])} attack-cell and "
+          f"{len(all_names['defense'])} defense-cell jobs")
 
 
 if __name__ == "__main__":
