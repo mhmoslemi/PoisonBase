@@ -1,0 +1,26 @@
+stage: optional file absent: /home/mmoslem3/scratch/attack_if/target_sets/def_VGG13BN_gradmatch_dog-bird_b0.01_jacw1.json
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/defense_result/CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_ce5_tgt50__def-epic-s0.1-f2-d10
+job: 5033295 missing_defense_036_vgg13_gradmatch_dog_bird_b0_01_epic_ours_j on kn155
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=gradmatch BUDGETS=0.01 SELS=ours SEL_ALPHA=2.0 DEFENSES=epic NUM_TARGETS=7 NUM_VICTIMS=5 sh defense.sh
+protocol: attack=8 targets x 5 victims; defense=7 targets x 5 victims
+gpu: NVIDIA L40S
+#  b0.01   ours=8                       -> 8 paired target(s)
+=== defense sweep | VGG13BN / gradmatch / dog-bird (tgt50) ===
+    selections : ours   (dpp alpha 2.0)
+    selector   : Jacobian enabled for ours/dpp (weight 1.0, batch 64); random unchanged
+    defenses   : epic
+    poisons    : replayed from /tmp/attack_if/ours_result, results into /tmp/attack_if/defense_result
+
+--- budget 0.01 | defense epic | selection ours ---
+[2026-08-26 10:14:05] === defense run: CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_ce5_tgt50__def-epic-s0.1-f2-d10 ===
+[2026-08-26 10:14:05]     poisons replayed from /tmp/attack_if/ours_result/CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_ce5_tgt50
+[2026-08-26 10:14:05]     defense = epic  (epic-s0.1-f2-d10)
+[2026-08-26 10:14:05]     victim augmentation = none  (applied to the poisoned image, resampled every epoch)
+[2026-08-26 10:14:05] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "gradmatch", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "ours", "base_dist": "cosine", "budget": 0.01, "cache_dir": "/tmp/attack_if/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/data", "dataset": "CIFAR10", "defense": "epic", "defense_out_dir": "/tmp/attack_if/defense_result", "defense_parts": ["epic"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "VGG13BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 7, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 1.0, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "target_sets/def_VGG13BN_gradmatch_dog-bird_b0.01_jacw1.json", "target_select": 50, "use_jacobian_score": true, "victim_aug": "none", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-26 10:14:27]   7 target(s) with saved poisons: [409, 630, 1656, 2270, 5022, 6033, 9090]
+[2026-08-26 10:14:27] === defended clean victims (5 x VGG13BN, defense epic-s0.1-f2-d10) ===
+[2026-08-26 10:14:28]   defended clean CTA = 0.7740 +/- 0.0206
+[2026-08-26 10:14:28] === target 409: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-26 10:17:22]   [t409 v1/5] SUCCESS (pred=dog) CTA=0.8140 (174 s)
+[2026-08-26 10:20:31]   [t409 v2/5] SUCCESS (pred=dog) CTA=0.7712 (189 s)
