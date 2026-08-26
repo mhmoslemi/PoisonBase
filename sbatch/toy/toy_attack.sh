@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=aip-boyuwang
+#SBATCH --account=aip-yiweilu
 #SBATCH --job-name=toy_poison_attack
 #SBATCH --time=00:25:00
 #SBATCH --nodes=1
