@@ -1,5 +1,15 @@
 # PoisonBase SLURM jobs
 
+## Additional-dataset Greedy ablation
+
+`sbatch/extra_data/` contains the 54 independent result-cell jobs for the
+expanded Greedy-only table in `extra-data.tex`. Each job runs one pinned target
+with five victims, uses one CPU, requests one L40S, disables the Jacobian score,
+and syncs only its own result directory. Run `sh submit_extra-data.sh` from the
+cluster code root to submit them in estimated-runtime order. The CIFAR-100 and
+SVHN jobs request 7 GB; Tiny ImageNet uses ResNet18BN and 32 GB because loading
+the normalized 64x64 tensor dataset itself exceeds 7 GB.
+
 This directory expands the grouped commands in `remaining_full_tex_commands.txt`
 and `run_defense.txt` into one `sbatch` script per table cell:
 
@@ -17,8 +27,9 @@ and `run_defense.txt` into one `sbatch` script per table cell:
   using 8 targets and 6 victims per target.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
-Every job requests one L40S, one CPU core, and 7 GB of host memory. Walltime is
-the configuration-specific L40S estimate plus 45 minutes. Standard cells
+The original CIFAR-10 attack and defense jobs request one L40S, one CPU core,
+and 7 GB of host memory. Walltime is the configuration-specific L40S estimate
+plus 45 minutes. Standard cells
 request at most 7 hours. Attack cells estimated to take more than 7 hours
 are not capped: they request their full estimate plus 45 minutes and appear at
 the end of `submit_attack.sh`. A timed-out cell can be submitted again and

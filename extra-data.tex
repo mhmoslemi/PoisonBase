@@ -1,0 +1,96 @@
+\subsection{Evaluation on additional datasets}
+We first test whether the benefit of diversity-aware base selection extends
+beyond CIFAR-10. CIFAR-100 provides a more constrained setting with many more
+classes and only 500 training candidates per adversarial class, and therefore
+uses ResNet18BN. SVHN provides a complementary shift from natural images to
+street-view digits while retaining the 32\(\times\)32 resolution and the
+ConvNetBN backbone. Table~\ref{tab:cross-dataset} reports the original
+five-instance comparison. DPP improves ASR for both GM and SAPA on all three
+datasets. Absolute ASR values should not be compared across dataset rows because
+the number of classes, candidate-pool size, and backbone differ.
+
+\begin{table}[h]
+\centering
+\caption{Evaluation of Random and DPP base selection on CIFAR-10, CIFAR-100,
+and SVHN. Results report ASR over five fixed attack instances with five victim
+runs per target.}
+\vspace{-0.5em}
+\label{tab:cross-dataset}
+\small
+\resizebox{0.70\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\multirow{2}{*}{\textbf{Dataset (Model)}} &
+\multicolumn{2}{c}{\textbf{GM}} &
+\multicolumn{2}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+& Random & DPP & Random & DPP \\
+\midrule
+CIFAR-10 (ConvNetBN)    & 12.0 & \textbf{64.0} & 24.0 & \textbf{68.0} \\
+CIFAR-100 (ResNet18BN)  & 12.0 & \textbf{24.0} & 4.0  & \textbf{16.0} \\
+SVHN (ConvNetBN)        & 36.0 & \textbf{80.0} & 28.0 & \textbf{88.0} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+The preceding comparison holds the attack and budget fixed, so we additionally
+evaluate a broader, deliberately non-exhaustive grid in
+Table~\ref{tab:cross-dataset-greedy}. This grid uses only the plain Greedy
+selector (20 selector surrogates, cosine distance, and no Jacobian term). It
+separates two sources of variation: a budget slice on one fixed pair and a
+class-pair slice at the middle budget. All budgets are below 0.01999. In
+CIFAR-100, the largest budget is 0.005 (250 of the 500 adversarial-class
+candidates), avoiding the degenerate regime in which selection exhausts the
+candidate pool. For Tiny ImageNet we use ResNet18BN at 64\(\times\)64 rather than
+ConvNetBN and restrict the slice to 0.0005--0.002 for the same candidate-pool
+reason.
+
+Each cell below is an independent experiment on one pinned target and five
+victim seeds. The target is shared by FC, GM, and SAPA and by every budget for a
+given class pair. This makes the cells directly paired within a row while
+keeping the new study computationally manageable. Entries report ASR (\%) with
+clean test accuracy in parentheses; ``--'' denotes a pending cell.
+
+\begin{table*}[t]
+\centering
+\caption{Broader additional-dataset ablation for plain Greedy base selection
+without the Jacobian score. The pair is written target $\rightarrow$ adversarial
+class and the budget column is in units of $10^{-3}$. Every result cell uses one
+pinned target and five victim runs.}
+\vspace{-0.5em}
+\label{tab:cross-dataset-greedy}
+\small
+\setlength{\tabcolsep}{5.5pt}
+\begin{tabular}{lllcccc}
+\toprule
+\textbf{Dataset} & \textbf{Model} & \textbf{Target $\rightarrow$ adversarial} &
+\textbf{Budget} & \textbf{FC} & \textbf{GM} & \textbf{SAPA} \\
+\midrule
+\multirow{7}{*}{CIFAR-100}
+ & \multirow{7}{*}{ResNet18BN} & willow tree $\rightarrow$ sea & 1 & -- & -- & -- \\
+ & & willow tree $\rightarrow$ sea & 2 & -- & -- & -- \\
+ & & willow tree $\rightarrow$ sea & 5 & -- & -- & -- \\
+ & & bicycle $\rightarrow$ plain & 2 & -- & -- & -- \\
+ & & lawn mower $\rightarrow$ wardrobe & 2 & -- & -- & -- \\
+ & & road $\rightarrow$ bottle & 2 & -- & -- & -- \\
+ & & cattle $\rightarrow$ sunflower & 2 & -- & -- & -- \\
+\midrule
+\multirow{8}{*}{SVHN}
+ & \multirow{8}{*}{ConvNetBN} & 2 $\rightarrow$ 9 & 1 & -- & -- & -- \\
+ & & 2 $\rightarrow$ 9 & 2 & -- & -- & -- \\
+ & & 2 $\rightarrow$ 9 & 5 & -- & -- & -- \\
+ & & 2 $\rightarrow$ 9 & 10 & -- & -- & -- \\
+ & & 1 $\rightarrow$ 6 & 2 & -- & -- & -- \\
+ & & 3 $\rightarrow$ 8 & 2 & -- & -- & -- \\
+ & & 5 $\rightarrow$ 7 & 2 & -- & -- & -- \\
+ & & 4 $\rightarrow$ 0 & 2 & -- & -- & -- \\
+\midrule
+\multirow{3}{*}{Tiny ImageNet}
+ & \multirow{3}{*}{ResNet18BN}
+ & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 0.5 & -- & -- & -- \\
+ & & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 1 & -- & -- & -- \\
+ & & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 2 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table*}
