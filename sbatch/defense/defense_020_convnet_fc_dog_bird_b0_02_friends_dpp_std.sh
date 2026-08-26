@@ -4,13 +4,11 @@
 #SBATCH --time=0-02:15:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=7G
 #SBATCH --gres=gpu:l40s:1
 #SBATCH --signal=B:USR1@300
 #SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/defense_020_convnet_fc_dog_bird_b0_02_friends_dpp_std-%j.out
-#SBATCH --mail-user=mhmoslemi2338@gmail.com
-#SBATCH --mail-type=ALL
 
 # L40S walltime: estimated 0-01:30:00; includes the 00:45 cushion.
 # Grouped source command: USE_JACOBIAN_SCORE=0 CLASS_PAIR="dog-bird" MODEL="ConvNetBN" ATTACK="fc" BUDGETS="0.01 0.02" SELS="random ours dpp" SEL_ALPHA=2.0 DEFENSES="friends" NUM_TARGETS=5 NUM_VICTIMS=4 sh defense.sh

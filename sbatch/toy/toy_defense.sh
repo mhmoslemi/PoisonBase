@@ -4,14 +4,11 @@
 #SBATCH --time=00:25:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=7G
 #SBATCH --gres=gpu:l40s:1
 #SBATCH --signal=B:USR1@300
 #SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/toy_defense-%j.out
-#SBATCH --mail-user=mhmoslemi2338@gmail.com
-#SBATCH --mail-type=ALL
-
 # Smoke test only: replay one previously saved perturbation through FRIENDS,
 # using 1 target, 1 victim x 1 epoch, and 1 friendly-noise epoch.
 

@@ -9,7 +9,7 @@ and `run_defense.txt` into one `sbatch` script per table cell:
   using 7 targets and 5 victims.
 - `manifest.tsv`: source command, estimated L40S runtime, and requested walltime.
 
-Every job requests one L40S, four CPU cores, and 7 GB of host memory. Its
+Every job requests one L40S, one CPU core, and 7 GB of host memory. Its
 walltime is the configuration-specific L40S estimate plus 45 minutes. Standard
 cells request at most 7 hours. Attack cells estimated to take more than 7 hours
 are not capped: they request their full estimate plus 45 minutes and appear at
