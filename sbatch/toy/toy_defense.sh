@@ -92,10 +92,9 @@ if [ -d "$SOURCE_ROOT/toy_cache" ]; then
     rsync -a --exclude='*.tmp' "$SOURCE_ROOT/toy_cache/" "$RUN_ROOT/toy_cache/"
 fi
 
-cd "$RUN_ROOT"
 python -c 'import torch; assert torch.cuda.is_available(); print("gpu:", torch.cuda.get_device_name(0))'
 
-srun --ntasks=1 python defense.py \
+srun --ntasks=1 python "$RUN_ROOT/defense.py" \
     --dataset CIFAR10 --data_path "$RUN_ROOT/data" --seed 42 \
     --cache_dir "$RUN_ROOT/toy_cache" \
     --out_dir "$RUN_ROOT/ours_result" \
