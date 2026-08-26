@@ -1,0 +1,22 @@
+gpu: NVIDIA L40S
+[2026-08-25T22:22:19.244] error: couldn't chdir to `/tmp/toy_attack_if': No such file or directory: going to /tmp instead
+[2026-08-25 22:22:48] === run start: CIFAR10_ConvNetBN_fc_random_dog-bird_b0.001_eps8_seed42_ce1_tgt50 on cuda [0] ===
+[2026-08-25 22:22:48] args: {"FORCE": false, "attack": "fc", "base": "random", "base_dist": "l2", "base_topr": null, "budget": 0.001, "cache_dir": "/tmp/toy_attack_if/toy_cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 1, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 2, "data_path": "/tmp/toy_attack_if/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 1, "num_targets": 1, "num_victims": 1, "out_dir": "/tmp/toy_attack_if/toy_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 1, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [1], "surrogate_epochs": 1, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/toy_attack_if/target_sets/ConvNetBN_fc_dog-bird.json", "target_select": 50, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [1], "victim_epochs": 1, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-25 22:22:48] Jacobian score: disabled
+[2026-08-25 22:22:48] N_total=50000 budget=0.001 -> N_p=50 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-08-25 22:22:48] === surrogates (1 x ConvNetBN, trained on the full real set) ===
+[2026-08-25 22:22:50]   trained surrogate 0 (ConvNetBN): test acc = 0.5568 (2 s)
+[2026-08-25 22:22:50]   crafting on 1/1 surrogates
+[2026-08-25 22:22:50] === clean victims (1 x ConvNetBN) ===
+[2026-08-25 22:22:52]   trained clean victim 0 (ConvNetBN): test acc = 0.5668 (2 s)
+[2026-08-25 22:22:52]   clean baseline CTA = 0.5668 +/- 0.0000
+[2026-08-25 22:22:52]   target pool 1000 -> eligible 961 (39 already predicted as y_adv or dropped)
+[2026-08-25 22:22:52]   chosen 1 targets (file), p_adv range 0.0579..0.0579
+[2026-08-25 22:22:52]   targets: [2540]
+[2026-08-25 22:22:52] === target 2540 (1/1) ===
+[2026-08-25 22:22:52]   target 2540: crafted 50 poisons in 0 s, obj=0.02523
+[2026-08-25 22:22:52]   target 2540: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-25 22:22:55]   [t2540 v1/1] fail (pred=bird) CTA=0.5703
+[2026-08-25 22:22:55] ==== CIFAR10_ConvNetBN_fc_random_dog-bird_b0.001_eps8_seed42_ce1_tgt50 : ASR = 0.0% +/- 0.0% | CTA = 0.5703 (baseline 0.5668) ====
+[2026-08-25 22:22:55]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+sync: toy attack artifacts -> /home/mmoslem3/scratch/attack_if
