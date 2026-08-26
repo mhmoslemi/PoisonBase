@@ -1,0 +1,27 @@
+stage: optional file absent: /home/mmoslem3/scratch/attack_if/target_sets/def_ConvNetBN_fc_dog-bird_b0.01.json
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/defense_result/CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50__def-epic-s0.1-f2-d10
+job: 5026578 defense_003_convnet_fc_dog_bird_b0_01_epic_dpp_std on kn124
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=0 CLASS_PAIR="dog-bird" MODEL="ConvNetBN" ATTACK="fc" BUDGETS=0.01 SELS=dpp SEL_ALPHA=2.0 DEFENSES="epic" NUM_TARGETS=7 NUM_VICTIMS=5 sh defense.sh
+protocol: attack=8 targets x 5 victims; defense=7 targets x 5 victims
+gpu: NVIDIA L40S
+#  b0.01   dpp=10                       -> 10 paired target(s)
+=== defense sweep | ConvNetBN / fc / dog-bird (tgt50) ===
+    selections : dpp   (dpp alpha 2.0)
+    selector   : Jacobian disabled (historical attack-run names)
+    defenses   : epic
+    poisons    : replayed from /tmp/attack_if/ours_result, results into /tmp/attack_if/defense_result
+
+--- budget 0.01 | defense epic | selection dpp ---
+[2026-08-25 23:52:15] === defense run: CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50__def-epic-s0.1-f2-d10 ===
+[2026-08-25 23:52:15]     poisons replayed from /tmp/attack_if/ours_result/CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt50
+[2026-08-25 23:52:15]     defense = epic  (epic-s0.1-f2-d10)
+[2026-08-25 23:52:15]     victim augmentation = none  (applied to the poisoned image, resampled every epoch)
+[2026-08-25 23:52:15] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "fc", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "ours", "base_dist": "cosine", "budget": 0.01, "cache_dir": "/tmp/attack_if/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/data", "dataset": "CIFAR10", "defense": "epic", "defense_out_dir": "/tmp/attack_if/defense_result", "defense_parts": ["epic"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "ConvNetBN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 7, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 2.0, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "target_sets/def_ConvNetBN_fc_dog-bird_b0.01.json", "target_select": 50, "use_jacobian_score": false, "victim_aug": "none", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-25 23:52:36]   7 target(s) with saved poisons: [2540, 3725, 3875, 5169, 5705, 6335, 7488]
+[2026-08-25 23:52:36] === defended clean victims (5 x ConvNetBN, defense epic-s0.1-f2-d10) ===
+[2026-08-25 23:52:37]   defended clean CTA = 0.7829 +/- 0.0136
+[2026-08-25 23:52:37] === target 2540: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-25 23:55:05]   [t2540 v1/5] SUCCESS (pred=dog) CTA=0.7809 (147 s)
+[2026-08-25 23:58:26]   [t2540 v2/5] SUCCESS (pred=dog) CTA=0.6989 (201 s)
+[2026-08-26 00:01:00]   [t2540 v3/5] SUCCESS (pred=dog) CTA=0.7760 (154 s)
