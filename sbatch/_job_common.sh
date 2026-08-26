@@ -1,0 +1,281 @@
+#!/usr/bin/env bash
+# Shared runtime for the generated PoisonBase SLURM jobs. This file is sourced
+# by each sbatch/attack/*.sh and sbatch/defense/*.sh job.
+
+set -Eeuo pipefail
+
+SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/attack_if}"
+PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/data}"
+PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
+RUN_ROOT="$SLURM_TMPDIR/attack_if"
+LOCAL_DATA_ROOT="$SLURM_TMPDIR/data"
+
+ATTACK_RUN_NAMES=()
+DEFENSE_RUN_NAMES=()
+DEF_TARGET_FILES=()
+SYNCED=0
+STEP_PID=""
+
+say() { printf '%s\n' "$*"; }
+die() { say "ERROR: $*" >&2; exit 1; }
+
+copy_dir_if_present() {
+    local src="$1" dst="$2"
+    if [ -d "$src" ]; then
+        mkdir -p "$dst"
+        rsync -a --exclude='.lock' --exclude='*.tmp' "$src/" "$dst/"
+    else
+        say "stage: optional directory absent: $src"
+    fi
+}
+
+copy_file_if_present() {
+    local src="$1" dst_dir="$2"
+    if [ -f "$src" ]; then
+        mkdir -p "$dst_dir"
+        rsync -a "$src" "$dst_dir/"
+    else
+        say "stage: optional file absent: $src"
+    fi
+}
+
+cfg_target() {
+    local lookup_attack="$ATTACK"
+    [ "$lookup_attack" = sapa ] && lookup_attack=gradmatch
+    if [ -n "${TARGET_SELECT:-}" ]; then
+        printf '%s\n' "$TARGET_SELECT"
+        return
+    fi
+    python - "$RUN_ROOT/sweep_config.json" "$MODEL" "$lookup_attack" "$CLASS_PAIR" <<'PY'
+import json, sys
+path, model, attack, pair = sys.argv[1:]
+with open(path) as handle:
+    cfg = json.load(handle)
+print(cfg['difficulty'][model][attack][pair])
+PY
+}
+
+fmt_g() {
+    python - "$1" <<'PY'
+import sys
+print('%g' % float(sys.argv[1]))
+PY
+}
+
+attack_run_name() {
+    local selection="$1" budget="$2" target_degree="$3"
+    local base=random name alpha_tag jacobian_tag
+    [ "$selection" != random ] && base=ours
+    name="CIFAR10_${MODEL}_${ATTACK}_${base}_${CLASS_PAIR}_b${budget}_eps8_seed42"
+    if [ "$base" = ours ]; then
+        name+="_lam1_cosine"
+        if [ "$selection" = dpp ]; then
+            alpha_tag="$(fmt_g "${SEL_ALPHA:-2.0}")"
+            name+="_seldpp${alpha_tag}"
+        fi
+        if [ "${USE_JACOBIAN_SCORE:-0}" = 1 ]; then
+            jacobian_tag="$(fmt_g "${JACOBIAN_WEIGHT:-1.0}")"
+            name+="_jacw${jacobian_tag}"
+        fi
+    fi
+    if [ "$ATTACK" = sapa ]; then
+        name+="_${SHARP_MODE:-worst}${SHARP_SIGMA:-0.05}"
+    fi
+    name+="_ce5_tgt${target_degree}"
+    printf '%s\n' "$name"
+}
+
+defense_tag() {
+    case "$1" in
+        epic) printf '%s\n' 'epic-s0.1-f2-d10' ;;
+        friends) printf '%s\n' 'friends-friendly.bernoulli-e8-p5-clp16' ;;
+        *) die "generated jobs only support the epic/friends tags in run_defense.txt (got $1)" ;;
+    esac
+}
+
+stage_code_and_data() {
+    local required=(final_update.py networks.py utils.py sweep_config.json)
+    local file
+    [ "$JOB_KIND" = attack ] && required+=(sel_dpp.sh)
+    [ "$JOB_KIND" = defense ] && required+=(defense.sh defense.py victim_aug.py)
+    mkdir -p "$RUN_ROOT" "$LOCAL_DATA_ROOT" "$RUN_ROOT/cache" \
+             "$RUN_ROOT/ours_result" "$RUN_ROOT/defense_result" \
+             "$RUN_ROOT/target_sets"
+    for file in "${required[@]}"; do
+        [ -f "$SOURCE_ROOT/$file" ] || die "required source file missing: $SOURCE_ROOT/$file"
+        rsync -a "$SOURCE_ROOT/$file" "$RUN_ROOT/"
+    done
+
+    [ -d "$PERSIST_DATA_ROOT/cifar-10-batches-py" ] || \
+        die "CIFAR-10 input missing: $PERSIST_DATA_ROOT/cifar-10-batches-py"
+    rsync -a "$PERSIST_DATA_ROOT/cifar-10-batches-py" "$LOCAL_DATA_ROOT/"
+
+    local target_attack="$ATTACK"
+    if [ "$target_attack" = sapa ] && \
+       [ ! -s "$SOURCE_ROOT/target_sets/${MODEL}_${target_attack}_${CLASS_PAIR}.json" ]; then
+        target_attack=gradmatch
+    fi
+    copy_file_if_present \
+        "$SOURCE_ROOT/target_sets/${MODEL}_${target_attack}_${CLASS_PAIR}.json" \
+        "$RUN_ROOT/target_sets"
+}
+
+stage_attack_job() {
+    local target_degree run_name budget
+    target_degree="$(cfg_target)"
+    copy_dir_if_present \
+        "$SOURCE_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
+        "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
+    copy_dir_if_present \
+        "$SOURCE_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
+        "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
+    for budget in $BUDGETS; do
+        run_name="$(attack_run_name "$SELECT" "$budget" "$target_degree")"
+        ATTACK_RUN_NAMES+=("$run_name")
+        copy_dir_if_present "$SOURCE_ROOT/ours_result/$run_name" \
+                            "$RUN_ROOT/ours_result/$run_name"
+    done
+}
+
+stage_defense_job() {
+    local target_degree run_name def_name def_tag budget selection def_target jac_tag="" jacobian_tag
+    target_degree="$(cfg_target)"
+    def_tag="$(defense_tag "$DEFENSES")"
+    copy_dir_if_present \
+        "$SOURCE_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42" \
+        "$RUN_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42"
+
+    if [ "${USE_JACOBIAN_SCORE:-0}" = 1 ]; then
+        for selection in $SELS; do
+            if [ "$selection" != random ]; then
+                jacobian_tag="$(fmt_g "${JACOBIAN_WEIGHT:-1.0}")"
+                jac_tag="_jacw${jacobian_tag}"
+            fi
+        done
+    fi
+    for budget in $BUDGETS; do
+        def_target="def_${MODEL}_${ATTACK}_${CLASS_PAIR}_b${budget}${jac_tag}.json"
+        DEF_TARGET_FILES+=("$def_target")
+        copy_file_if_present "$SOURCE_ROOT/target_sets/$def_target" "$RUN_ROOT/target_sets"
+        for selection in $SELS; do
+            run_name="$(attack_run_name "$selection" "$budget" "$target_degree")"
+            copy_dir_if_present "$SOURCE_ROOT/ours_result/$run_name" \
+                                "$RUN_ROOT/ours_result/$run_name"
+            def_name="${run_name}__def-${def_tag}"
+            DEFENSE_RUN_NAMES+=("$def_name")
+            copy_dir_if_present "$SOURCE_ROOT/defense_result/$def_name" \
+                                "$RUN_ROOT/defense_result/$def_name"
+        done
+    done
+}
+
+sync_cache_dir() {
+    local src="$1" dst="$2"
+    [ -d "$src" ] || return 0
+    mkdir -p "$dst"
+    rsync -a --ignore-existing --exclude='*.tmp' "$src/" "$dst/"
+}
+
+sync_outputs() {
+    [ "$SYNCED" = 0 ] || return 0
+    SYNCED=1
+    say "sync: preserving outputs in $SOURCE_ROOT"
+    local name file
+    if [ "$JOB_KIND" = attack ]; then
+        for name in "${ATTACK_RUN_NAMES[@]}"; do
+            [ -d "$RUN_ROOT/ours_result/$name" ] || continue
+            mkdir -p "$SOURCE_ROOT/ours_result/$name"
+            rsync -a --exclude='.lock' --exclude='*.tmp' \
+                "$RUN_ROOT/ours_result/$name/" "$SOURCE_ROOT/ours_result/$name/"
+        done
+        sync_cache_dir \
+            "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
+            "$SOURCE_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
+        sync_cache_dir \
+            "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
+            "$SOURCE_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
+    else
+        for name in "${DEFENSE_RUN_NAMES[@]}"; do
+            [ -d "$RUN_ROOT/defense_result/$name" ] || continue
+            mkdir -p "$SOURCE_ROOT/defense_result/$name"
+            rsync -a --exclude='.lock' --exclude='*.tmp' \
+                "$RUN_ROOT/defense_result/$name/" "$SOURCE_ROOT/defense_result/$name/"
+        done
+        for file in "${DEF_TARGET_FILES[@]}"; do
+            [ -f "$RUN_ROOT/target_sets/$file" ] || continue
+            mkdir -p "$SOURCE_ROOT/target_sets"
+            rsync -a "$RUN_ROOT/target_sets/$file" "$SOURCE_ROOT/target_sets/"
+        done
+        local def_tag
+        def_tag="$(defense_tag "$DEFENSES")"
+        sync_cache_dir \
+            "$RUN_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42" \
+            "$SOURCE_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42"
+    fi
+    say "sync: complete"
+}
+
+handle_signal() {
+    local signal="$1"
+    say "signal: received $signal; stopping the job step before final sync"
+    if [ -n "$STEP_PID" ]; then
+        kill -TERM "$STEP_PID" 2>/dev/null || true
+        wait "$STEP_PID" 2>/dev/null || true
+    fi
+    sync_outputs
+    trap - EXIT
+    exit 143
+}
+
+main() {
+    [ "${JOB_KIND:-}" = attack ] || [ "${JOB_KIND:-}" = defense ] || \
+        die 'JOB_KIND must be attack or defense'
+    [ -n "${SLURM_TMPDIR:-}" ] || die 'SLURM_TMPDIR is unset; submit this file with sbatch'
+
+    module load python/3.11.5 cuda/12.6 cudnn
+    source "$PYTHON_ENV/bin/activate"
+
+    trap 'handle_signal USR1' USR1
+    trap 'handle_signal TERM' TERM
+    trap 'handle_signal INT' INT
+    trap sync_outputs EXIT
+
+    stage_code_and_data
+    if [ "$JOB_KIND" = attack ]; then
+        stage_attack_job
+    else
+        stage_defense_job
+    fi
+
+    export PROJECT_ROOT="$RUN_ROOT"
+    export DATA_PATH="$LOCAL_DATA_ROOT"
+    export CACHE_DIR="$RUN_ROOT/cache"
+    export OUT_DIR="$RUN_ROOT/ours_result"
+    export DEF_OUT_DIR="$RUN_ROOT/defense_result"
+    export PYTHON_ENV
+
+    say "job: $SLURM_JOB_ID $SLURM_JOB_NAME on $(hostname)"
+    say "work: $RUN_ROOT"
+    say "config: $ORIGINAL_COMMAND"
+    say "protocol: attack=8 targets x 5 victims; defense=7 targets x 5 victims"
+    python -c 'import torch; assert torch.cuda.is_available(); print("gpu:", torch.cuda.get_device_name(0))'
+
+    if [ "$JOB_KIND" = attack ]; then
+        srun --ntasks=1 sh "$RUN_ROOT/sel_dpp.sh" &
+    else
+        srun --ntasks=1 sh "$RUN_ROOT/defense.sh" &
+    fi
+    STEP_PID=$!
+    set +e
+    wait "$STEP_PID"
+    local status=$?
+    set -e
+    STEP_PID=""
+    sync_outputs
+    trap - EXIT
+    exit "$status"
+}
+
+if [ "${SBATCH_COMMON_LIBRARY_ONLY:-0}" != 1 ]; then
+    main "$@"
+fi

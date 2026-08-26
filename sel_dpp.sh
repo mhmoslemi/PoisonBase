@@ -93,14 +93,16 @@ SHARP_MODE="${SHARP_MODE:-worst}"    # ATTACK=sapa only: worst | avg
 SHARP_SIGMA="${SHARP_SIGMA:-0.05}"   # ATTACK=sapa only. worst: l2 radius (SAM rho).
                                      # avg: PER-ELEMENT std, use ~1e-3 there.
 
-DATASET=CIFAR10
-DATA_PATH=/home/mmoslem3/scratch/data
-OUT_DIR=ours_result
-CACHE_DIR=./cache
-SEED=42
+DATASET="${DATASET:-CIFAR10}"
+DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
+OUT_DIR="${OUT_DIR:-ours_result}"
+CACHE_DIR="${CACHE_DIR:-./cache}"
+SEED="${SEED:-42}"
+PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
+PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
 
-source /home/mmoslem3/ENV/bin/activate
-cd /home/mmoslem3/scratch/attack_if
+source "$PYTHON_ENV/bin/activate"
+cd "$PROJECT_ROOT"
 
 # --- refuse to start on a node with no GPU ------------------------------------
 # klogin* has no CUDA driver. resolve_gpus() returns [] when torch.cuda.is_available()

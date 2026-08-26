@@ -41,13 +41,13 @@ SEL_ALPHA="${SEL_ALPHA:-2.0}"
 # DEFENSES="${DEFENSES:-none epic friends}"
 DEFENSES="${DEFENSES:-epic friends}"
 
-DATASET=CIFAR10
-DATA_PATH=/home/mmoslem3/scratch/data
-OUT_DIR=ours_result           # where the attack runs (and their poisons) live
-DEF_OUT_DIR=defense_result    # where this writes
-CACHE_DIR=./cache
-SEED=42
-EPSILON=0.0313725             # 8/255, matches the attack runs
+DATASET="${DATASET:-CIFAR10}"
+DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
+OUT_DIR="${OUT_DIR:-ours_result}"           # where the attack runs (and their poisons) live
+DEF_OUT_DIR="${DEF_OUT_DIR:-defense_result}" # where this writes
+CACHE_DIR="${CACHE_DIR:-./cache}"
+SEED="${SEED:-42}"
+EPSILON="${EPSILON:-0.0313725}"             # 8/255, matches the attack runs
 
 USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
@@ -88,8 +88,10 @@ VICTIM_LR=0.1
 VICTIM_BS=125
 VICTIM_DECAY=40
 
-source /home/mmoslem3/ENV/bin/activate
-cd /home/mmoslem3/scratch/attack_if
+PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
+PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
+source "$PYTHON_ENV/bin/activate"
+cd "$PROJECT_ROOT"
 
 # The difficulty label only has to match the attack run so the _tgt<N> suffix of
 # the run name lines up. Straight from sweep_config.json, same as sel_dpp.sh.
