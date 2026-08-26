@@ -1,0 +1,20 @@
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/last_night_H200_2026-08-26/ours_result/CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchVGG13BN_K1_ce5_tgt50
+stage: optional directory absent: /home/mmoslem3/scratch/attack_if/ours_result/CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchVGG13BN_K1_ce5_tgt50
+job: 5034760 cross_021_k1_fc_b0_002_svgg13_aconvnet_greedy on kn074
+work: /tmp/attack_if
+config: SEL_K=1 BUDGET=0.002 ATTACKS=fc MODELS=ConvNetBN SELECTOR_MODELS=VGG13BN SELECTIONS=greedy RUN_MATCHED=1 NUM_TARGETS=5 NUM_VICTIMS=4 sh cross_arch.sh
+protocol: one cell, 5 targets x 4 victims
+gpu: NVIDIA L40S
+=== cross-architecture sweep ===
+    A=V models : ConvNetBN
+    S models   : VGG13BN
+    attacks    : fc (fc is BP)
+    selections : greedy
+    budget     : 0.002 (targets pinned from b0.005)
+    protocol   : 5 targets x 4 victims, 20 surrogates
+    selector K : 1
+    Jacobian   : enabled=0 weight=1.0 batch=64
+
+=== S=VGG13BN -> A=V=ConvNetBN | fc | greedy ===
+    targets=target_sets/xarch_ConvNetBN_fc_dog-bird_b0.005.json (5), victims=4, surrogates=20
+    Jacobian: disabled for Greedy in this table
