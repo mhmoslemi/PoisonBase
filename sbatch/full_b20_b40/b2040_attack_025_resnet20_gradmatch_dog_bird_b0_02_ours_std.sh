@@ -11,8 +11,7 @@
 #SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/b2040_attack_025_resnet20_gradmatch_dog_bird_b0_02_ours_std-%j.out
 
 # L40S walltime: estimated 0-06:45:00; requested at the standard 0-07:00:00 maximum.
-# Grouped source command: USE_JACOBIAN_SCORE=0 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=ResNet20BN ATTACK=gradmatch BUDGETS=0.02 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
-# This-cell command: USE_JACOBIAN_SCORE=0 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=ResNet20BN ATTACK=gradmatch BUDGETS=0.02 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
+# Exactly one table cell: USE_JACOBIAN_SCORE=0 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=ResNet20BN ATTACK=gradmatch BUDGETS=0.02 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
 
 export JOB_KIND=attack
 export ORIGINAL_COMMAND='USE_JACOBIAN_SCORE=0 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=ResNet20BN ATTACK=gradmatch BUDGETS=0.02 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh'

@@ -33,7 +33,6 @@ def slug(value: str) -> str:
 def attack_minutes(env: dict[str, str]) -> int:
     model = env["MODEL"]
     attack = env["ATTACK"]
-    jacobian = env.get("USE_JACOBIAN_SCORE", "0") == "1"
     budgets = [float(x) for x in env["BUDGETS"].split()]
 
     fc = {"ConvNetBN": 6.0, "ResNet20BN": 14.0, "VGG13BN": 11.0}
@@ -46,20 +45,12 @@ def attack_minutes(env: dict[str, str]) -> int:
         ("VGG13BN", "gradmatch"): 2400.0,
         ("VGG13BN", "sapa"): 2000.0,
     }
-    jacobian_observed = {
-        "ConvNetBN": {0.001: 6, 0.002: 7, 0.005: 10, 0.01: 31, 0.02: 50, 0.04: 90},
-        "ResNet20BN": {0.001: 18, 0.002: 20, 0.005: 24, 0.01: 90, 0.02: 130, 0.04: 210},
-        "VGG13BN": {0.001: 13, 0.002: 14, 0.005: 19, 0.01: 83, 0.02: 130, 0.04: 210},
-    }
-
     per_target = []
     for budget in budgets:
         if attack == "fc":
             base = fc[model]
         else:
             base = intercept[model] + slope[(model, attack)] * budget
-        if jacobian:
-            base = max(base, jacobian_observed[model].get(budget, base * 1.5))
         per_target.append(base)
     num_targets = int(env.get("NUM_TARGETS", "8"))
     num_victims = int(env.get("NUM_VICTIMS", "5"))
@@ -203,8 +194,7 @@ def make_script(kind: str, index: int, source_command: str,
         f"#SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/{label}-%j.out",
         "",
         f"# L40S walltime: {time_note}.",
-        f"# Grouped source command: {source_command}",
-        f"# This-cell command: {effective_command}",
+        f"# Exactly one table cell: {effective_command}",
         "",
         f"export JOB_KIND={kind}",
         f"export ORIGINAL_COMMAND={shlex.quote(effective_command)}",

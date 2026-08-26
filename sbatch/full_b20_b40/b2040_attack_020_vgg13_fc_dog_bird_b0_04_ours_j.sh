@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=b2040_attack_020_vgg13_fc_dog_bird_b0_04_ours_j
-#SBATCH --time=1-05:15:00
+#SBATCH --time=0-02:45:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -10,9 +10,8 @@
 #SBATCH --signal=B:USR1@300
 #SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/b2040_attack_020_vgg13_fc_dog_bird_b0_04_ours_j-%j.out
 
-# L40S walltime: estimated 1-04:30:00; long attack gets its full estimate plus the 00:45 cushion.
-# Grouped source command: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=fc BUDGETS=0.04 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
-# This-cell command: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=fc BUDGETS=0.04 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
+# L40S walltime: estimated 0-02:00:00; includes the 00:45 cushion.
+# Exactly one table cell: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=fc BUDGETS=0.04 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
 
 export JOB_KIND=attack
 export ORIGINAL_COMMAND='USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=fc BUDGETS=0.04 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh'
