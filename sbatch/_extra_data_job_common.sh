@@ -5,9 +5,9 @@
 
 set -Eeuo pipefail
 
-SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/attack_if}"
+SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/PoisonBase}"
 PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/data}"
-PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
+ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 RUN_ROOT="${SLURM_TMPDIR:-}/extra_data_if"
 LOCAL_DATA_ROOT="${SLURM_TMPDIR:-}/extra_data"
 STEP_PID=""
@@ -149,7 +149,8 @@ main() {
     case "$ATTACK" in fc|gradmatch|sapa) ;; *) die "unsupported attack: $ATTACK" ;; esac
 
     module load python/3.11.5 cuda/12.6 cudnn
-    source "$PYTHON_ENV/bin/activate"
+    [ -f "$ENV_ACTIVATE" ] || die "Python environment activation script missing: $ENV_ACTIVATE"
+    source "$ENV_ACTIVATE"
 
     trap 'handle_signal USR1' USR1
     trap 'handle_signal TERM' TERM

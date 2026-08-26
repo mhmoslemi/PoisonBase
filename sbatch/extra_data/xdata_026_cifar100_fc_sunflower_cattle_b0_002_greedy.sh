@@ -6,9 +6,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=7G
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --gpus-per-node=l40s:1
 #SBATCH --signal=B:USR1@300
-#SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/xdata_026_cifar100_fc_sunflower_cattle_b0_002_greedy-%j.out
+#SBATCH --output=/home/mmoslem3/scratch/PoisonBase/sbatch/logs/xdata_026_cifar100_fc_sunflower_cattle_b0_002_greedy-%j.out
 
 # One extra-data.tex result cell: CIFAR100 / ResNet18BN / sunflower-cattle /
 # budget 0.002 / fc / Greedy, with Jacobian disabled.
@@ -26,4 +26,4 @@ export VICTIM_LR=0.1
 export CRAFT_LOWMEM=0
 export CRAFT_BATCH=256
 
-source /home/mmoslem3/scratch/attack_if/sbatch/_extra_data_job_common.sh
+source /home/mmoslem3/scratch/PoisonBase/sbatch/_extra_data_job_common.sh
