@@ -5,6 +5,7 @@
 set -Eeuo pipefail
 
 SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/attack_if}"
+LEGACY_SOURCE_ROOT="${LEGACY_SOURCE_ROOT:-}"
 PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/data}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
 RUN_ROOT="$SLURM_TMPDIR/attack_if"
@@ -37,6 +38,24 @@ copy_file_if_present() {
     else
         say "stage: optional file absent: $src"
     fi
+}
+
+copy_legacy_dir_if_present() {
+    local relative="$1" dst="$2"
+    [ -n "$LEGACY_SOURCE_ROOT" ] || return 0
+    [ "$LEGACY_SOURCE_ROOT" != "$SOURCE_ROOT" ] || return 0
+    [ -d "$LEGACY_SOURCE_ROOT/$relative" ] || return 0
+    say "stage: importing legacy partials from $LEGACY_SOURCE_ROOT/$relative"
+    copy_dir_if_present "$LEGACY_SOURCE_ROOT/$relative" "$dst"
+}
+
+copy_legacy_file_if_present() {
+    local relative="$1" dst_dir="$2"
+    [ -n "$LEGACY_SOURCE_ROOT" ] || return 0
+    [ "$LEGACY_SOURCE_ROOT" != "$SOURCE_ROOT" ] || return 0
+    [ -f "$LEGACY_SOURCE_ROOT/$relative" ] || return 0
+    say "stage: importing legacy file from $LEGACY_SOURCE_ROOT/$relative"
+    copy_file_if_present "$LEGACY_SOURCE_ROOT/$relative" "$dst_dir"
 }
 
 cfg_target() {
@@ -123,15 +142,23 @@ stage_code_and_data() {
 stage_attack_job() {
     local target_degree run_name budget
     target_degree="$(cfg_target)"
+    copy_legacy_dir_if_present \
+        "cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
+        "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
     copy_dir_if_present \
         "$SOURCE_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
         "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
+    copy_legacy_dir_if_present \
+        "cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
+        "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
     copy_dir_if_present \
         "$SOURCE_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
         "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
     for budget in $BUDGETS; do
         run_name="$(attack_run_name "$SELECT" "$budget" "$target_degree")"
         ATTACK_RUN_NAMES+=("$run_name")
+        copy_legacy_dir_if_present "ours_result/$run_name" \
+                                   "$RUN_ROOT/ours_result/$run_name"
         copy_dir_if_present "$SOURCE_ROOT/ours_result/$run_name" \
                             "$RUN_ROOT/ours_result/$run_name"
     done
@@ -141,6 +168,9 @@ stage_defense_job() {
     local target_degree run_name def_name def_tag budget selection def_target jac_tag="" jacobian_tag
     target_degree="$(cfg_target)"
     def_tag="$(defense_tag "$DEFENSES")"
+    copy_legacy_dir_if_present \
+        "cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42" \
+        "$RUN_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42"
     copy_dir_if_present \
         "$SOURCE_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42" \
         "$RUN_ROOT/cache/defended_victims/${MODEL}_${def_tag}_50ep_lr0.1_bs125_wd0_seed42"
@@ -156,13 +186,18 @@ stage_defense_job() {
     for budget in $BUDGETS; do
         def_target="def_${MODEL}_${ATTACK}_${CLASS_PAIR}_b${budget}${jac_tag}.json"
         DEF_TARGET_FILES+=("$def_target")
+        copy_legacy_file_if_present "target_sets/$def_target" "$RUN_ROOT/target_sets"
         copy_file_if_present "$SOURCE_ROOT/target_sets/$def_target" "$RUN_ROOT/target_sets"
         for selection in $SELS; do
             run_name="$(attack_run_name "$selection" "$budget" "$target_degree")"
+            copy_legacy_dir_if_present "ours_result/$run_name" \
+                                       "$RUN_ROOT/ours_result/$run_name"
             copy_dir_if_present "$SOURCE_ROOT/ours_result/$run_name" \
                                 "$RUN_ROOT/ours_result/$run_name"
             def_name="${run_name}__def-${def_tag}"
             DEFENSE_RUN_NAMES+=("$def_name")
+            copy_legacy_dir_if_present "defense_result/$def_name" \
+                                       "$RUN_ROOT/defense_result/$def_name"
             copy_dir_if_present "$SOURCE_ROOT/defense_result/$def_name" \
                                 "$RUN_ROOT/defense_result/$def_name"
         done
