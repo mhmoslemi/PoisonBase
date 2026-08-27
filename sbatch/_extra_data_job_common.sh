@@ -40,26 +40,26 @@ copy_dir_if_present() {
 }
 
 stage_dataset() {
+    local src train_src test_src
     mkdir -p "$LOCAL_DATA_ROOT"
     case "$DATASET" in
         CIFAR100)
-            [ -d "$PERSIST_DATA_ROOT/cifar-100-python" ] || \
-                die "CIFAR-100 input missing: $PERSIST_DATA_ROOT/cifar-100-python"
-            rsync -a "$PERSIST_DATA_ROOT/cifar-100-python" "$LOCAL_DATA_ROOT/"
+            src="$(find "$PERSIST_DATA_ROOT" -type d -name cifar-100-python -print -quit 2>/dev/null)"
+            [ -n "$src" ] || die "CIFAR-100 input missing under $PERSIST_DATA_ROOT"
+            rsync -a "$src" "$LOCAL_DATA_ROOT/"
             ;;
         SVHN)
-            local file src
-            for file in train_32x32.mat test_32x32.mat; do
-                src="$PERSIST_DATA_ROOT/$file"
-                [ -f "$src" ] || src="$PERSIST_DATA_ROOT/SVHN/$file"
-                [ -f "$src" ] || die "SVHN input missing: $file under $PERSIST_DATA_ROOT"
-                rsync -a "$src" "$LOCAL_DATA_ROOT/"
-            done
+            train_src="$(find "$PERSIST_DATA_ROOT" -type f -name train_32x32.mat -print -quit 2>/dev/null)"
+            test_src="$(find "$PERSIST_DATA_ROOT" -type f -name test_32x32.mat -print -quit 2>/dev/null)"
+            [ -n "$train_src" ] || die "SVHN input missing: train_32x32.mat under $PERSIST_DATA_ROOT"
+            [ -n "$test_src" ] || die "SVHN input missing: test_32x32.mat under $PERSIST_DATA_ROOT"
+            rsync -a "$train_src" "$LOCAL_DATA_ROOT/train_32x32.mat"
+            rsync -a "$test_src" "$LOCAL_DATA_ROOT/test_32x32.mat"
             ;;
         TinyImageNet)
-            [ -f "$PERSIST_DATA_ROOT/tinyimagenet.pt" ] || \
-                die "Tiny ImageNet input missing: $PERSIST_DATA_ROOT/tinyimagenet.pt"
-            rsync -a "$PERSIST_DATA_ROOT/tinyimagenet.pt" "$LOCAL_DATA_ROOT/"
+            src="$(find "$PERSIST_DATA_ROOT" -type f -name tinyimagenet.pt -print -quit 2>/dev/null)"
+            [ -n "$src" ] || die "Tiny ImageNet input missing under $PERSIST_DATA_ROOT"
+            rsync -a "$src" "$LOCAL_DATA_ROOT/tinyimagenet.pt"
             ;;
         *) die "unsupported extra-data dataset: $DATASET" ;;
     esac
