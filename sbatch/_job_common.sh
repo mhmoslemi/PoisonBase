@@ -232,7 +232,14 @@ main() {
         die 'JOB_KIND must be attack or defense'
     [ -n "${SLURM_TMPDIR:-}" ] || die 'SLURM_TMPDIR is unset; submit this file with sbatch'
 
-    module load python/3.11.5 cuda/12.6 cudnn
+    # Killarney provides Environment Modules in batch shells, while Vulcan's
+    # non-login batch shell may not define `module`.  The Vulcan virtualenv is
+    # self-contained, so module loading is useful when available but optional.
+    if command -v module >/dev/null 2>&1; then
+        module load python/3.11.5 cuda/12.6 cudnn
+    else
+        say "environment modules unavailable; using $PYTHON_ENV directly"
+    fi
     source "$PYTHON_ENV/bin/activate"
 
     trap 'handle_signal USR1' USR1

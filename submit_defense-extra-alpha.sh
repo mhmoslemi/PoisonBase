@@ -81,23 +81,27 @@ PY
 }
 
 verify_saved_prerequisites() {
-    run_dir=""
     for run_name in \
         CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp0.25_ce5_tgt50 \
         CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp0.25_worst0.05_ce5_tgt14; do
-        if [ -d "$ROOT/ours_result/$run_name" ]; then
-            run_dir="$ROOT/ours_result/$run_name"
-        elif [ -d "$ROOT/last_night_H200_2026-08-26/ours_result_alpha025_live/$run_name" ]; then
-            run_dir="$ROOT/last_night_H200_2026-08-26/ours_result_alpha025_live/$run_name"
-        else
-            echo "ERROR: saved alpha=0.25 poison prerequisite missing on Vulcan: $run_name" >&2
-            exit 1
-        fi
-        poison_count=$(find "$run_dir/poison_cache" -maxdepth 1 -type f -name 'delta_*.pt' 2>/dev/null | wc -l | tr -d ' ')
-        [ "$poison_count" -ge 5 ] || {
-            echo "ERROR: saved prerequisite has only $poison_count/5 poison deltas: $run_dir" >&2
+        run_dir=""
+        best_count=0
+        for candidate in \
+            "$ROOT/last_night_H200_2026-08-26/ours_result_alpha025_live/$run_name" \
+            "$ROOT/ours_result/$run_name"; do
+            [ -d "$candidate" ] || continue
+            poison_count=$(find "$candidate/poison_cache" -maxdepth 1 -type f -name 'delta_*.pt' 2>/dev/null | wc -l | tr -d ' ')
+            if [ "$poison_count" -gt "$best_count" ]; then
+                best_count="$poison_count"
+                run_dir="$candidate"
+            fi
+            [ "$poison_count" -ge 5 ] && break
+        done
+        [ "$best_count" -ge 5 ] || {
+            echo "ERROR: saved alpha=0.25 prerequisite has only $best_count/5 poison deltas: $run_name" >&2
             exit 1
         }
+        echo "saved poison prerequisite ready: $run_dir ($best_count deltas)" >&2
     done
 }
 
