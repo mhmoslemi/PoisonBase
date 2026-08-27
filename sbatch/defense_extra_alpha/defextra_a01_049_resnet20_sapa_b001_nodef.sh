@@ -1,18 +1,18 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=defextra_a01_049_resnet20_sapa_b001_nodef
-#SBATCH --time=0-03:15:00
+#SBATCH --time=0-03:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=7G
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --gpus-per-node=l40s:1
 #SBATCH --signal=B:USR1@300
-#SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/defextra_a01_049_resnet20_sapa_b001_nodef-%j.out
+#SBATCH --output=/home/mmoslem3/scratch/PoisonBase/sbatch/logs/defextra_a01_049_resnet20_sapa_b001_nodef-%j.out
 
 # Exactly one defense-extra table cell: alpha=0.1, No Defense,
 # ResNet20BN / sapa / dog-bird / budget 0.01.
-# Protocol: 5 targets x 1 victim; walltime includes a 00:45 cushion.
+# Protocol: 5 targets x 1 victim; walltime includes a 00:45 cushion and 00:15 Vulcan buffer.
 
 export EXTRA_ALPHA=0.1
 export JOB_KIND=attack
@@ -32,4 +32,8 @@ export TARGET_SELECT=14
 export NUM_TARGETS=5
 export NUM_VICTIMS=1
 
-source /home/mmoslem3/scratch/attack_if/sbatch/_defense_extra_job_common.sh
+export SOURCE_ROOT=/home/mmoslem3/scratch/PoisonBase
+export PERSIST_DATA_ROOT=/home/mmoslem3/scratch/PoisonBase/data
+export PYTHON_ENV=/home/mmoslem3/ENV
+
+source /home/mmoslem3/scratch/PoisonBase/sbatch/_defense_extra_job_common.sh
