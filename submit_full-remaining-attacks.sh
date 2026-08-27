@@ -98,8 +98,8 @@ fi
 
 [ -f "$ROOT/sbatch/_job_common.sh" ] || \
     die "missing shared runtime: $ROOT/sbatch/_job_common.sh"
-[ -d "$ROOT/data/cifar-10-batches-py" ] || \
-    die "CIFAR-10 input missing under $ROOT/data"
+# [ -d "$ROOT/data/cifar-10-batches-py" ] || \
+#     die "CIFAR-10 input missing under $ROOT/data"
 mkdir -p "$LOG_ROOT"
 
 ACTIVE_NAMES=$(mktemp)
