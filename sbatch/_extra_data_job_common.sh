@@ -10,6 +10,8 @@ PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/PoisonBase/data}"
 ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 RUN_ROOT="${SLURM_TMPDIR:-}/extra_data_if"
 LOCAL_DATA_ROOT="${SLURM_TMPDIR:-}/extra_data"
+PERSIST_RESULT_ROOT="${PERSIST_RESULT_ROOT:-$SOURCE_ROOT/extra_data_result}"
+LOCAL_RESULT_ROOT="$RUN_ROOT/extra_data_result"
 STEP_PID=""
 SYNCED=0
 
@@ -77,7 +79,7 @@ cache_file_count() {
 stage_code_target_and_caches() {
     local file src target_src s_count v_count
     mkdir -p "$RUN_ROOT" "$RUN_ROOT/cache/surrogates" \
-        "$RUN_ROOT/cache/clean_victims" "$RUN_ROOT/ours_result" \
+        "$RUN_ROOT/cache/clean_victims" "$LOCAL_RESULT_ROOT" \
         "$RUN_ROOT/target_sets"
 
     for file in final_update.py networks.py utils.py; do
@@ -100,7 +102,7 @@ stage_code_target_and_caches() {
     s_count="$(cache_file_count "$RUN_ROOT/cache/surrogates/$SURROGATE_CACHE")"
     v_count="$(cache_file_count "$RUN_ROOT/cache/clean_victims/$VICTIM_CACHE")"
     [ "$s_count" -ge 20 ] || die "need 20 cached surrogates in cache/surrogates/$SURROGATE_CACHE; found $s_count"
-    [ "$v_count" -ge 5 ] || die "need 5 cached clean victims in cache/clean_victims/$VICTIM_CACHE; found $v_count"
+    [ "$v_count" -ge "$NUM_VICTIMS" ] || die "need $NUM_VICTIMS cached clean victims in cache/clean_victims/$VICTIM_CACHE; found $v_count"
 }
 
 sync_cache_dir() {
@@ -115,11 +117,11 @@ sync_outputs() {
     SYNCED=1
     local name
     name="$(run_name)"
-    say "sync: extra-data cell -> $SOURCE_ROOT/ours_result/$name"
-    if [ -d "$RUN_ROOT/ours_result/$name" ]; then
-        mkdir -p "$SOURCE_ROOT/ours_result/$name"
+    say "sync: extra-data cell -> $PERSIST_RESULT_ROOT/$name"
+    if [ -d "$LOCAL_RESULT_ROOT/$name" ]; then
+        mkdir -p "$PERSIST_RESULT_ROOT/$name"
         rsync -a --exclude='.lock' --exclude='*.tmp' \
-            "$RUN_ROOT/ours_result/$name/" "$SOURCE_ROOT/ours_result/$name/"
+            "$LOCAL_RESULT_ROOT/$name/" "$PERSIST_RESULT_ROOT/$name/"
     fi
     sync_cache_dir "$RUN_ROOT/cache/surrogates/$SURROGATE_CACHE" \
         "$SOURCE_ROOT/cache/surrogates/$SURROGATE_CACHE"
@@ -147,6 +149,11 @@ main() {
     done
     [ -n "${SLURM_TMPDIR:-}" ] || die 'SLURM_TMPDIR is unset; submit this file with sbatch'
     case "$ATTACK" in fc|gradmatch|sapa) ;; *) die "unsupported attack: $ATTACK" ;; esac
+    case "$DATASET" in
+        CIFAR100|TinyImageNet) NUM_TARGETS=4; NUM_VICTIMS=4 ;;
+        SVHN) NUM_TARGETS=6; NUM_VICTIMS=5 ;;
+        *) die "unsupported extra-data dataset: $DATASET" ;;
+    esac
 
     module load python/3.11.5 cuda/12.6 cudnn
     [ -f "$ENV_ACTIVATE" ] || die "Python environment activation script missing: $ENV_ACTIVATE"
@@ -160,19 +167,35 @@ main() {
     stage_dataset
     stage_code_target_and_caches
 
+    python - "$RUN_ROOT/target_sets/$(basename "$TARGET_FILE")" "$CLASS_PAIR" "$NUM_TARGETS" <<'PY'
+import json
+import sys
+
+path, pair, required = sys.argv[1], sys.argv[2], int(sys.argv[3])
+with open(path) as handle:
+    payload = json.load(handle)
+indices = payload.get("pairs", {}).get(pair, {}).get("indices", [])
+if len(indices) < required:
+    raise SystemExit(
+        "ERROR: pinned target file %s has %d target(s) for %s; need %d"
+        % (path, len(indices), pair, required)
+    )
+print("pinned targets:", indices[:required])
+PY
+
     name="$(run_name)"
-    copy_dir_if_present "$SOURCE_ROOT/ours_result/$name" "$RUN_ROOT/ours_result/$name"
+    copy_dir_if_present "$PERSIST_RESULT_ROOT/$name" "$LOCAL_RESULT_ROOT/$name"
     target_local="$RUN_ROOT/target_sets/$(basename "$TARGET_FILE")"
 
     say "job: $SLURM_JOB_ID $SLURM_JOB_NAME on $(hostname)"
     say "cell: dataset=$DATASET model=$MODEL pair=$CLASS_PAIR budget=$BUDGET attack=$ATTACK selection=greedy jacobian=off"
-    say "protocol: 1 pinned target x 5 victims; run=$name"
+    say "protocol: $NUM_TARGETS pinned targets x $NUM_VICTIMS victims; run=$name"
     python -c 'import torch; assert torch.cuda.is_available(); print("gpu:", torch.cuda.get_device_name(0))'
 
     local -a command
     command=(python "$RUN_ROOT/final_update.py"
         --dataset "$DATASET" --data_path "$LOCAL_DATA_ROOT" --seed 42
-        --cache_dir "$RUN_ROOT/cache" --out_dir "$RUN_ROOT/ours_result"
+        --cache_dir "$RUN_ROOT/cache" --out_dir "$LOCAL_RESULT_ROOT"
         --model "$MODEL" --attack "$ATTACK" --base ours
         --base_dist cosine --lambda_margin 1.0
         --class_pair "$CLASS_PAIR" --pair_order poison-target
@@ -181,7 +204,7 @@ main() {
         --craft_ensemble 5 --num_surrogates 20
         --surrogate_epochs 60 --surrogate_decay 35 45
         --target_select random --target_idx_file "$target_local"
-        --num_targets 1 --num_victims 5
+        --num_targets "$NUM_TARGETS" --num_victims "$NUM_VICTIMS"
         --victim_epochs 50 --victim_lr "$VICTIM_LR" --victim_bs 125
         --victim_decay 40 --victim_wd 0.0 --clean_baseline --gpus all)
     if [ "$ATTACK" = sapa ]; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=xdata_020_svhn_fc_9_2_b0_01_greedy
-#SBATCH --time=0-01:25:00
+#SBATCH --time=0-03:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -12,7 +12,7 @@
 
 # One extra-data.tex result cell: SVHN / ConvNetBN / 9-2 /
 # budget 0.01 / fc / Greedy, with Jacobian disabled.
-# L40S estimate 0:25; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
+# L40S estimate 2:30 for the expanded protocol; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
 
 export DATASET=SVHN
 export MODEL=ConvNetBN

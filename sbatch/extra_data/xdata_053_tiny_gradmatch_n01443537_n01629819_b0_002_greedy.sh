@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=xdata_053_tiny_gradmatch_n01443537_n01629819_b0_002_greedy
-#SBATCH --time=0-05:15:00
+#SBATCH --time=0-18:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -12,7 +12,7 @@
 
 # One extra-data.tex result cell: TinyImageNet / ResNet18BN / n01443537-n01629819 /
 # budget 0.002 / gradmatch / Greedy, with Jacobian disabled.
-# L40S estimate 4:15; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
+# L40S estimate 17:00 for the expanded protocol; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
 
 export DATASET=TinyImageNet
 export MODEL=ResNet18BN

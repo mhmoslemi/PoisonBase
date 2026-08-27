@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Submit every pending Greedy cell in extra-data.tex on Vulcan. Jobs are sorted
-# by their actual #SBATCH --time request, shortest first. DRY_RUN=1 prints the
+# Build/check shared caches, expand the pinned target sets, and submit every
+# pending Greedy cell in extra-data.tex on Vulcan. Result jobs are sorted by
+# their actual #SBATCH --time request, shortest first. DRY_RUN=1 prints the
 # ordered commands without submitting them.
 
 set -eu
@@ -111,6 +112,71 @@ submit_precompute() {
     printf '%s\n' "$job_id"
 }
 
+cache_file_count() {
+    local dir="$1"
+    if [ ! -d "$dir" ]; then
+        printf '0\n'
+        return 0
+    fi
+    find "$dir" -maxdepth 1 -type f -name 'net_*.pt' 2>/dev/null | wc -l | tr -d ' '
+}
+
+ensure_precompute() {
+    local job surrogate_cache victim_cache surrogate_count victim_count
+    local job_name existing
+    job="$1"
+    surrogate_cache=$(sed -n 's/^export SURROGATE_CACHE=//p' "$job")
+    victim_cache=$(sed -n 's/^export VICTIM_CACHE=//p' "$job")
+    job_name=$(sed -n 's/^#SBATCH --job-name=//p' "$job")
+    [ -n "$surrogate_cache" ] && [ -n "$victim_cache" ] && [ -n "$job_name" ] || {
+        echo "ERROR: incomplete cache metadata in $job" >&2
+        return 1
+    }
+    surrogate_count=$(cache_file_count "$SOURCE_ROOT/cache/surrogates/$surrogate_cache")
+    victim_count=$(cache_file_count "$SOURCE_ROOT/cache/clean_victims/$victim_cache")
+    if [ "$surrogate_count" -ge 20 ] && [ "$victim_count" -ge 5 ]; then
+        echo "cache prerequisite already satisfied: $job_name ($surrogate_count surrogates, $victim_count victims)" >&2
+        return 0
+    fi
+
+    existing=$(squeue -h -u "${USER:-mmoslem3}" -n "$job_name" -o '%A' | sort -u | head -n 1)
+    case "$existing" in
+        '') submit_precompute "$job" ;;
+        *[!0-9]*)
+            echo "ERROR: invalid active job ID for $job_name: $existing" >&2
+            return 1
+            ;;
+        *)
+            echo "cache prerequisite: reusing active $job_name job $existing" >&2
+            printf '%s\n' "$existing"
+            ;;
+    esac
+}
+
+submit_pin_targets() {
+    local job dependency output job_id
+    job="$1"
+    dependency="$2"
+    [ -f "$job" ] || {
+        echo "ERROR: missing target-pinning prerequisite script: $job" >&2
+        return 1
+    }
+    if [ -n "$dependency" ]; then
+        output=$(sbatch --parsable --account="$ACCOUNT" \
+            --dependency="afterok:$dependency" "$job")
+    else
+        output=$(sbatch --parsable --account="$ACCOUNT" "$job")
+    fi
+    job_id=${output%%;*}
+    case "$job_id" in *[!0-9]*|'')
+        echo "ERROR: could not parse job ID from sbatch output: $output" >&2
+        return 1
+        ;;
+    esac
+    echo "target prerequisite: $(basename "$job") -> $job_id" >&2
+    printf '%s\n' "$job_id"
+}
+
 ordered_jobs() {
     find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print |
     while IFS= read -r job; do
@@ -126,18 +192,24 @@ ordered_jobs() {
 }
 
 if [ "${DRY_RUN:-0}" = 1 ]; then
-    SVHN_DEP=PRECOMPUTE_SVHN
-    CIFAR100_DEP=PRECOMPUTE_CIFAR100
-    TINY_DEP=PRECOMPUTE_TINYIMAGENET
     echo "sbatch --account=$ACCOUNT $PRECOMPUTE_ROOT/xdata_precompute_svhn.sh"
     echo "sbatch --account=$ACCOUNT $PRECOMPUTE_ROOT/xdata_precompute_cifar100.sh"
     echo "sbatch --account=$ACCOUNT $PRECOMPUTE_ROOT/xdata_precompute_tinyimagenet.sh"
+    echo "sbatch --account=$ACCOUNT --dependency=afterok:PRECOMPUTE_SVHN $PRECOMPUTE_ROOT/xdata_pin_svhn.sh"
+    echo "sbatch --account=$ACCOUNT --dependency=afterok:PRECOMPUTE_CIFAR100 $PRECOMPUTE_ROOT/xdata_pin_cifar100.sh"
+    echo "sbatch --account=$ACCOUNT --dependency=afterok:PRECOMPUTE_TINYIMAGENET $PRECOMPUTE_ROOT/xdata_pin_tinyimagenet.sh"
+    SVHN_DEP=PIN_SVHN
+    CIFAR100_DEP=PIN_CIFAR100
+    TINY_DEP=PIN_TINYIMAGENET
 else
     prepare_downloadable_inputs
     verify_inputs
-    SVHN_DEP=$(submit_precompute "$PRECOMPUTE_ROOT/xdata_precompute_svhn.sh")
-    CIFAR100_DEP=$(submit_precompute "$PRECOMPUTE_ROOT/xdata_precompute_cifar100.sh")
-    TINY_DEP=$(submit_precompute "$PRECOMPUTE_ROOT/xdata_precompute_tinyimagenet.sh")
+    SVHN_CACHE_DEP=$(ensure_precompute "$PRECOMPUTE_ROOT/xdata_precompute_svhn.sh")
+    CIFAR100_CACHE_DEP=$(ensure_precompute "$PRECOMPUTE_ROOT/xdata_precompute_cifar100.sh")
+    TINY_CACHE_DEP=$(ensure_precompute "$PRECOMPUTE_ROOT/xdata_precompute_tinyimagenet.sh")
+    SVHN_DEP=$(submit_pin_targets "$PRECOMPUTE_ROOT/xdata_pin_svhn.sh" "$SVHN_CACHE_DEP")
+    CIFAR100_DEP=$(submit_pin_targets "$PRECOMPUTE_ROOT/xdata_pin_cifar100.sh" "$CIFAR100_CACHE_DEP")
+    TINY_DEP=$(submit_pin_targets "$PRECOMPUTE_ROOT/xdata_pin_tinyimagenet.sh" "$TINY_CACHE_DEP")
 fi
 
 echo "extra-data on Vulcan: $COUNT one-cell jobs, sorted by requested time"

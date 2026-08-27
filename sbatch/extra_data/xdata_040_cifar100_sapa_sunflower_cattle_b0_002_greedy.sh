@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=xdata_040_cifar100_sapa_sunflower_cattle_b0_002_greedy
-#SBATCH --time=0-01:45:00
+#SBATCH --time=0-04:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -12,7 +12,7 @@
 
 # One extra-data.tex result cell: CIFAR100 / ResNet18BN / sunflower-cattle /
 # budget 0.002 / sapa / Greedy, with Jacobian disabled.
-# L40S estimate 0:45; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
+# L40S estimate 3:00 for the expanded protocol; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
 
 export DATASET=CIFAR100
 export MODEL=ResNet18BN
