@@ -28,6 +28,11 @@ stage_dataset() {
     local src train_src test_src
     mkdir -p "$LOCAL_DATA_ROOT"
     case "$DATASET" in
+        CIFAR10)
+            src="$(find "$PERSIST_DATA_ROOT" -type d -name cifar-10-batches-py -print -quit 2>/dev/null)"
+            [ -n "$src" ] || die "CIFAR-10 input missing under $PERSIST_DATA_ROOT"
+            rsync -a "$src" "$LOCAL_DATA_ROOT/"
+            ;;
         CIFAR100)
             src="$(find "$PERSIST_DATA_ROOT" -type d -name cifar-100-python -print -quit 2>/dev/null)"
             [ -n "$src" ] || die "CIFAR-100 input missing under $PERSIST_DATA_ROOT"

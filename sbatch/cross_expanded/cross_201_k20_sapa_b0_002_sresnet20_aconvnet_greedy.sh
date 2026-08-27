@@ -1,17 +1,17 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=cross_201_k20_sapa_b0_002_sresnet20_aconvnet_greedy
-#SBATCH --time=0-01:45:00
+#SBATCH --time=0-02:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=7G
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --gpus-per-node=l40s:1
 #SBATCH --signal=B:USR1@300
-#SBATCH --output=/home/mmoslem3/scratch/attack_if/sbatch/logs/cross_201_k20_sapa_b0_002_sresnet20_aconvnet_greedy-%j.out
+#SBATCH --output=/home/mmoslem3/scratch/PoisonBase/sbatch/logs/cross_201_k20_sapa_b0_002_sresnet20_aconvnet_greedy-%j.out
 
 # Exactly one table cell: SEL_K=20 BUDGET=0.002 ATTACKS=sapa MODELS=ConvNetBN SELECTOR_MODELS=ResNet20BN SELECTIONS=greedy RUN_MATCHED=1 NUM_TARGETS=5 NUM_VICTIMS=4 sh cross_arch.sh
-# Estimated L40S runtime 0-01:00:00 plus a 00:45 cushion.
+# Estimated L40S runtime 0-01:00:00 plus a 00:45 cushion and 00:15 Vulcan buffer.
 
 export CROSS_MODEL=ConvNetBN
 export CROSS_SELECTOR_MODEL=ResNet20BN
@@ -24,4 +24,8 @@ export CROSS_NUM_VICTIMS=4
 export CROSS_RUN_NAME=CIFAR10_ConvNetBN_sapa_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchResNet20BN_worst0.05_ce5_tgt70
 export ORIGINAL_COMMAND='SEL_K=20 BUDGET=0.002 ATTACKS=sapa MODELS=ConvNetBN SELECTOR_MODELS=ResNet20BN SELECTIONS=greedy RUN_MATCHED=1 NUM_TARGETS=5 NUM_VICTIMS=4 sh cross_arch.sh'
 
-source /home/mmoslem3/scratch/attack_if/sbatch/_cross_job_common.sh
+export SOURCE_ROOT=/home/mmoslem3/scratch/PoisonBase
+export PERSIST_DATA_ROOT=/home/mmoslem3/scratch/PoisonBase/data
+export PYTHON_ENV=/home/mmoslem3/ENV
+
+source /home/mmoslem3/scratch/PoisonBase/sbatch/_cross_job_common.sh

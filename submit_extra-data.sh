@@ -13,6 +13,8 @@ ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 export PERSIST_DATA_ROOT
 JOB_ROOT="$SOURCE_ROOT/sbatch/extra_data"
 PRECOMPUTE_ROOT="$SOURCE_ROOT/sbatch/extra_data_precompute"
+EXTRA_DATA_MIN_INDEX="${EXTRA_DATA_MIN_INDEX:-1}"
+EXTRA_DATA_MAX_INDEX="${EXTRA_DATA_MAX_INDEX:-54}"
 mkdir -p "$SOURCE_ROOT/sbatch/logs"
 
 if [ "${DRY_RUN:-0}" != 1 ]; then
@@ -26,9 +28,35 @@ if [ "${DRY_RUN:-0}" != 1 ]; then
     esac
 fi
 
-COUNT=$(find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print | wc -l | tr -d ' ')
-[ "$COUNT" -eq 54 ] || {
-    echo "expected 54 one-cell jobs under $JOB_ROOT; found $COUNT" >&2
+case "$EXTRA_DATA_MIN_INDEX:$EXTRA_DATA_MAX_INDEX" in
+    *[!0-9:]*|:|*:)
+        echo "ERROR: extra-data index bounds must be integers" >&2
+        exit 1
+        ;;
+esac
+[ "$EXTRA_DATA_MIN_INDEX" -ge 1 ] && \
+[ "$EXTRA_DATA_MAX_INDEX" -le 54 ] && \
+[ "$EXTRA_DATA_MIN_INDEX" -le "$EXTRA_DATA_MAX_INDEX" ] || {
+    echo "ERROR: expected 1 <= EXTRA_DATA_MIN_INDEX <= EXTRA_DATA_MAX_INDEX <= 54" >&2
+    exit 1
+}
+
+selected_jobs() {
+    find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print |
+    while IFS= read -r job; do
+        index=$(basename "$job" | cut -d_ -f2 | sed 's/^0*//')
+        [ -n "$index" ] || index=0
+        if [ "$index" -ge "$EXTRA_DATA_MIN_INDEX" ] && \
+           [ "$index" -le "$EXTRA_DATA_MAX_INDEX" ]; then
+            printf '%s\n' "$job"
+        fi
+    done
+}
+
+COUNT=$(selected_jobs | wc -l | tr -d ' ')
+EXPECTED_COUNT=$((EXTRA_DATA_MAX_INDEX - EXTRA_DATA_MIN_INDEX + 1))
+[ "$COUNT" -eq "$EXPECTED_COUNT" ] || {
+    echo "expected $EXPECTED_COUNT one-cell jobs in index range $EXTRA_DATA_MIN_INDEX..$EXTRA_DATA_MAX_INDEX; found $COUNT" >&2
     exit 1
 }
 
@@ -178,7 +206,7 @@ submit_pin_targets() {
 }
 
 ordered_jobs() {
-    find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print |
+    selected_jobs |
     while IFS= read -r job; do
         requested=$(sed -n 's/^#SBATCH --time=//p' "$job")
         [ -n "$requested" ] || {
@@ -212,7 +240,7 @@ else
     TINY_DEP=$(submit_pin_targets "$PRECOMPUTE_ROOT/xdata_pin_tinyimagenet.sh" "$TINY_CACHE_DEP")
 fi
 
-echo "extra-data on Vulcan: $COUNT one-cell jobs, sorted by requested time"
+echo "extra-data on Vulcan: $COUNT one-cell jobs ($EXTRA_DATA_MIN_INDEX..$EXTRA_DATA_MAX_INDEX), sorted by requested time"
 ordered_jobs | while IFS= read -r job; do
     dataset=$(sed -n 's/^export DATASET=//p' "$job")
     case "$dataset" in
