@@ -25,7 +25,10 @@ append_dependency() {
 }
 
 shopt -s nullglob
-prereqs=("$PRE_DIR"/*.sh)
+prereqs=()
+while IFS= read -r filename; do
+    [ -n "$filename" ] && prereqs+=("$PRE_DIR/$filename")
+done < "$PRE_DIR/current_jobs.txt"
 printf 'Submitting %s missing poison prerequisite job(s).\n' "${#prereqs[@]}"
 for job in "${prereqs[@]}"; do
     name=$(sed -n 's/^#SBATCH --job-name=//p' "$job")
