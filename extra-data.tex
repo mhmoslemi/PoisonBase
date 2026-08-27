@@ -36,63 +36,73 @@ SVHN (ConvNetBN)        & 36.0 & \textbf{80.0} & 28.0 & \textbf{88.0} \\
 
 The preceding comparison holds the attack and budget fixed, so we additionally
 evaluate a broader, deliberately non-exhaustive grid in
-Table~\ref{tab:cross-dataset-greedy}. This grid uses only the plain Greedy
-selector (20 selector surrogates, cosine distance, and no Jacobian term). It
-separates two sources of variation: a budget slice on one fixed pair and a
-class-pair slice at the middle budget. All budgets are below 0.01999. In
-CIFAR-100, the largest budget is 0.005 (250 of the 500 adversarial-class
-candidates), avoiding the degenerate regime in which selection exhausts the
-candidate pool. For Tiny ImageNet we use ResNet18BN at 64\(\times\)64 rather than
-ConvNetBN and restrict the slice to 0.0005--0.002 for the same candidate-pool
-reason.
+Table~\ref{tab:cross-dataset-selection}. This grid compares uniform Random
+selection with the plain Greedy selector; Greedy uses 20 selector surrogates,
+cosine distance, and no Jacobian term. It separates two sources of variation: a
+budget slice on one fixed pair and a class-pair slice at the middle budget. All
+budgets are below 0.01999. In CIFAR-100, the largest budget is 0.005 (250 of the
+500 adversarial-class candidates), avoiding the degenerate regime in which
+selection exhausts the candidate pool. For Tiny ImageNet we use ResNet18BN at
+64\(\times\)64 rather than ConvNetBN and restrict the slice to 0.0005--0.002 for
+the same candidate-pool reason.
 
 Each cell below is an independent experiment. CIFAR-100 and Tiny ImageNet use
 four pinned targets with four victim seeds per target, while SVHN uses six
-pinned targets with five victim seeds per target. Target sets are shared by FC,
-GM, and SAPA and by every budget for a given class pair. This makes the cells
-directly paired within a row. Entries report ASR (\%) with clean test accuracy
-in parentheses; ``--'' denotes a pending cell.
+pinned targets with five victim seeds per target. Target sets are shared by
+Random and Greedy, by FC, GM, and SAPA, and by every budget for a given class
+pair. This makes the selection methods directly paired within every attack.
+Entries report ASR (\%) with clean test accuracy in parentheses; ``--'' denotes
+a pending cell.
 
 \begin{table*}[t]
 \centering
-\caption{Broader additional-dataset ablation for plain Greedy base selection
-without the Jacobian score. The pair is written target $\rightarrow$ adversarial
-class and the budget column is in units of $10^{-3}$. CIFAR-100 and Tiny
-ImageNet cells use four targets and four victims per target; SVHN cells use six
-targets and five victims per target.}
+\caption{Broader additional-dataset ablation comparing Random and plain Greedy
+base selection, without a Jacobian score. The pair is written target
+$\rightarrow$ adversarial class and the budget column is in units of
+$10^{-3}$. CIFAR-100 and Tiny ImageNet cells use four targets and four victims
+per target; SVHN cells use six targets and five victims per target.}
 \vspace{-0.5em}
-\label{tab:cross-dataset-greedy}
+\label{tab:cross-dataset-selection}
 \small
-\setlength{\tabcolsep}{5.5pt}
-\begin{tabular}{lllcccc}
+\setlength{\tabcolsep}{3.5pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lllccccccc}
 \toprule
-\textbf{Dataset} & \textbf{Model} & \textbf{Target $\rightarrow$ adversarial} &
-\textbf{Budget} & \textbf{FC} & \textbf{GM} & \textbf{SAPA} \\
+\multirow{2}{*}{\textbf{Dataset}} &
+\multirow{2}{*}{\textbf{Model}} &
+\multirow{2}{*}{\textbf{Target $\rightarrow$ adversarial}} &
+\multirow{2}{*}{\textbf{Budget}} &
+\multicolumn{2}{c}{\textbf{FC}} &
+\multicolumn{2}{c}{\textbf{GM}} &
+\multicolumn{2}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
+& & & & Random & Greedy & Random & Greedy & Random & Greedy \\
 \midrule
 \multirow{7}{*}{CIFAR-100}
- & \multirow{7}{*}{ResNet18BN} & willow tree $\rightarrow$ sea & 1 & -- & -- & -- \\
- & & willow tree $\rightarrow$ sea & 2 & -- & -- & -- \\
- & & willow tree $\rightarrow$ sea & 5 & -- & -- & -- \\
- & & bicycle $\rightarrow$ plain & 2 & -- & -- & -- \\
- & & lawn mower $\rightarrow$ wardrobe & 2 & -- & -- & -- \\
- & & road $\rightarrow$ bottle & 2 & -- & -- & -- \\
- & & cattle $\rightarrow$ sunflower & 2 & -- & -- & -- \\
+ & \multirow{7}{*}{ResNet18BN} & willow tree $\rightarrow$ sea & 1 & -- & \score{6.3}{57.83} & -- & -- & -- & -- \\
+ & & willow tree $\rightarrow$ sea & 2 & -- & \score{6.3}{57.58} & -- & -- & -- & -- \\
+ & & willow tree $\rightarrow$ sea & 5 & -- & \score{12.5}{57.98} & -- & -- & -- & -- \\
+ & & bicycle $\rightarrow$ plain & 2 & -- & \score{0.0}{56.98} & -- & -- & -- & -- \\
+ & & lawn mower $\rightarrow$ wardrobe & 2 & -- & \score{6.3}{57.46} & -- & -- & -- & -- \\
+ & & road $\rightarrow$ bottle & 2 & -- & \score{0.0}{57.97} & -- & -- & -- & -- \\
+ & & cattle $\rightarrow$ sunflower & 2 & -- & \score{6.3}{58.05} & -- & -- & -- & -- \\
 \midrule
 \multirow{8}{*}{SVHN}
- & \multirow{8}{*}{ConvNetBN} & 2 $\rightarrow$ 9 & 1 & -- & -- & -- \\
- & & 2 $\rightarrow$ 9 & 2 & -- & -- & -- \\
- & & 2 $\rightarrow$ 9 & 5 & -- & -- & -- \\
- & & 2 $\rightarrow$ 9 & 10 & -- & -- & -- \\
- & & 1 $\rightarrow$ 6 & 2 & -- & -- & -- \\
- & & 3 $\rightarrow$ 8 & 2 & -- & -- & -- \\
- & & 5 $\rightarrow$ 7 & 2 & -- & -- & -- \\
- & & 4 $\rightarrow$ 0 & 2 & -- & -- & -- \\
+ & \multirow{8}{*}{ConvNetBN} & 2 $\rightarrow$ 9 & 1 & -- & \score{33.3}{92.19} & -- & \score{63.3}{92.18} & -- & \score{50.0}{92.16} \\
+ & & 2 $\rightarrow$ 9 & 2 & -- & \score{43.3}{92.20} & -- & \score{56.7}{92.18} & -- & \score{73.3}{92.18} \\
+ & & 2 $\rightarrow$ 9 & 5 & -- & \score{36.7}{92.17} & -- & \score{80.0}{92.16} & -- & \score{83.3}{92.15} \\
+ & & 2 $\rightarrow$ 9 & 10 & -- & \score{33.3}{92.14} & -- & -- & -- & -- \\
+ & & 1 $\rightarrow$ 6 & 2 & -- & \score{56.7}{92.19} & -- & \score{90.0}{92.17} & -- & \score{90.0}{92.20} \\
+ & & 3 $\rightarrow$ 8 & 2 & -- & \score{66.7}{92.19} & -- & \score{60.0}{92.18} & -- & \score{63.3}{92.17} \\
+ & & 5 $\rightarrow$ 7 & 2 & -- & \score{23.3}{92.21} & -- & \score{50.0}{92.19} & -- & \score{53.3}{92.16} \\
+ & & 4 $\rightarrow$ 0 & 2 & -- & \score{20.0}{92.20} & -- & \score{50.0}{92.20} & -- & \score{50.0}{92.19} \\
 \midrule
 \multirow{3}{*}{Tiny ImageNet}
  & \multirow{3}{*}{ResNet18BN}
- & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 0.5 & -- & -- & -- \\
- & & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 1 & -- & -- & -- \\
- & & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 2 & -- & -- & -- \\
+ & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 0.5 & -- & -- & -- & -- & -- & -- \\
+ & & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 1 & -- & -- & -- & -- & -- & -- \\
+ & & \texttt{n01629819} $\rightarrow$ \texttt{n01443537} & 2 & -- & -- & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}
+}
 \end{table*}

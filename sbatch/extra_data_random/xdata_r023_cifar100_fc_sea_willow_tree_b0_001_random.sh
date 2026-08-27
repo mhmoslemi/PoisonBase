@@ -1,0 +1,30 @@
+#!/bin/bash
+#SBATCH --account=aip-boyuwang
+#SBATCH --job-name=xdata_r023_cifar100_fc_sea_willow_tree_b0_001_random
+#SBATCH --time=0-03:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=7G
+#SBATCH --gpus-per-node=l40s:1
+#SBATCH --signal=B:USR1@300
+#SBATCH --output=/home/mmoslem3/scratch/PoisonBase/sbatch/logs/xdata_r023_cifar100_fc_sea_willow_tree_b0_001_random-%j.out
+
+# One extra-data.tex result cell: CIFAR100 / ResNet18BN / sea-willow_tree /
+# budget 0.001 / fc / Random, with Jacobian disabled.
+# L40S estimate 2:00 for the expanded protocol; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
+
+export DATASET=CIFAR100
+export MODEL=ResNet18BN
+export CLASS_PAIR=sea-willow_tree
+export BUDGET=0.001
+export ATTACK=fc
+export TARGET_FILE=target_sets/xdata_CIFAR100_ResNet18BN_sea-willow_tree.json
+export SURROGATE_CACHE=CIFAR100_ResNet18BN_60ep_lr0.1_bs128_seed42
+export VICTIM_CACHE=CIFAR100_ResNet18BN_50ep_lr0.1_bs125_wd0_seed42
+export VICTIM_LR=0.1
+export CRAFT_LOWMEM=0
+export CRAFT_BATCH=256
+export SELECTION=random
+
+source /home/mmoslem3/scratch/PoisonBase/sbatch/_extra_data_job_common.sh

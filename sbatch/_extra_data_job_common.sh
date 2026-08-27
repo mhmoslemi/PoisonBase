@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Shared runtime for the one-cell jobs that fill tab:cross-dataset-greedy in
+# Shared runtime for the one-cell jobs that fill tab:cross-dataset-selection in
 # extra-data.tex. Each generated sbatch file exports exactly one dataset/model/
-# pair/budget/attack configuration before sourcing this file.
+# pair/budget/attack/selection configuration before sourcing this file.
 
 set -Eeuo pipefail
 
 SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/PoisonBase}"
 PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/PoisonBase/data}"
 ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
+SELECTION="${SELECTION:-greedy}"
 RUN_ROOT="${SLURM_TMPDIR:-}/extra_data_if"
 LOCAL_DATA_ROOT="${SLURM_TMPDIR:-}/extra_data"
 PERSIST_RESULT_ROOT="${PERSIST_RESULT_ROOT:-$SOURCE_ROOT/extra_data_result}"
@@ -26,9 +27,15 @@ PY
 }
 
 run_name() {
-    local budget name
+    local base budget name
     budget="$(fmt_g "$BUDGET")"
-    name="${DATASET}_${MODEL}_${ATTACK}_ours_${CLASS_PAIR}_b${budget}_eps8_seed42_lam1_cosine"
+    case "$SELECTION" in
+        greedy) base=ours ;;
+        random) base=random ;;
+        *) die "unsupported selection: $SELECTION" ;;
+    esac
+    name="${DATASET}_${MODEL}_${ATTACK}_${base}_${CLASS_PAIR}_b${budget}_eps8_seed42"
+    [ "$SELECTION" = greedy ] && name+="_lam1_cosine"
     [ "$ATTACK" = sapa ] && name+="_worst0.05"
     name+="_ce5"
     printf '%s\n' "$name"
@@ -142,13 +149,18 @@ handle_signal() {
 }
 
 main() {
-    local required name target_local status
+    local base required name target_local status
     for required in DATASET MODEL CLASS_PAIR BUDGET ATTACK TARGET_FILE \
-                    SURROGATE_CACHE VICTIM_CACHE VICTIM_LR; do
+                    SURROGATE_CACHE VICTIM_CACHE VICTIM_LR SELECTION; do
         [ -n "${!required:-}" ] || die "$required is unset"
     done
     [ -n "${SLURM_TMPDIR:-}" ] || die 'SLURM_TMPDIR is unset; submit this file with sbatch'
     case "$ATTACK" in fc|gradmatch|sapa) ;; *) die "unsupported attack: $ATTACK" ;; esac
+    case "$SELECTION" in
+        greedy) base=ours ;;
+        random) base=random ;;
+        *) die "unsupported selection: $SELECTION" ;;
+    esac
     case "$DATASET" in
         CIFAR100|TinyImageNet) NUM_TARGETS=4; NUM_VICTIMS=4 ;;
         SVHN) NUM_TARGETS=6; NUM_VICTIMS=5 ;;
@@ -188,7 +200,7 @@ PY
     target_local="$RUN_ROOT/target_sets/$(basename "$TARGET_FILE")"
 
     say "job: $SLURM_JOB_ID $SLURM_JOB_NAME on $(hostname)"
-    say "cell: dataset=$DATASET model=$MODEL pair=$CLASS_PAIR budget=$BUDGET attack=$ATTACK selection=greedy jacobian=off"
+    say "cell: dataset=$DATASET model=$MODEL pair=$CLASS_PAIR budget=$BUDGET attack=$ATTACK selection=$SELECTION jacobian=off"
     say "protocol: $NUM_TARGETS pinned targets x $NUM_VICTIMS victims; run=$name"
     python -c 'import torch; assert torch.cuda.is_available(); print("gpu:", torch.cuda.get_device_name(0))'
 
@@ -196,7 +208,7 @@ PY
     command=(python "$RUN_ROOT/final_update.py"
         --dataset "$DATASET" --data_path "$LOCAL_DATA_ROOT" --seed 42
         --cache_dir "$RUN_ROOT/cache" --out_dir "$LOCAL_RESULT_ROOT"
-        --model "$MODEL" --attack "$ATTACK" --base ours
+        --model "$MODEL" --attack "$ATTACK" --base "$base"
         --base_dist cosine --lambda_margin 1.0
         --class_pair "$CLASS_PAIR" --pair_order poison-target
         --budget "$BUDGET" --epsilon 0.0313725

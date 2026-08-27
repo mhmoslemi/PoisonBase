@@ -128,7 +128,11 @@ main() {
         [ -n "${!required:-}" ] || die "$required is unset"
     done
 
-    module load python/3.11.5 cuda/12.6 cudnn
+    if command -v module >/dev/null 2>&1; then
+        module load python/3.11.5 cuda/12.6 cudnn
+    else
+        say "environment modules unavailable; using $PYTHON_ENV directly"
+    fi
     source "$PYTHON_ENV/bin/activate"
 
     trap 'handle_signal USR1' USR1
@@ -145,6 +149,7 @@ main() {
     python -c 'import torch; assert torch.cuda.is_available(); print("gpu:", torch.cuda.get_device_name(0))'
 
     srun --ntasks=1 env \
+        OSTYPE="${OSTYPE:-linux-gnu}" \
         PROJECT_DIR="$RUN_ROOT" \
         DATA_PATH="$LOCAL_DATA_ROOT" \
         CACHE_DIR="$RUN_ROOT/cache" \
