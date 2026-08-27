@@ -35,3 +35,18 @@
 [2026-08-27 13:28:23]   [t8740 v1/4] fail (pred=bird) CTA=0.9048 (443 s)
 [2026-08-27 13:35:46]   [t8740 v2/4] SUCCESS (pred=dog) CTA=0.9023 (443 s)
 [2026-08-27 13:43:09]   [t8740 v3/4] SUCCESS (pred=dog) CTA=0.9081 (443 s)
+[2026-08-27 16:30:21] === defense run: CIFAR10_ResNet20BN_sapa_random_dog-bird_b0.01_eps8_seed42_worst0.05_ce5_tgt14__def-none+aug-randaug ===
+[2026-08-27 16:30:21]     poisons replayed from /tmp/augment_extra/ours_result/CIFAR10_ResNet20BN_sapa_random_dog-bird_b0.01_eps8_seed42_worst0.05_ce5_tgt14
+[2026-08-27 16:30:21]     defense = none  (none+aug-randaug)
+[2026-08-27 16:30:21]     victim augmentation = randaug  (applied to the poisoned image, resampled every epoch)
+[2026-08-27 16:30:21] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "sapa", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "random", "base_dist": "l2", "budget": 0.01, "cache_dir": "/tmp/augment_extra/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/augment_extra/data", "dataset": "CIFAR10", "defense": "none", "defense_out_dir": "/tmp/augment_extra/augment_extra_result", "defense_parts": ["none"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "ResNet20BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 5, "num_victims": 4, "out_dir": "/tmp/augment_extra/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 1.0, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "/tmp/augment_extra/target_sets/aug_ResNet20BN_sapa_dog-bird_b0.01.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": "randaug", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-27 16:30:33]   5 target(s) with saved poisons: [833, 4630, 5118, 5324, 8740]
+[2026-08-27 16:30:33] === defended clean victims (4 x ResNet20BN, defense none+aug-randaug) ===
+[2026-08-27 16:30:34]   defended clean CTA = 0.9022 +/- 0.0013
+[2026-08-27 16:30:34]   merged 19 rows left behind by an interrupted run
+[2026-08-27 16:30:34]   resume: 19 (target, victim) trials already done
+[2026-08-27 16:30:34] === target 8740: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 16:30:34]   victim augmentation: VictimAugmenter(randaug: crop4+flip0.5 -> randaug(n=2, m from 14 ops))
+[2026-08-27 16:38:05]   [t8740 v4/4] fail (pred=bird) CTA=0.9023 (452 s)
+[2026-08-27 16:38:05] ==== CIFAR10_ResNet20BN_sapa_random_dog-bird_b0.01_eps8_seed42_worst0.05_ce5_tgt14 | defense none+aug-randaug : ASR = 20.0% +/- 18.7% | CTA = 0.9031 (defended clean 0.9022) ====
+[2026-08-27 16:38:05]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
