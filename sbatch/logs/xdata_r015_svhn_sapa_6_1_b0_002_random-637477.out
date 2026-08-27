@@ -1,0 +1,50 @@
+pinned targets: [4933, 14102, 7079, 22348, 19041, 21052]
+job: 637477 xdata_r015_svhn_sapa_6_1_b0_002_random on rack05-05
+cell: dataset=SVHN model=ConvNetBN pair=6-1 budget=0.002 attack=sapa selection=random jacobian=off
+protocol: 6 pinned targets x 5 victims; run=SVHN_ConvNetBN_sapa_random_6-1_b0.002_eps8_seed42_worst0.05_ce5
+gpu: NVIDIA L40S
+[2026-08-27 10:45:35] === run start: SVHN_ConvNetBN_sapa_random_6-1_b0.002_eps8_seed42_worst0.05_ce5 on cuda [0] ===
+[2026-08-27 10:45:35] args: {"FORCE": false, "attack": "sapa", "base": "random", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/extra_data_if/cache", "class_pair": "6-1", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/extra_data", "dataset": "SVHN", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 6, "num_victims": 5, "out_dir": "/tmp/extra_data_if/extra_data_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/extra_data_if/target_sets/xdata_SVHN_ConvNetBN_6-1.json", "target_select": "random", "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.01, "victim_wd": 0.0}
+[2026-08-27 10:45:35] Jacobian score: disabled
+[2026-08-27 10:45:35] N_total=73257 budget=0.002 -> N_p=147 poisons, y_adv=6(6) target_class=1(1)
+[2026-08-27 10:45:35] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-08-27 10:45:35]   crafting on 5/20 surrogates
+[2026-08-27 10:45:35] === clean victims (5 x ConvNetBN) ===
+[2026-08-27 10:45:37]   clean baseline CTA = 0.9226 +/- 0.0015
+[2026-08-27 10:45:37]   target pool 5099 -> eligible 5087 (12 already predicted as y_adv or dropped)
+[2026-08-27 10:45:37]   chosen 6 targets (file), p_adv range 0.0000..0.0001
+[2026-08-27 10:45:37]   targets: [4933, 14102, 7079, 22348, 19041, 21052]
+[2026-08-27 10:45:37] === target 4933 (1/6) ===
+[2026-08-27 10:47:47]   target 4933: crafted 147 poisons in 130 s, obj=0.34500
+[2026-08-27 10:47:47]   target 4933: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 10:49:03]   [t4933 v1/5] fail (pred=1) CTA=0.9204
+[2026-08-27 10:50:16]   [t4933 v2/5] SUCCESS (pred=6) CTA=0.9197
+[2026-08-27 10:51:29]   [t4933 v3/5] SUCCESS (pred=6) CTA=0.9199
+[2026-08-27 10:52:42]   [t4933 v4/5] SUCCESS (pred=6) CTA=0.9220
+[2026-08-27 10:53:56]   [t4933 v5/5] fail (pred=1) CTA=0.9221
+[2026-08-27 10:53:56]   target 4933, 5 victims on this gpu: ASR=60.0% CTA=0.9208 +/- 0.0010
+[2026-08-27 10:53:56] === target 14102 (2/6) ===
+[2026-08-27 10:56:06]   target 14102: crafted 147 poisons in 130 s, obj=0.31798
+[2026-08-27 10:56:06]   target 14102: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 10:57:21]   [t14102 v1/5] SUCCESS (pred=6) CTA=0.9192
+[2026-08-27 10:58:35]   [t14102 v2/5] fail (pred=1) CTA=0.9204
+[2026-08-27 10:59:49]   [t14102 v3/5] fail (pred=1) CTA=0.9220
+[2026-08-27 11:01:02]   [t14102 v4/5] fail (pred=1) CTA=0.9242
+[2026-08-27 11:02:16]   [t14102 v5/5] fail (pred=1) CTA=0.9236
+[2026-08-27 11:02:16]   target 14102, 5 victims on this gpu: ASR=20.0% CTA=0.9219 +/- 0.0019
+[2026-08-27 11:02:16] === target 7079 (3/6) ===
+[2026-08-27 11:04:27]   target 7079: crafted 147 poisons in 131 s, obj=0.26916
+[2026-08-27 11:04:27]   target 7079: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 11:05:43]   [t7079 v1/5] fail (pred=1) CTA=0.9243
+[2026-08-27 11:06:57]   [t7079 v2/5] fail (pred=1) CTA=0.9214
+[2026-08-27 11:08:11]   [t7079 v3/5] fail (pred=1) CTA=0.9233
+[2026-08-27 11:09:24]   [t7079 v4/5] fail (pred=1) CTA=0.9215
+[2026-08-27 11:10:38]   [t7079 v5/5] fail (pred=1) CTA=0.9214
+[2026-08-27 11:10:38]   target 7079, 5 victims on this gpu: ASR=0.0% CTA=0.9224 +/- 0.0012
+[2026-08-27 11:10:38] === target 22348 (4/6) ===
+[2026-08-27 11:12:49]   target 22348: crafted 147 poisons in 131 s, obj=0.37221
+[2026-08-27 11:12:49]   target 22348: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 11:14:05]   [t22348 v1/5] fail (pred=1) CTA=0.9227
+[2026-08-27 11:15:19]   [t22348 v2/5] fail (pred=1) CTA=0.9219
+[2026-08-27 11:16:32]   [t22348 v3/5] fail (pred=1) CTA=0.9202
+[2026-08-27 11:17:46]   [t22348 v4/5] fail (pred=1) CTA=0.9193
