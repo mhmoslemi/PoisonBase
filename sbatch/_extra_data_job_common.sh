@@ -6,7 +6,7 @@
 set -Eeuo pipefail
 
 SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/PoisonBase}"
-PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/data}"
+PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/PoisonBase/data}"
 ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 RUN_ROOT="${SLURM_TMPDIR:-}/extra_data_if"
 LOCAL_DATA_ROOT="${SLURM_TMPDIR:-}/extra_data"

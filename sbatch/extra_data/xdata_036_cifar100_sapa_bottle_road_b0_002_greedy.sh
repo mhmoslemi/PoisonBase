@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=xdata_036_cifar100_sapa_bottle_road_b0_002_greedy
-#SBATCH --time=0-01:30:00
+#SBATCH --time=0-01:45:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -12,7 +12,7 @@
 
 # One extra-data.tex result cell: CIFAR100 / ResNet18BN / bottle-road /
 # budget 0.002 / sapa / Greedy, with Jacobian disabled.
-# L40S estimate 0:45; request adds the required 0:45 cushion.
+# L40S estimate 0:45; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
 
 export DATASET=CIFAR100
 export MODEL=ResNet18BN

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=xdata_013_svhn_gradmatch_9_2_b0_002_greedy
-#SBATCH --time=0-01:00:00
+#SBATCH --time=0-01:15:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -12,7 +12,7 @@
 
 # One extra-data.tex result cell: SVHN / ConvNetBN / 9-2 /
 # budget 0.002 / gradmatch / Greedy, with Jacobian disabled.
-# L40S estimate 0:15; request adds the required 0:45 cushion.
+# L40S estimate 0:15; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
 
 export DATASET=SVHN
 export MODEL=ConvNetBN

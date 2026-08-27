@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=xdata_045_cifar100_sapa_sea_willow_tree_b0_005_greedy
-#SBATCH --time=0-02:30:00
+#SBATCH --time=0-02:45:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -12,7 +12,7 @@
 
 # One extra-data.tex result cell: CIFAR100 / ResNet18BN / sea-willow_tree /
 # budget 0.005 / sapa / Greedy, with Jacobian disabled.
-# L40S estimate 1:45; request adds the required 0:45 cushion.
+# L40S estimate 1:45; request includes the 0:45 cushion plus a 0:15 Vulcan buffer.
 
 export DATASET=CIFAR100
 export MODEL=ResNet18BN

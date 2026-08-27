@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Submit every pending Greedy cell in extra-data.tex on Vulcan. Jobs are listed
-# from the shortest estimated L40S runtime to the longest; Tiny ImageNet is
-# deliberately last. DRY_RUN=1 prints the ordered commands without submitting.
+# Submit every pending Greedy cell in extra-data.tex on Vulcan. Jobs are sorted
+# by their actual #SBATCH --time request, shortest first. DRY_RUN=1 prints the
+# ordered commands without submitting them.
 
 set -eu
 
@@ -27,8 +27,22 @@ COUNT=$(find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print | wc -l |
     exit 1
 }
 
-echo "extra-data on Vulcan: $COUNT one-cell jobs, shortest first; Tiny ImageNet last"
-find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print | sort | while IFS= read -r job; do
+ordered_jobs() {
+    find "$JOB_ROOT" -maxdepth 1 -type f -name 'xdata_*.sh' -print |
+    while IFS= read -r job; do
+        requested=$(sed -n 's/^#SBATCH --time=//p' "$job")
+        [ -n "$requested" ] || {
+            echo "missing #SBATCH --time in $job" >&2
+            exit 1
+        }
+        seconds=$(printf '%s\n' "$requested" | awk -F '[-:]' \
+            '{ print (($1 * 24 + $2) * 60 + $3) * 60 + $4 }')
+        printf '%010d\t%s\n' "$seconds" "$job"
+    done | sort -n -k1,1 -k2,2 | cut -f2-
+}
+
+echo "extra-data on Vulcan: $COUNT one-cell jobs, sorted by requested time"
+ordered_jobs | while IFS= read -r job; do
     if [ "${DRY_RUN:-0}" = 1 ]; then
         echo "sbatch --account=$ACCOUNT $job"
     else
