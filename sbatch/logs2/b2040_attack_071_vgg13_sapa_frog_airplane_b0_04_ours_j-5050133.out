@@ -1,0 +1,21 @@
+resume-only: verified 12/48 completed trials in /home/mmoslem3/scratch/attack_if/ours_result/CIFAR10_VGG13BN_sapa_ours_frog-airplane_b0.04_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt12; final_update.py will run only the remaining 36
+job: 5050133 b2040_attack_071_vgg13_sapa_frog_airplane_b0_04_ours_j on kn132
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=frog-airplane MODEL=VGG13BN ATTACK=sapa SHARP_MODE=worst SHARP_SIGMA=0.05 BUDGETS=0.04 SELECT=ours SEL_ALPHA=2.0 NUM_TARGETS=8 NUM_VICTIMS=6 sh sel_dpp.sh
+protocol: attack=8 targets x 6 victims
+gpu: NVIDIA L40S
+=== ours (plain greedy top-N_p by score) | VGG13BN / sapa / frog-airplane | sharp worst sigma=0.05 ===
+    targets: pinned from target_sets/VGG13BN_gradmatch_frog-airplane.json (same 10 the random-base run attacked)
+    difficulty label tgt12   craft flags: --craft_lowmem --craft_batch 256 --fast_gradmatch
+    Jacobian score enabled (weight=1.0, batch=64)
+    budgets: 0.04
+
+--- ours | VGG13BN / sapa / frog-airplane | sharp worst sigma=0.05 | budget 0.04 ---
+srun: Job step aborted: Waiting up to 62 seconds for job step to finish.
+[2026-08-27T13:52:15.343] error: *** JOB 5050133 ON kn132 CANCELLED AT 2026-08-27T13:52:15 DUE to SIGNAL Terminated ***
+signal: received TERM; stopping the job step before final sync
+[2026-08-27T13:52:15.344] error: *** STEP 5050133.0 ON kn132 CANCELLED AT 2026-08-27T13:52:15 DUE to SIGNAL Terminated ***
+srun: forcing job termination
+srun: error: kn132: task 0: Terminated
+sync: preserving outputs in /home/mmoslem3/scratch/attack_if
+sync: complete
