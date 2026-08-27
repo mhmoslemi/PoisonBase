@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Submit the one still-blank defense.tex cell on Vulcan after its poison cache
-# and 27/35 partial trials have been transferred from Killarney.
+# has been transferred from Killarney. Partial trials are resumed if present.
 
 [ -n "${BASH_VERSION:-}" ] || exec bash "$0" "$@"
 set -Eeuo pipefail
@@ -59,21 +59,17 @@ esac
 [ -d "$SOURCE_ROOT/data/cifar-10-batches-py" ] || die "CIFAR-10 is missing under $SOURCE_ROOT/data"
 [ -f "$SOURCE_ROOT/sbatch/_job_common.sh" ] || die "defense runtime is missing"
 [ -x "$PYTHON_BIN" ] || die "Python environment is missing: $PYTHON_BIN"
-[ -f "$SOURCE_ROOT/target_sets/$TARGET_FILE" ] || \
-    die "transferred target file is missing: target_sets/$TARGET_FILE"
-
 poison_cache="$SOURCE_ROOT/ours_result/$ATTACK_RUN/poison_cache"
 deltas=$(find "$poison_cache" -maxdepth 1 -type f -name 'delta_*.pt' 2>/dev/null | wc -l | tr -d ' ')
 [ "$deltas" -ge 7 ] || \
     die "only $deltas perturbations found; expected at least 7. Run the defense transfer first."
 
 trials=$(saved_trial_count "$SOURCE_ROOT/defense_result/$DEFENSE_RUN")
-[ "$trials" -ge 27 ] || \
-    die "only $trials/35 partial trials found; expected at least 27. Run the defense transfer first."
 if [ "$trials" -ge 35 ]; then
     printf 'Nothing submitted: defense cell is already complete (%s/35 trials).\n' "$trials"
     exit 0
 fi
+printf 'defense resume state: %s/35 saved trials (the job will run the remainder)\n' "$trials"
 
 mkdir -p "$LOG_ROOT"
 name=$(sed -n 's/^#SBATCH --job-name=//p' "$JOB")
