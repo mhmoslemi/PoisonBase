@@ -14,7 +14,13 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 JOB_DIR="$SCRIPT_DIR/sbatch/augment_extra"
 STAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/augment-artifacts.XXXXXX")
 # Keep the OpenSSH socket below macOS's 104-byte Unix-socket limit.
-SSH_OPTIONS="-o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/axa-$$-%C"
+if [ -n "${SSH_CONTROL_PATH:-}" ]; then
+    SSH_MASTER_OWNER=0
+else
+    SSH_CONTROL_PATH="/tmp/axa-$$-%C"
+    SSH_MASTER_OWNER=1
+fi
+SSH_OPTIONS="-o ControlMaster=auto -o ControlPersist=12h -o ControlPath=$SSH_CONTROL_PATH"
 POISON_RUNS="$STAGE_DIR/poison-runs.txt"
 PARTIAL_RUNS="$STAGE_DIR/partial-runs.txt"
 
@@ -29,6 +35,10 @@ cleanup() {
     else
         find "$STAGE_DIR" -depth -mindepth 1 -exec rm -rf {} + 2>/dev/null || true
         rmdir "$STAGE_DIR" 2>/dev/null || true
+    fi
+    if [ "$SSH_MASTER_OWNER" = 1 ]; then
+        ssh -o "ControlPath=$SSH_CONTROL_PATH" -O exit "$KILLARNEY_HOST" >/dev/null 2>&1 || true
+        ssh -o "ControlPath=$SSH_CONTROL_PATH" -O exit "$VULCAN_HOST" >/dev/null 2>&1 || true
     fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -112,6 +122,13 @@ verify_delta_count() {
     printf 'Verified on Vulcan: %s perturbations in %s\n' "$count" "$relative_path"
 }
 
+vulcan_delta_count() {
+    relative_path=$1
+    run_ssh "$VULCAN_HOST" \
+        "find '$VULCAN_ROOT/$relative_path' -maxdepth 1 -type f -name 'delta_*.pt' 2>/dev/null | wc -l" | \
+        tr -d '[:space:]'
+}
+
 extract_poison_runs() {
     for row in 03 04 06 08 10; do
         representative=$(find "$JOB_DIR" -maxdepth 1 -type f \
@@ -151,7 +168,13 @@ partial_count=$(wc -l < "$PARTIAL_RUNS" | tr -d '[:space:]')
 printf 'Transferring %s unique poison caches...\n' "$poison_count"
 while IFS= read -r run_name; do
     relative_path="ours_result/$run_name/poison_cache"
-    copy_required_dir "$relative_path"
+    existing_deltas=$(vulcan_delta_count "$relative_path")
+    if [ "$existing_deltas" -ge 5 ]; then
+        printf 'Already on Vulcan; skipping: %s (%s perturbations)\n' \
+            "$relative_path" "$existing_deltas"
+    else
+        copy_required_dir "$relative_path"
+    fi
     verify_delta_count "$relative_path"
 done < "$POISON_RUNS"
 

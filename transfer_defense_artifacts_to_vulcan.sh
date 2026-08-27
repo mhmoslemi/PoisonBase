@@ -19,7 +19,13 @@ REGULAR_DEFENDED_CACHE="${REGULAR_DEFENDED_CACHE:-VGG13BN_epic-s0.1-f2-d10_50ep_
 STAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/defense-artifacts.XXXXXX")
 # macOS TMPDIR paths are too long for OpenSSH's 104-byte Unix-socket limit.
 # Keep only the control socket under the short, system-wide /tmp path.
-SSH_OPTIONS="-o ControlMaster=auto -o ControlPersist=60 -o ControlPath=/tmp/dfa-$$-%C"
+if [ -n "${SSH_CONTROL_PATH:-}" ]; then
+    SSH_MASTER_OWNER=0
+else
+    SSH_CONTROL_PATH="/tmp/dfa-$$-%C"
+    SSH_MASTER_OWNER=1
+fi
+SSH_OPTIONS="-o ControlMaster=auto -o ControlPersist=12h -o ControlPath=$SSH_CONTROL_PATH"
 
 die() {
     printf 'ERROR: %s\n' "$*" >&2
@@ -32,6 +38,10 @@ cleanup() {
     else
         find "$STAGE_DIR" -depth -mindepth 1 -exec rm -rf {} + 2>/dev/null || true
         rmdir "$STAGE_DIR" 2>/dev/null || true
+    fi
+    if [ "$SSH_MASTER_OWNER" = 1 ]; then
+        ssh -o "ControlPath=$SSH_CONTROL_PATH" -O exit "$KILLARNEY_HOST" >/dev/null 2>&1 || true
+        ssh -o "ControlPath=$SSH_CONTROL_PATH" -O exit "$VULCAN_HOST" >/dev/null 2>&1 || true
     fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -56,6 +66,12 @@ remote_dir_exists() {
     host=$1
     path=$2
     run_ssh "$host" "test -d '$path'"
+}
+
+remote_file_exists() {
+    host=$1
+    path=$2
+    run_ssh "$host" "test -f '$path'"
 }
 
 download_dir() {
@@ -118,6 +134,17 @@ copy_optional_dir() {
     fi
 }
 
+copy_optional_file() {
+    relative_path=$1
+    if remote_file_exists "$KILLARNEY_HOST" "$KILLARNEY_ROOT/$relative_path"; then
+        download_file "$relative_path"
+        upload_file "$relative_path"
+    else
+        printf 'Optional Killarney file absent; Vulcan will regenerate it: %s/%s\n' \
+            "$KILLARNEY_ROOT" "$relative_path"
+    fi
+}
+
 verify_delta_count() {
     relative_path=$1
     minimum=$2
@@ -132,23 +159,38 @@ verify_delta_count() {
     printf 'Verified on Vulcan: %s perturbation files in %s\n' "$count" "$relative_path"
 }
 
+vulcan_delta_count() {
+    relative_path=$1
+    run_ssh "$VULCAN_HOST" \
+        "find '$VULCAN_ROOT/$relative_path' -maxdepth 1 -type f -name 'delta_*.pt' 2>/dev/null | wc -l" | \
+        tr -d '[:space:]'
+}
+
 printf 'Checking SSH access...\n'
 run_ssh "$KILLARNEY_HOST" "test -d '$KILLARNEY_ROOT'" || \
     die "Killarney root unavailable: $KILLARNEY_ROOT"
 run_ssh "$VULCAN_HOST" "test -d '$VULCAN_ROOT'" || \
     die "Vulcan root unavailable: $VULCAN_ROOT"
 
-# Regular defense cell. Transfer the perturbations, target list, and the 27/35
-# partial defense state. The defended-victim cache is useful but optional.
+# Upload the indispensable perturbations first. The original interrupted job
+# did not always preserve its partial defense_result directory, so that state
+# must not prevent the poison cache from reaching Vulcan.
 regular_poison="ours_result/$REGULAR_ATTACK_RUN/poison_cache"
 regular_defense="defense_result/$REGULAR_DEFENSE_RUN"
-download_dir "$regular_poison" "$regular_poison"
-download_dir "$regular_defense" "$regular_defense"
-download_file "target_sets/$REGULAR_TARGET_FILE"
-upload_dir "$regular_poison"
-upload_dir "$regular_defense"
-upload_file "target_sets/$REGULAR_TARGET_FILE"
-copy_optional_dir "cache/defended_victims/$REGULAR_DEFENDED_CACHE"
+existing_deltas=$(vulcan_delta_count "$regular_poison")
+if [ "$existing_deltas" -ge 7 ]; then
+    printf 'Already on Vulcan; skipping poison transfer: %s (%s perturbations)\n' \
+        "$regular_poison" "$existing_deltas"
+else
+    download_dir "$regular_poison" "$regular_poison"
+    upload_dir "$regular_poison"
+fi
 verify_delta_count "$regular_poison" 7
 
-printf '\nTransfer complete. The remaining Vulcan defense job can now be resubmitted.\n'
+# Resume state and the pinned target list are useful when present. If absent,
+# the one-cell job safely regenerates the target list and reruns all 35 trials.
+copy_optional_dir "$regular_defense"
+copy_optional_file "target_sets/$REGULAR_TARGET_FILE"
+copy_optional_dir "cache/defended_victims/$REGULAR_DEFENDED_CACHE"
+
+printf '\nTransfer complete. The remaining Vulcan defense job can now be submitted.\n'
