@@ -1,8 +1,7 @@
 #!/bin/sh
-# Submit the eight still-blank full.tex attack cells. The sbatch files mirror
-# sbatch/attack/attack_007_convnet_gradmatch_dog_bird_b0_005_ours_j.sh and
-# use the /home/mmoslem3/scratch/attack_if cluster layout. DRY_RUN=1 validates
-# and prints the ordered commands without submitting them.
+# Submit the eight incomplete full.tex attack cells. Every job has a resume-only
+# guard and uses the /home/mmoslem3/scratch/attack_if result cache. DRY_RUN=1
+# validates and prints the commands in least-remaining-work-first order.
 
 set -eu
 
@@ -70,6 +69,22 @@ while IFS= read -r job; do
         die "job does not use eight targets: $job"
     [ "$(line_count '^export NUM_VICTIMS=6$' "$job")" -eq 1 ] || \
         die "job does not use six victims: $job"
+    [ "$(line_count '^export RECOMPUTE_DELTAS=0$' "$job")" -eq 1 ] || \
+        die "resume job could recompute completed poison deltas: $job"
+    [ "$(line_count '^export SOURCE_ROOT=/home/mmoslem3/scratch/attack_if$' "$job")" -eq 1 ] || \
+        die "resume source is not attack_if: $job"
+    [ "$(line_count '^export RESUME_ONLY=1$' "$job")" -eq 1 ] || \
+        die "resume-only guard is not enabled: $job"
+    [ "$(line_count '^export RESUME_RUN_NAME=' "$job")" -eq 1 ] || \
+        die "resume run name is missing: $job"
+    [ "$(line_count '^export RESUME_MIN_COMPLETED=[0-9][0-9]*$' "$job")" -eq 1 ] || \
+        die "minimum completed-trial count is missing: $job"
+    [ "$(line_count '^export RESUME_TOTAL_TRIALS=48$' "$job")" -eq 1 ] || \
+        die "resume job does not target the 48-trial protocol: $job"
+    [ "$(line_count '^export RESUME_REMAINING_TRIALS=[0-9][0-9]*$' "$job")" -eq 1 ] || \
+        die "remaining-work rank is missing: $job"
+    [ "$(line_count '^source /home/mmoslem3/scratch/attack_if/sbatch/_resume_attack_only.sh$' "$job")" -eq 1 ] || \
+        die "resume-only guard is not sourced: $job"
     [ "$(line_count '^source /home/mmoslem3/scratch/attack_if/sbatch/_job_common.sh$' "$job")" -eq 1 ] || \
         die "job does not use the attack_007 runtime path: $job"
     sed -n 's/^#SBATCH --job-name=//p' "$job" >> "$JOB_NAMES"
@@ -82,22 +97,27 @@ JOB_NAMES=""
 
 ORDERED=$(mktemp)
 while IFS= read -r job; do
+    remaining=$(sed -n 's/^export RESUME_REMAINING_TRIALS=//p' "$job")
     requested=$(sed -n 's/^#SBATCH --time=//p' "$job")
     seconds=$(requested_seconds "$requested")
-    printf '%010d\t%s\n' "$seconds" "$job"
-done < "$JOB_LIST" | sort -n -k1,1 -k2,2 | cut -f2- > "$ORDERED"
+    printf '%010d\t%010d\t%s\n' "$remaining" "$seconds" "$job"
+done < "$JOB_LIST" | sort -n -k1,1 -k2,2 -k3,3 | cut -f3- > "$ORDERED"
 
 if [ "${DRY_RUN:-0}" = 1 ]; then
-    printf 'DRY RUN: %s attack_007-style one-cell jobs validated; shortest first\n' \
+    printf 'DRY RUN: %s resume-only one-cell jobs validated; least remaining work first\n' \
         "$EXPECTED_JOBS"
     while IFS= read -r job; do
-        printf 'sbatch --account=%s %s\n' "$ACCOUNT" "$job"
+        remaining=$(sed -n 's/^export RESUME_REMAINING_TRIALS=//p' "$job")
+        printf '[expected remaining trials: %s] sbatch --account=%s %s\n' \
+            "$remaining" "$ACCOUNT" "$job"
     done < "$ORDERED"
     exit 0
 fi
 
 [ -f "$ROOT/sbatch/_job_common.sh" ] || \
     die "missing shared runtime: $ROOT/sbatch/_job_common.sh"
+[ -f "$ROOT/sbatch/_resume_attack_only.sh" ] || \
+    die "missing resume-only guard: $ROOT/sbatch/_resume_attack_only.sh"
 # [ -d "$ROOT/data/cifar-10-batches-py" ] || \
 #     die "CIFAR-10 input missing under $ROOT/data"
 mkdir -p "$LOG_ROOT"

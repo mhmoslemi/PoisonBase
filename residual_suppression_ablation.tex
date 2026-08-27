@@ -1,0 +1,152 @@
+\subsection{Empirical Validation of Residual Suppression}
+\label{sec:residual-suppression-ablation}
+
+We empirically examine the one-way implication of
+Proposition~\ref{prop:residual-gating} at a fixed model state.  The study uses
+the dog--bird setting with dog as the adversarial class and bird as the target
+class.  We use ConvNetBN, five independently trained surrogate models, five
+fixed targets, and all 5,000 adversarial-class training examples as candidate
+bases.  This gives 25 target--surrogate pools and 125,000
+candidate--surrogate evaluations.  The selector study uses $m=100$ poisons,
+equivalently a poison fraction of $2\times10^{-3}$ relative to the full
+training set, and the perturbation constraint is $\epsilon_\infty=8/255$.
+Each selected set is optimized separately with GM and SAPA and evaluated using
+five victim retrainings for each of the five targets, giving 25 victim trials
+per attack and selector.
+
+\paragraph{Candidate-level analysis.}
+For every candidate $x_i$, target $x_t$, and surrogate, we record the signed
+margin $M_i$, residual norm $\|r_i\|_2$, classifier-head interaction
+\begin{equation}
+H_i=(r_i^\top r_t)(h_i^\top h_t),
+\label{eq:ablation-head-interaction}
+\end{equation}
+and backbone interaction
+\begin{equation}
+A_i=\left\langle
+J_i^\top W^\top r_i,
+J_t^\top W^\top r_t
+\right\rangle.
+\label{eq:ablation-backbone-interaction}
+\end{equation}
+The backbone interaction is computed exactly as the directional derivative of
+the candidate loss along the target backbone gradient using a batched
+Jacobian--vector product.  No explicit Jacobian matrix is constructed.  Within
+each target--surrogate pool, we sort the 5,000 candidates by $M_i$ and divide
+them into ten equal groups of 500 candidates.  We pool groups with the same
+decile index only after this within-pool partition and report the median and
+90th percentile of each magnitude.  Thus, every row of
+Table~\ref{tab:residual-deciles} contains 12,500 evaluations and no target or
+surrogate determines the decile boundaries of another pool.
+
+\begin{table*}[t]
+\centering
+\caption{
+Residual suppression across signed-margin deciles.  Each entry reports the
+median and 90th percentile, written as median~/~P90, over 12,500
+candidate--surrogate evaluations.  Deciles are formed separately within each
+of the 25 target--surrogate pools before pooling.  Reported zeros are numerical
+zeros at the evaluation precision.
+}
+\label{tab:residual-deciles}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}c c c c@{}}
+\toprule
+\textbf{Margin decile} & $\boldsymbol{\|r_i\|_2}$ & $\boldsymbol{|H_i|}$ & $\boldsymbol{|A_i|}$ \\
+\midrule
+1  & $1.64{\times}10^{-2}$~/~$5.98{\times}10^{-2}$ & $8.51{\times}10^{-1}$~/~$2.80$ & $6.53$~/~$2.97{\times}10^{1}$ \\
+2  & $4.24{\times}10^{-3}$~/~$1.36{\times}10^{-2}$ & $2.28{\times}10^{-1}$~/~$6.86{\times}10^{-1}$ & $1.84$~/~$8.01$ \\
+3  & $1.45{\times}10^{-3}$~/~$5.20{\times}10^{-3}$ & $8.26{\times}10^{-2}$~/~$2.62{\times}10^{-1}$ & $6.83{\times}10^{-1}$~/~$3.01$ \\
+4  & $5.43{\times}10^{-4}$~/~$1.92{\times}10^{-3}$ & $3.18{\times}10^{-2}$~/~$9.72{\times}10^{-2}$ & $2.64{\times}10^{-1}$~/~$1.20$ \\
+5  & $1.77{\times}10^{-4}$~/~$7.10{\times}10^{-4}$ & $1.10{\times}10^{-2}$~/~$3.64{\times}10^{-2}$ & $9.23{\times}10^{-2}$~/~$4.25{\times}10^{-1}$ \\
+6  & $5.43{\times}10^{-5}$~/~$2.24{\times}10^{-4}$ & $3.42{\times}10^{-3}$~/~$1.19{\times}10^{-2}$ & $2.80{\times}10^{-2}$~/~$1.39{\times}10^{-1}$ \\
+7  & $1.32{\times}10^{-5}$~/~$5.47{\times}10^{-5}$ & $8.11{\times}10^{-4}$~/~$2.98{\times}10^{-3}$ & $6.65{\times}10^{-3}$~/~$3.42{\times}10^{-2}$ \\
+8  & $1.79{\times}10^{-6}$~/~$7.74{\times}10^{-6}$ & $1.04{\times}10^{-4}$~/~$4.53{\times}10^{-4}$ & $8.54{\times}10^{-4}$~/~$5.19{\times}10^{-3}$ \\
+9  & $4.58{\times}10^{-8}$~/~$5.07{\times}10^{-7}$ & $9.28{\times}10^{-7}$~/~$3.02{\times}10^{-5}$ & $0$~/~$3.05{\times}10^{-4}$ \\
+10 & $6.23{\times}10^{-11}$~/~$2.46{\times}10^{-9}$ & $6.07{\times}10^{-12}$~/~$1.93{\times}10^{-8}$ & $0$~/~$0$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The median and 90th percentile of all three quantities decrease monotonically
+across all ten deciles in every one of the 25 target--surrogate pools.  From
+the first to the ninth decile, the 90th percentiles of $\|r_i\|_2$, $|H_i|$,
+and $|A_i|$ decrease by factors of approximately
+$1.18\times10^5$, $9.27\times10^4$, and $9.74\times10^4$, respectively.
+As a numerical sanity check, all 125,000 candidate--surrogate evaluations
+satisfy the residual upper bound in
+Eq.~\eqref{eq-margin-residual-sandwich}.
+
+\paragraph{Controlled selector intervention.}
+We next examine whether candidates from the residual-suppressed regime remain
+poor bases even when they are selected using the other score components.  All
+quantities are standardized separately within the candidate pool of each
+surrogate and then averaged across the five surrogates.  We compare
+\begin{align}
+s_i^{\mathrm{full}}
+&=
+\widetilde R_i-\widetilde M_i+\widetilde A_i,
+&
+s_i^{\mathrm{no\text{-}M}}
+&=
+\widetilde R_i+\widetilde A_i.
+\label{eq:residual-selector-controls}
+\end{align}
+The Full and No-margin selectors take the $m$ largest corresponding scores
+over the complete candidate pool.  The High-margin control first restricts the
+pool to the highest quartile of the ensemble-averaged standardized margin and
+then selects the $m$ largest values of $s_i^{\mathrm{no\text{-}M}}$ within that
+quartile.  It therefore chooses the strongest available representation and
+backbone scores subject to an intentionally unfavorable margin regime.  The
+same targets, surrogate checkpoints, poison budget, attack settings, and
+victim identifiers are used for all three selectors.
+
+\begin{table*}[t]
+\centering
+\caption{
+Controlled validation of residual suppression.  Selection statistics are
+averaged over five targets, 100 selected bases per target, and five surrogates.
+Attack columns report ASR with CTA in parentheses over five targets and five
+victim retrainings per target.  The High-margin control preserves
+representation relevance while forcing selection from the residual-suppressed
+margin regime.
+}
+\label{tab:residual-selector-ablation}
+\small
+\setlength{\tabcolsep}{5pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}l c c c c c cc@{}}
+\toprule
+\textbf{Selector} & $\boldsymbol{M_i}$ & $\boldsymbol{R_i}$ & $\boldsymbol{\|r_i\|_2}$ & $\boldsymbol{|H_i|}$ & $\boldsymbol{|A_i|}$ & \textbf{GM} & \textbf{SAPA} \\
+\midrule
+Full        & $5.348$  & $0.304$ & $2.95{\times}10^{-2}$ & $1.623$ & $18.195$ & $32.0\;(80.59)$ & $28.0\;(80.52)$ \\
+No margin   & $5.721$  & $0.312$ & $2.68{\times}10^{-2}$ & $1.521$ & $17.220$ & $36.0\;(80.43)$ & $36.0\;(80.49)$ \\
+High margin & $17.110$ & $0.311$ & $1.98{\times}10^{-4}$ & $0.015$ & $0.147$  & $0.0\;(80.50)$  & $0.0\;(80.38)$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
+
+The High-margin control has representation relevance comparable to both
+unrestricted selectors, but its residual norm is 149 times smaller than that
+of Full selection.  Its classifier-head and backbone interactions are 107 and
+123 times smaller, respectively.  The resulting poisons achieve zero ASR for
+both GM and SAPA, whereas Full selection achieves $32\%$ and $28\%$.  Clean
+accuracy remains similar across selectors, so this loss of attack success is
+not explained by a collapse in standard victim accuracy.  The Full and
+No-margin sets overlap by an average of 91.6 of their 100 bases, which explains
+their similar interaction statistics and attack outcomes.  No margin is
+slightly stronger in this small study, so these results do not establish that
+the explicit margin term improves the ranking of candidates outside the
+suppressed regime.  Instead, they support the narrower role established by the
+proposition, namely that a sufficiently large positive margin identifies
+candidates whose residual suppresses both components of the local gradient
+alignment.
+
+This experiment is a mechanism study rather than an independent proof of the
+proposition or a validation of the complete bilevel objective.  The attack
+results cover one architecture, one class pair, one poison budget, and five
+targets.  We therefore use them as a controlled illustration of residual
+suppression and do not infer that the margin alone guarantees attack success
+for the remaining candidates.
