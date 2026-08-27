@@ -1,0 +1,175 @@
+\subsection{Ablation on Robustness to Data Augmentation}
+\label{sec:augmentation-robustness}
+
+Table~\ref{tab:augmentation-robustness} tests whether the base-selection
+advantage persists when the victim uses data augmentation.  Poisons are
+created once for each selector and then held fixed while only victim training
+changes, isolating the effect of augmentation.  The expanded sweep uses the
+same dog--bird configurations as Table~\ref{tab:defense-extra}, adds Greedy and
+the lower-temperature DPP variants ($\alpha\in\{0.25,0.1\}$), and evaluates
+each completed cell on five paired targets and four victims per target.
+
+Among the currently completed Random versus DPP ($\alpha=2$) comparisons, DPP
+achieves higher ASR in 15 of 16 cells and ties in one, with a mean paired
+improvement of $24.4\%$.  The advantage persists under Crop+Flip,
+RandAugment, and Cutout.  Interestingly, stronger poisoning objectives such as
+GM can benefit from victim-side augmentation when combined with DPP-selected
+bases.  For example, Crop+Flip raises DPP ASR from $55.0\%$ to $70.0\%$ at
+$\epsilon=2{\times}10^{-3}$ while also improving clean performance.  The new
+cells test whether this behavior generalizes across architectures, attacks,
+budgets, and more concentrated DPP selections.
+
+\begin{table*}[h]
+\centering
+\caption{
+Victim-side augmentation robustness on dog--bird.  Entries report ASR (\%)
+with CTA (\%) in parentheses over five paired targets and four victims per
+target.  DPP columns are labeled by $\alpha$; ``--'' denotes an incomplete or
+unevaluated cell.
+}
+\vspace{-0.8em}
+\label{tab:augmentation-robustness}
+
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}l c *{4}{ccccc}@{}}
+\toprule
+
+\textbf{Model / Attack} &
+$\boldsymbol{\epsilon}$ &
+\multicolumn{5}{c}{\textbf{No Aug.}} &
+\multicolumn{5}{c}{\textbf{Crop+Flip}} &
+\multicolumn{5}{c}{\textbf{RandAugment}} &
+\multicolumn{5}{c}{\textbf{Cutout}}
+\\
+
+\cmidrule(lr){3-7}
+\cmidrule(lr){8-12}
+\cmidrule(lr){13-17}
+\cmidrule(lr){18-22}
+
+& {\footnotesize $(\times10^{-3})$} &
+R & G & D$_2$ & D$_{.25}$ & D$_{.1}$ &
+R & G & D$_2$ & D$_{.25}$ & D$_{.1}$ &
+R & G & D$_2$ & D$_{.25}$ & D$_{.1}$ &
+R & G & D$_2$ & D$_{.25}$ & D$_{.1}$
+\\
+\midrule
+
+\multirow{3}{*}{\textbf{ConvNet / BP}}
+& 2
+& \score{5.0}{79.86} & -- & \score{75.0}{80.00} & -- & --
+& \score{0.0}{85.52} & -- & \score{5.0}{85.35} & -- & --
+& \score{0.0}{84.19} & -- & \score{10.0}{84.15} & -- & --
+& \score{5.0}{85.43} & -- & \score{10.0}{85.40} & -- & --
+\\
+& 10
+& \score{50.0}{79.97} & -- & \score{95.0}{79.85} & -- & --
+& \score{0.0}{85.19} & -- & \score{25.0}{85.14} & -- & --
+& \score{0.0}{84.27} & -- & \score{20.0}{84.17} & -- & --
+& \score{0.0}{85.42} & -- & \score{25.0}{85.30} & -- & --
+\\
+& 20
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\addlinespace
+\textbf{ConvNet / GM}
+& 20
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\addlinespace
+\textbf{ConvNet / SAPA}
+& 20
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\midrule
+\textbf{ResNet20 / BP}
+& 10
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\addlinespace
+\multirow{3}{*}{\textbf{ResNet20 / GM}}
+& 2
+& \score{25.0}{83.90} & -- & \score{55.0}{83.55} & -- & --
+& \score{30.0}{89.61} & -- & \score{70.0}{89.63} & -- & --
+& \score{5.0}{90.39} & -- & \score{30.0}{90.20} & -- & --
+& \score{10.0}{89.99} & -- & \score{20.0}{89.94} & -- & --
+\\
+& 10
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+& 20
+& \score{75.0}{83.55} & -- & \score{100.0}{83.70} & -- & --
+& \score{80.0}{89.54} & -- & \score{80.0}{89.23} & -- & --
+& \score{60.0}{90.07} & -- & \score{85.0}{89.86} & -- & --
+& \score{40.0}{89.91} & -- & \score{70.0}{89.65} & -- & --
+\\
+
+\addlinespace
+\textbf{ResNet20 / SAPA}
+& 10
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\midrule
+\multirow{2}{*}{\textbf{VGG13 / GM}}
+& 5
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+& 10
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\addlinespace
+\multirow{2}{*}{\textbf{VGG13 / SAPA}}
+& 5
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+& 10
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+& -- & -- & -- & -- & --
+\\
+
+\bottomrule
+\end{tabular}%
+}
+
+\begin{flushleft}
+\footnotesize R = Random, G = Greedy, and D$_a$ = DPP with $\alpha=a$.
+\end{flushleft}
+\end{table*}

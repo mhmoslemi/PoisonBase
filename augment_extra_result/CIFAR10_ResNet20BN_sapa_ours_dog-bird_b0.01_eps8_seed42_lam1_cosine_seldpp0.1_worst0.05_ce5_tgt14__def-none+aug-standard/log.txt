@@ -1,0 +1,40 @@
+[2026-08-27 07:38:23] === defense run: CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp0.1_worst0.05_ce5_tgt14__def-none+aug-standard ===
+[2026-08-27 07:38:23]     poisons replayed from /tmp/augment_extra/ours_result/CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp0.1_worst0.05_ce5_tgt14
+[2026-08-27 07:38:23]     defense = none  (none+aug-standard)
+[2026-08-27 07:38:23]     victim augmentation = standard  (applied to the poisoned image, resampled every epoch)
+[2026-08-27 07:38:23] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "sapa", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "ours", "base_dist": "cosine", "budget": 0.01, "cache_dir": "/tmp/augment_extra/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/augment_extra/data", "dataset": "CIFAR10", "defense": "none", "defense_out_dir": "/tmp/augment_extra/augment_extra_result", "defense_parts": ["none"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "ResNet20BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 5, "num_victims": 4, "out_dir": "/tmp/augment_extra/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 0.1, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "/tmp/augment_extra/target_sets/aug_ResNet20BN_sapa_dog-bird_b0.01.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": "standard", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-27 07:38:35]   5 target(s) with saved poisons: [833, 4630, 5118, 5324, 8740]
+[2026-08-27 07:38:35] === defended clean victims (4 x ResNet20BN, defense none+aug-standard) ===
+[2026-08-27 07:38:35]   victim augmentation: VictimAugmenter(standard: crop4+flip0.5)
+[2026-08-27 07:40:13]   trained defended clean victim 0 (ResNet20BN, none+aug-standard): test acc = 0.9016 (98 s)
+[2026-08-27 07:41:51]   trained defended clean victim 1 (ResNet20BN, none+aug-standard): test acc = 0.8972 (98 s)
+[2026-08-27 07:43:29]   trained defended clean victim 2 (ResNet20BN, none+aug-standard): test acc = 0.8968 (98 s)
+[2026-08-27 07:45:07]   trained defended clean victim 3 (ResNet20BN, none+aug-standard): test acc = 0.8961 (98 s)
+[2026-08-27 07:45:07]   defended clean CTA = 0.8979 +/- 0.0022
+[2026-08-27 07:45:07] === target 833: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 07:46:45]   [t833 v1/4] SUCCESS (pred=dog) CTA=0.8991 (98 s)
+[2026-08-27 07:48:23]   [t833 v2/4] SUCCESS (pred=dog) CTA=0.8984 (98 s)
+[2026-08-27 07:50:01]   [t833 v3/4] SUCCESS (pred=dog) CTA=0.8922 (98 s)
+[2026-08-27 07:51:38]   [t833 v4/4] SUCCESS (pred=dog) CTA=0.8929 (98 s)
+[2026-08-27 07:51:38] === target 4630: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 07:53:16]   [t4630 v1/4] SUCCESS (pred=dog) CTA=0.8975 (98 s)
+[2026-08-27 07:54:54]   [t4630 v2/4] SUCCESS (pred=dog) CTA=0.8917 (98 s)
+[2026-08-27 07:56:32]   [t4630 v3/4] fail (pred=horse) CTA=0.8979 (98 s)
+[2026-08-27 07:58:09]   [t4630 v4/4] SUCCESS (pred=dog) CTA=0.8948 (98 s)
+[2026-08-27 07:58:09] === target 5118: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 07:59:47]   [t5118 v1/4] SUCCESS (pred=dog) CTA=0.8931 (98 s)
+[2026-08-27 08:01:25]   [t5118 v2/4] SUCCESS (pred=dog) CTA=0.8961 (98 s)
+[2026-08-27 08:03:03]   [t5118 v3/4] SUCCESS (pred=dog) CTA=0.8966 (98 s)
+[2026-08-27 08:04:41]   [t5118 v4/4] fail (pred=bird) CTA=0.8973 (98 s)
+[2026-08-27 08:04:41] === target 5324: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 08:06:18]   [t5324 v1/4] SUCCESS (pred=dog) CTA=0.8975 (98 s)
+[2026-08-27 08:07:56]   [t5324 v2/4] SUCCESS (pred=dog) CTA=0.8962 (98 s)
+[2026-08-27 08:09:34]   [t5324 v3/4] fail (pred=airplane) CTA=0.8981 (98 s)
+[2026-08-27 08:11:11]   [t5324 v4/4] SUCCESS (pred=dog) CTA=0.8935 (98 s)
+[2026-08-27 08:11:11] === target 8740: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 08:12:49]   [t8740 v1/4] fail (pred=bird) CTA=0.8921 (98 s)
+[2026-08-27 08:14:27]   [t8740 v2/4] SUCCESS (pred=dog) CTA=0.8978 (98 s)
+[2026-08-27 08:16:04]   [t8740 v3/4] SUCCESS (pred=dog) CTA=0.8905 (98 s)
+[2026-08-27 08:17:42]   [t8740 v4/4] SUCCESS (pred=dog) CTA=0.8950 (98 s)
+[2026-08-27 08:17:42] ==== CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp0.1_worst0.05_ce5_tgt14 | defense none+aug-standard : ASR = 80.0% +/- 10.0% | CTA = 0.8954 (defended clean 0.8979) ====
+[2026-08-27 08:17:42]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [1, 0, 2, 0, 0, 16, 0, 1, 0, 0]

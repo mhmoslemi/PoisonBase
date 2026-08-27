@@ -1,0 +1,44 @@
+environment modules unavailable; using /home/mmoslem3/ENV directly
+paired targets: [833, 4630, 5118, 5324, 8740]
+job: 634253 augx_228_r08_d2_c on rack14-15
+cell: row=08 selection=dpp2 augmentation=cutout
+protocol: 5 paired targets x 4 victims
+gpu: NVIDIA L40S
+[2026-08-27T10:47:13.527] error: couldn't chdir to `/tmp/augment_extra': No such file or directory: going to /tmp instead
+[2026-08-27 10:47:16] === defense run: CIFAR10_ResNet20BN_gradmatch_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt14__def-none+aug-cutout ===
+[2026-08-27 10:47:16]     poisons replayed from /tmp/augment_extra/ours_result/CIFAR10_ResNet20BN_gradmatch_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt14
+[2026-08-27 10:47:16]     defense = none  (none+aug-cutout)
+[2026-08-27 10:47:16]     victim augmentation = cutout  (applied to the poisoned image, resampled every epoch)
+[2026-08-27 10:47:16] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "gradmatch", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "ours", "base_dist": "cosine", "budget": 0.01, "cache_dir": "/tmp/augment_extra/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/augment_extra/data", "dataset": "CIFAR10", "defense": "none", "defense_out_dir": "/tmp/augment_extra/augment_extra_result", "defense_parts": ["none"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "ResNet20BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 5, "num_victims": 4, "out_dir": "/tmp/augment_extra/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 2.0, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "/tmp/augment_extra/target_sets/aug_ResNet20BN_gradmatch_dog-bird_b0.01.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": "cutout", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-27 10:47:28]   5 target(s) with saved poisons: [833, 4630, 5118, 5324, 8740]
+[2026-08-27 10:47:28] === defended clean victims (4 x ResNet20BN, defense none+aug-cutout) ===
+[2026-08-27 10:47:28]   defended clean CTA = 0.9008 +/- 0.0006
+[2026-08-27 10:47:29] === target 833: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 10:47:29]   victim augmentation: VictimAugmenter(cutout: crop4+flip0.5 -> cutout16)
+[2026-08-27 10:49:07]   [t833 v1/4] SUCCESS (pred=dog) CTA=0.9039 (99 s)
+[2026-08-27 10:50:46]   [t833 v2/4] SUCCESS (pred=dog) CTA=0.8983 (98 s)
+[2026-08-27 10:52:24]   [t833 v3/4] fail (pred=bird) CTA=0.8965 (98 s)
+[2026-08-27 10:54:02]   [t833 v4/4] SUCCESS (pred=dog) CTA=0.8957 (98 s)
+[2026-08-27 10:54:02] === target 4630: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 10:55:41]   [t4630 v1/4] SUCCESS (pred=dog) CTA=0.9001 (98 s)
+[2026-08-27 10:57:19]   [t4630 v2/4] SUCCESS (pred=dog) CTA=0.8990 (98 s)
+[2026-08-27 10:58:58]   [t4630 v3/4] SUCCESS (pred=dog) CTA=0.9008 (98 s)
+[2026-08-27 11:00:36]   [t4630 v4/4] SUCCESS (pred=dog) CTA=0.8977 (98 s)
+[2026-08-27 11:00:36] === target 5118: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 11:02:14]   [t5118 v1/4] fail (pred=bird) CTA=0.9003 (98 s)
+[2026-08-27 11:03:53]   [t5118 v2/4] fail (pred=bird) CTA=0.8999 (98 s)
+[2026-08-27 11:05:31]   [t5118 v3/4] fail (pred=bird) CTA=0.8968 (98 s)
+[2026-08-27 11:07:10]   [t5118 v4/4] fail (pred=bird) CTA=0.8958 (98 s)
+[2026-08-27 11:07:10] === target 5324: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 11:08:48]   [t5324 v1/4] fail (pred=bird) CTA=0.8987 (98 s)
+[2026-08-27 11:10:26]   [t5324 v2/4] SUCCESS (pred=dog) CTA=0.8989 (98 s)
+[2026-08-27 11:12:05]   [t5324 v3/4] fail (pred=bird) CTA=0.8972 (98 s)
+[2026-08-27 11:13:43]   [t5324 v4/4] SUCCESS (pred=dog) CTA=0.8991 (98 s)
+[2026-08-27 11:13:43] === target 8740: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 11:15:22]   [t8740 v1/4] fail (pred=bird) CTA=0.8925 (98 s)
+[2026-08-27 11:17:00]   [t8740 v2/4] fail (pred=bird) CTA=0.8999 (98 s)
+[2026-08-27 11:18:39]   [t8740 v3/4] fail (pred=bird) CTA=0.9022 (98 s)
+[2026-08-27 11:20:17]   [t8740 v4/4] fail (pred=bird) CTA=0.8999 (98 s)
+[2026-08-27 11:20:17] ==== CIFAR10_ResNet20BN_gradmatch_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_seldpp2_ce5_tgt14 | defense none+aug-cutout : ASR = 45.0% +/- 40.0% | CTA = 0.8987 (defended clean 0.9008) ====
+[2026-08-27 11:20:17]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 11, 0, 0, 9, 0, 0, 0, 0]
+sync: augment-extra cell -> /home/mmoslem3/scratch/PoisonBase
