@@ -1,0 +1,27 @@
+job: 628761 xdata_040_cifar100_sapa_sunflower_cattle_b0_002_greedy on rack14-11
+cell: dataset=CIFAR100 model=ResNet18BN pair=sunflower-cattle budget=0.002 attack=sapa selection=greedy jacobian=off
+protocol: 1 pinned target x 5 victims; run=CIFAR100_ResNet18BN_sapa_ours_sunflower-cattle_b0.002_eps8_seed42_lam1_cosine_worst0.05_ce5
+gpu: NVIDIA L40S
+[2026-08-26 18:36:24] === run start: CIFAR100_ResNet18BN_sapa_ours_sunflower-cattle_b0.002_eps8_seed42_lam1_cosine_worst0.05_ce5 on cuda [0] ===
+[2026-08-26 18:36:24] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/extra_data_if/cache", "class_pair": "sunflower-cattle", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/extra_data", "dataset": "CIFAR100", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet18BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 1, "num_victims": 5, "out_dir": "/tmp/extra_data_if/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/extra_data_if/target_sets/xdata_CIFAR100_ResNet18BN_sunflower-cattle.json", "target_select": "random", "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-26 18:36:24] Jacobian score: disabled
+[2026-08-26 18:36:24] N_total=50000 budget=0.002 -> N_p=100 poisons, y_adv=82(sunflower) target_class=19(cattle)
+[2026-08-26 18:36:24] === surrogates (20 x ResNet18BN, trained on the full real set) ===
+[2026-08-26 18:36:25]   crafting on 5/20 surrogates
+[2026-08-26 18:36:25] === clean victims (5 x ResNet18BN) ===
+[2026-08-26 18:36:28]   clean baseline CTA = 0.5663 +/- 0.0114
+[2026-08-26 18:36:28]   target pool 100 -> eligible 100 (0 already predicted as y_adv or dropped)
+[2026-08-26 18:36:28]   chosen 1 targets (file), p_adv range 0.0000..0.0000
+[2026-08-26 18:36:28]   targets: [4276]
+[2026-08-26 18:36:28] === target 4276 (1/1) ===
+[2026-08-26 18:43:45]   target 4276: crafted 100 poisons in 437 s, obj=0.35767
+[2026-08-26 18:43:45]   target 4276: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-26 18:47:42]   [t4276 v1/5] fail (pred=cattle) CTA=0.5941
+[2026-08-26 18:51:37]   [t4276 v2/5] fail (pred=cattle) CTA=0.5968
+[2026-08-26 18:55:33]   [t4276 v3/5] fail (pred=cattle) CTA=0.5930
+[2026-08-26 18:59:29]   [t4276 v4/5] fail (pred=cattle) CTA=0.5847
+[2026-08-26 19:03:24]   [t4276 v5/5] fail (pred=cattle) CTA=0.5679
+[2026-08-26 19:03:24]   target 4276, 5 victims on this gpu: ASR=0.0% CTA=0.5873 +/- 0.0105
+[2026-08-26 19:03:24] ==== CIFAR100_ResNet18BN_sapa_ours_sunflower-cattle_b0.002_eps8_seed42_lam1_cosine_worst0.05_ce5 : ASR = 0.0% +/- 0.0% | CTA = 0.5873 (baseline 0.5663) ====
+[2026-08-26 19:03:24]   target-prediction tally ['apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle', 'bicycle', 'bottle', 'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel', 'can', 'castle', 'caterpillar', 'cattle', 'chair', 'chimpanzee', 'clock', 'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur', 'dolphin', 'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster', 'house', 'kangaroo', 'keyboard', 'lamp', 'lawn_mower', 'leopard', 'lion', 'lizard', 'lobster', 'man', 'maple_tree', 'motorcycle', 'mountain', 'mouse', 'mushroom', 'oak_tree', 'orange', 'orchid', 'otter', 'palm_tree', 'pear', 'pickup_truck', 'pine_tree', 'plain', 'plate', 'poppy', 'porcupine', 'possum', 'rabbit', 'raccoon', 'ray', 'road', 'rocket', 'rose', 'sea', 'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail', 'snake', 'spider', 'squirrel', 'streetcar', 'sunflower', 'sweet_pepper', 'table', 'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout', 'tulip', 'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman', 'worm']: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+sync: extra-data cell -> /home/mmoslem3/scratch/PoisonBase/ours_result/CIFAR100_ResNet18BN_sapa_ours_sunflower-cattle_b0.002_eps8_seed42_lam1_cosine_worst0.05_ce5
