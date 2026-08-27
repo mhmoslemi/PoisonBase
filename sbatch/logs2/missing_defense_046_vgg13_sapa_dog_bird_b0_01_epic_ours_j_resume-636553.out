@@ -1,0 +1,18 @@
+stage: optional directory absent: /home/mmoslem3/scratch/PoisonBase/defense_result/CIFAR10_VGG13BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt50__def-epic-s0.1-f2-d10
+job: 636553 missing_defense_046_vgg13_sapa_b001_epic_ours_j_resume on rack01-07
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=sapa TARGET_SELECT=50 BUDGETS=0.01 SELS=ours SEL_ALPHA=2.0 DEFENSES=epic NUM_TARGETS=7 NUM_VICTIMS=5 sh defense.sh
+protocol: defense=7 targets x 5 victims
+gpu: NVIDIA L40S
+#  b0.01   ours=0                       -> 0 paired target(s)
+#  b0.01 skipped: no target has poisons under every selection
+=== defense sweep | VGG13BN / sapa / dog-bird (tgt50) ===
+    selections : ours   (dpp alpha 2.0)
+    selector   : Jacobian enabled for ours/dpp (weight 1.0, batch 64); random unchanged
+    defenses   : epic
+    poisons    : replayed from /tmp/attack_if/ours_result, results into /tmp/attack_if/defense_result
+
+nothing to run: no budget has poisons under every selection
+srun: error: rack01-07: task 0: Exited with exit code 1
+sync: preserving outputs in /home/mmoslem3/scratch/PoisonBase
+sync: complete
