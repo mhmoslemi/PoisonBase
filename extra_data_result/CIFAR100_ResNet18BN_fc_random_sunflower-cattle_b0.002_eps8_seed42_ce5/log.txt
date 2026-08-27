@@ -1,0 +1,45 @@
+[2026-08-27 11:03:30] === run start: CIFAR100_ResNet18BN_fc_random_sunflower-cattle_b0.002_eps8_seed42_ce5 on cuda [0] ===
+[2026-08-27 11:03:30] args: {"FORCE": false, "attack": "fc", "base": "random", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/extra_data_if/cache", "class_pair": "sunflower-cattle", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/extra_data", "dataset": "CIFAR100", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet18BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 4, "out_dir": "/tmp/extra_data_if/extra_data_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/extra_data_if/target_sets/xdata_CIFAR100_ResNet18BN_sunflower-cattle.json", "target_select": "random", "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-27 11:03:30] Jacobian score: disabled
+[2026-08-27 11:03:30] N_total=50000 budget=0.002 -> N_p=100 poisons, y_adv=82(sunflower) target_class=19(cattle)
+[2026-08-27 11:03:30] === surrogates (20 x ResNet18BN, trained on the full real set) ===
+[2026-08-27 11:03:32]   crafting on 5/20 surrogates
+[2026-08-27 11:03:32] === clean victims (4 x ResNet18BN) ===
+[2026-08-27 11:03:34]   clean baseline CTA = 0.5613 +/- 0.0060
+[2026-08-27 11:03:34]   target pool 100 -> eligible 100 (0 already predicted as y_adv or dropped)
+[2026-08-27 11:03:34]   chosen 4 targets (file), p_adv range 0.0000..0.0000
+[2026-08-27 11:03:34]   targets: [4276, 9426, 6645, 9780]
+[2026-08-27 11:03:34] === target 4276 (1/4) ===
+[2026-08-27 11:03:41]   target 4276: crafted 100 poisons in 7 s, obj=0.27434
+[2026-08-27 11:03:41]   target 4276: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 11:07:36]   [t4276 v1/4] fail (pred=cattle) CTA=0.5746
+[2026-08-27 11:11:32]   [t4276 v2/4] fail (pred=cattle) CTA=0.5737
+[2026-08-27 11:15:28]   [t4276 v3/4] fail (pred=cattle) CTA=0.5650
+[2026-08-27 11:19:25]   [t4276 v4/4] fail (pred=cattle) CTA=0.5779
+[2026-08-27 11:19:25]   target 4276, 4 victims on this gpu: ASR=0.0% CTA=0.5728 +/- 0.0048
+[2026-08-27 11:19:25] === target 9426 (2/4) ===
+[2026-08-27 11:19:31]   target 9426: crafted 100 poisons in 7 s, obj=0.24343
+[2026-08-27 11:19:31]   target 9426: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 11:23:29]   [t9426 v1/4] fail (pred=camel) CTA=0.5692
+[2026-08-27 11:27:25]   [t9426 v2/4] fail (pred=flatfish) CTA=0.5812
+[2026-08-27 11:31:21]   [t9426 v3/4] fail (pred=hamster) CTA=0.5788
+[2026-08-27 11:35:17]   [t9426 v4/4] fail (pred=camel) CTA=0.5783
+[2026-08-27 11:35:17]   target 9426, 4 victims on this gpu: ASR=0.0% CTA=0.5769 +/- 0.0046
+[2026-08-27 11:35:17] === target 6645 (3/4) ===
+[2026-08-27 11:35:24]   target 6645: crafted 100 poisons in 7 s, obj=0.16068
+[2026-08-27 11:35:24]   target 6645: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 11:39:21]   [t6645 v1/4] fail (pred=otter) CTA=0.5796
+[2026-08-27 11:43:18]   [t6645 v2/4] fail (pred=otter) CTA=0.5893
+[2026-08-27 11:47:14]   [t6645 v3/4] fail (pred=caterpillar) CTA=0.5436
+[2026-08-27 11:51:10]   [t6645 v4/4] fail (pred=beaver) CTA=0.5906
+[2026-08-27 11:51:10]   target 6645, 4 victims on this gpu: ASR=0.0% CTA=0.5758 +/- 0.0191
+[2026-08-27 11:51:10] === target 9780 (4/4) ===
+[2026-08-27 11:51:17]   target 9780: crafted 100 poisons in 7 s, obj=0.19323
+[2026-08-27 11:51:17]   target 9780: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-08-27 11:55:14]   [t9780 v1/4] fail (pred=fox) CTA=0.5955
+[2026-08-27 11:59:10]   [t9780 v2/4] fail (pred=tiger) CTA=0.5691
+[2026-08-27 12:03:06]   [t9780 v3/4] fail (pred=leopard) CTA=0.5481
+[2026-08-27 12:07:02]   [t9780 v4/4] fail (pred=mouse) CTA=0.5890
+[2026-08-27 12:07:02]   target 9780, 4 victims on this gpu: ASR=0.0% CTA=0.5754 +/- 0.0185
+[2026-08-27 12:07:02] ==== CIFAR100_ResNet18BN_fc_random_sunflower-cattle_b0.002_eps8_seed42_ce5 : ASR = 0.0% +/- 0.0% | CTA = 0.5752 (baseline 0.5613) ====
+[2026-08-27 12:07:02]   target-prediction tally ['apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle', 'bicycle', 'bottle', 'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel', 'can', 'castle', 'caterpillar', 'cattle', 'chair', 'chimpanzee', 'clock', 'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur', 'dolphin', 'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster', 'house', 'kangaroo', 'keyboard', 'lamp', 'lawn_mower', 'leopard', 'lion', 'lizard', 'lobster', 'man', 'maple_tree', 'motorcycle', 'mountain', 'mouse', 'mushroom', 'oak_tree', 'orange', 'orchid', 'otter', 'palm_tree', 'pear', 'pickup_truck', 'pine_tree', 'plain', 'plate', 'poppy', 'porcupine', 'possum', 'rabbit', 'raccoon', 'ray', 'road', 'rocket', 'rose', 'sea', 'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail', 'snake', 'spider', 'squirrel', 'streetcar', 'sunflower', 'sweet_pepper', 'table', 'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout', 'tulip', 'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman', 'worm']: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
