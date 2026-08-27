@@ -27,10 +27,10 @@ export MPLBACKEND=Agg
 partial=()
 [ "${ALLOW_PARTIAL:-0}" = 1 ] && partial+=(--allow-partial)
 
-exec "$PYTHON_BIN" "$SOURCE_ROOT/residual_suppression_experiment.py" analyze \
+"$PYTHON_BIN" "$SOURCE_ROOT/residual_suppression_experiment.py" analyze \
     --output-root "$OUTPUT_ROOT" \
     --dataset CIFAR10 --data-path "$DATA_PATH" \
     --model "$MODEL" --class-pair "$CLASS_PAIR" --seed "$SEED" \
     --num-targets 5 --num-victims 5 --num-surrogates 5 \
     --target-select "$TARGET_SELECT" --target-idx-file "$TARGET_IDX_FILE" \
-    --gpus none "${partial[@]}"
+    --gpus none "${partial[@]}" 2>&1 | tee "$OUTPUT_ROOT/cpu-analysis.log"

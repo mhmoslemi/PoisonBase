@@ -144,12 +144,48 @@ join_ids() {
     printf '%s\n' "$joined"
 }
 
+# Reuse the project's normal seed-matched checkpoints when they are already on
+# Vulcan, while keeping the experiment self-contained under logs-proposiot.
+# Missing files are produced by the one-checkpoint jobs below.
+seed_checkpoint() {
+    local kind="$1" cache_id="$2" relative src dst
+    case "$kind" in
+        surrogate)
+            relative="surrogates/${MODEL}_60ep_lr0.1_bs128_seed${SEED}/net_${cache_id}.pt"
+            ;;
+        victim)
+            relative="clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed${SEED}/net_${cache_id}.pt"
+            ;;
+        *) die "unknown checkpoint kind: $kind" ;;
+    esac
+    src="$SOURCE_ROOT/cache/$relative"
+    dst="$OUTPUT_ROOT/cache/$relative"
+    [ -s "$dst" ] && return
+    if [ "${DRY_RUN:-0}" != 1 ] && [ -s "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        cp -p "$src" "$dst"
+        printf 'seeded cached %-9s %d -> %s\n' "$kind" "$cache_id" "$dst" >&2
+    fi
+}
+
 precompute_ids=()
 for cache_id in 0 1 2 3 4; do
+    seed_checkpoint surrogate "$cache_id"
+    checkpoint="$OUTPUT_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed${SEED}/net_${cache_id}.pt"
+    if [ -s "$checkpoint" ]; then
+        printf 'cached: %-25s -> %s\n' "surrogate $cache_id" "$checkpoint" >&2
+        continue
+    fi
     precompute_ids+=("$(submit_one "rs-pre-s${cache_id}" 01:30:00 "" \
         "RS_MODE=precompute,CACHE_KIND=surrogate,CACHE_ID=$cache_id")")
 done
 for cache_id in 0 1 2 3 4; do
+    seed_checkpoint victim "$cache_id"
+    checkpoint="$OUTPUT_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed${SEED}/net_${cache_id}.pt"
+    if [ -s "$checkpoint" ]; then
+        printf 'cached: %-25s -> %s\n' "victim $cache_id" "$checkpoint" >&2
+        continue
+    fi
     precompute_ids+=("$(submit_one "rs-pre-v${cache_id}" 01:30:00 "" \
         "RS_MODE=precompute,CACHE_KIND=victim,CACHE_ID=$cache_id")")
 done

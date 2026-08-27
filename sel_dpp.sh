@@ -102,6 +102,12 @@ PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
 NUM_TARGETS="${NUM_TARGETS:-8}"
 NUM_VICTIMS="${NUM_VICTIMS:-5}"
+RECOMPUTE_DELTAS="${RECOMPUTE_DELTAS:-0}"
+case "$RECOMPUTE_DELTAS" in
+    0) RECOMPUTE_FLAGS="" ;;
+    1) RECOMPUTE_FLAGS="--recompute_deltas" ;;
+    *) echo "RECOMPUTE_DELTAS=$RECOMPUTE_DELTAS (expected: 0 or 1)"; exit 1 ;;
+esac
 
 source "$PYTHON_ENV/bin/activate"
 cd "$PROJECT_ROOT"
@@ -246,6 +252,7 @@ for sig in $SIGMAS; do
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
             $TGT_FLAGS \
+            $RECOMPUTE_FLAGS \
             --num_victims "$NUM_VICTIMS" --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
             --victim_decay 40 --victim_wd 0.0 \
             --clean_baseline
@@ -258,5 +265,6 @@ done
 done
 done
 
-# --no_resume / --recompute_deltas are deliberately not passed, so a shard that
-# dies can simply be rerun and will pick up where it stopped.
+# By default neither --no_resume nor --recompute_deltas is passed, so an
+# interrupted shard resumes. Repair jobs may set RECOMPUTE_DELTAS=1 when the
+# result CSV survived but its poison_cache did not.
