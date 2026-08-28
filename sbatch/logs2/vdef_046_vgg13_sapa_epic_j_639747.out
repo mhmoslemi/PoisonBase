@@ -1,0 +1,69 @@
+preflight: poison cache ready (bases=8, deltas=8)
+stage: optional directory absent: /home/mmoslem3/scratch/PoisonBase/defense_result/CIFAR10_VGG13BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt50__def-epic-s0.1-f2-d10
+job: 639747 vdef_046_vgg13_sapa_epic_j on rack01-06
+work: /tmp/attack_if
+config: USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 JACOBIAN_BATCH_SIZE=64 CLASS_PAIR=dog-bird MODEL=VGG13BN ATTACK=sapa TARGET_SELECT=50 BUDGETS=0.01 SELS=ours SEL_ALPHA=2.0 DEFENSES=epic NUM_TARGETS=7 NUM_VICTIMS=5 sh defense.sh
+protocol: defense=7 targets x 5 victims
+gpu: NVIDIA L40S
+#  b0.01   ours=8                       -> 8 paired target(s)
+=== defense sweep | VGG13BN / sapa / dog-bird (tgt50) ===
+    selections : ours   (dpp alpha 2.0)
+    selector   : Jacobian enabled for ours/dpp (weight 1.0, batch 64); random unchanged
+    defenses   : epic
+    poisons    : replayed from /tmp/attack_if/ours_result, results into /tmp/attack_if/defense_result
+
+--- budget 0.01 | defense epic | selection ours ---
+[2026-08-27 14:11:13] === defense run: CIFAR10_VGG13BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt50__def-epic-s0.1-f2-d10 ===
+[2026-08-27 14:11:13]     poisons replayed from /tmp/attack_if/ours_result/CIFAR10_VGG13BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt50
+[2026-08-27 14:11:13]     defense = epic  (epic-s0.1-f2-d10)
+[2026-08-27 14:11:13]     victim augmentation = none  (applied to the poisoned image, resampled every epoch)
+[2026-08-27 14:11:13] args: {"adv_eps": 8.0, "adv_step_size": 0.0, "adv_steps": 5, "attack": "sapa", "aug_cutout_length": 16, "aug_flip_p": 0.5, "aug_pad": 4, "aug_randaug_magnitude": 9, "aug_randaug_ops": 2, "base": "ours", "base_dist": "cosine", "budget": 0.01, "cache_dir": "/tmp/attack_if/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_aug": true, "craft_ensemble": 5, "data_path": "/tmp/data", "dataset": "CIFAR10", "defense": "epic", "defense_out_dir": "/tmp/attack_if/defense_result", "defense_parts": ["epic"], "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epic_cluster_thresh": 1.0, "epic_drop_after": 10, "epic_freq": 2, "epic_metric": "euclidean", "epic_stop_after": -1, "epic_subset_size": 0.1, "epsilon": 0.0313725, "fc_mode": "sample", "friendly_begin_epoch": 5, "friendly_bs": 512, "friendly_clamp": 16.0, "friendly_epochs": 30, "friendly_lr": 100.0, "friendly_momentum": 0.9, "friendly_mu": 1.0, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "list_cached": false, "model": "VGG13BN", "no_resume": false, "noise_eps": 8.0, "noise_type": [], "num_targets": 7, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_trials": true, "recompute_deltas": false, "seed": 42, "sel_alpha": 1.0, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "target_idx_file": "target_sets/def_VGG13BN_sapa_dog-bird_b0.01_jacw1.json", "target_select": 50, "use_jacobian_score": true, "victim_aug": "none", "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-08-27 14:11:25]   7 target(s) with saved poisons: [409, 630, 1656, 2270, 5022, 6033, 9090]
+[2026-08-27 14:11:25] === defended clean victims (5 x VGG13BN, defense epic-s0.1-f2-d10) ===
+[2026-08-27 14:11:26]   defended clean CTA = 0.7740 +/- 0.0206
+[2026-08-27 14:11:26] === target 409: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 14:13:53]   [t409 v1/5] SUCCESS (pred=dog) CTA=0.8095 (147 s)
+[2026-08-27 14:16:04]   [t409 v2/5] fail (pred=cat) CTA=0.7502 (131 s)
+[2026-08-27 14:18:23]   [t409 v3/5] SUCCESS (pred=dog) CTA=0.7969 (139 s)
+[2026-08-27 14:20:39]   [t409 v4/5] SUCCESS (pred=dog) CTA=0.8209 (136 s)
+[2026-08-27 14:23:02]   [t409 v5/5] SUCCESS (pred=dog) CTA=0.8161 (143 s)
+[2026-08-27 14:23:02] === target 630: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 14:25:18]   [t630 v1/5] SUCCESS (pred=dog) CTA=0.8241 (136 s)
+[2026-08-27 14:27:42]   [t630 v2/5] SUCCESS (pred=dog) CTA=0.8110 (144 s)
+[2026-08-27 14:29:52]   [t630 v3/5] fail (pred=airplane) CTA=0.7609 (130 s)
+[2026-08-27 14:32:09]   [t630 v4/5] fail (pred=deer) CTA=0.7967 (137 s)
+[2026-08-27 14:34:38]   [t630 v5/5] fail (pred=bird) CTA=0.7939 (149 s)
+[2026-08-27 14:34:38] === target 1656: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 14:37:36]   [t1656 v1/5] fail (pred=bird) CTA=0.7426 (178 s)
+[2026-08-27 14:39:53]   [t1656 v2/5] SUCCESS (pred=dog) CTA=0.8115 (137 s)
+[2026-08-27 14:42:20]   [t1656 v3/5] fail (pred=bird) CTA=0.6379 (146 s)
+[2026-08-27 14:44:27]   [t1656 v4/5] fail (pred=deer) CTA=0.7291 (127 s)
+[2026-08-27 14:46:47]   [t1656 v5/5] fail (pred=cat) CTA=0.7826 (140 s)
+[2026-08-27 14:46:47] === target 2270: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 14:48:57]   [t2270 v1/5] SUCCESS (pred=dog) CTA=0.7893 (130 s)
+[2026-08-27 14:51:21]   [t2270 v2/5] SUCCESS (pred=dog) CTA=0.8106 (144 s)
+[2026-08-27 14:53:52]   [t2270 v3/5] fail (pred=cat) CTA=0.7977 (151 s)
+[2026-08-27 14:56:29]   [t2270 v4/5] fail (pred=cat) CTA=0.7742 (157 s)
+[2026-08-27 14:58:50]   [t2270 v5/5] fail (pred=cat) CTA=0.7759 (142 s)
+[2026-08-27 14:58:50] === target 5022: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 15:01:05]   [t5022 v1/5] fail (pred=bird) CTA=0.8246 (134 s)
+[2026-08-27 15:03:28]   [t5022 v2/5] fail (pred=deer) CTA=0.7486 (143 s)
+[2026-08-27 15:05:53]   [t5022 v3/5] SUCCESS (pred=dog) CTA=0.8202 (145 s)
+[2026-08-27 15:08:16]   [t5022 v4/5] SUCCESS (pred=dog) CTA=0.8115 (142 s)
+[2026-08-27 15:10:34]   [t5022 v5/5] SUCCESS (pred=dog) CTA=0.7961 (139 s)
+[2026-08-27 15:10:34] === target 6033: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 15:12:53]   [t6033 v1/5] SUCCESS (pred=dog) CTA=0.8142 (139 s)
+[2026-08-27 15:15:22]   [t6033 v2/5] SUCCESS (pred=dog) CTA=0.8019 (149 s)
+[2026-08-27 15:17:41]   [t6033 v3/5] SUCCESS (pred=dog) CTA=0.8082 (140 s)
+[2026-08-27 15:19:53]   [t6033 v4/5] fail (pred=bird) CTA=0.7600 (132 s)
+[2026-08-27 15:22:10]   [t6033 v5/5] SUCCESS (pred=dog) CTA=0.8263 (137 s)
+[2026-08-27 15:22:10] === target 9090: 500 saved poisons, realized linf 8.00/255 ===
+[2026-08-27 15:24:26]   [t9090 v1/5] SUCCESS (pred=dog) CTA=0.8257 (136 s)
+[2026-08-27 15:26:37]   [t9090 v2/5] SUCCESS (pred=dog) CTA=0.7154 (131 s)
+[2026-08-27 15:28:51]   [t9090 v3/5] SUCCESS (pred=dog) CTA=0.8288 (133 s)
+[2026-08-27 15:31:07]   [t9090 v4/5] SUCCESS (pred=dog) CTA=0.8226 (136 s)
+[2026-08-27 15:33:26]   [t9090 v5/5] SUCCESS (pred=dog) CTA=0.7884 (139 s)
+[2026-08-27 15:33:26] ==== CIFAR10_VGG13BN_sapa_ours_dog-bird_b0.01_eps8_seed42_lam1_cosine_jacw1_worst0.05_ce5_tgt50 | defense epic-s0.1-f2-d10 : ASR = 60.0% +/- 26.2% | CTA = 0.7893 (defended clean 0.7740)  poisons dropped 46.0% vs clean 62.5% ====
+[2026-08-27 15:33:26]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [1, 0, 5, 5, 3, 21, 0, 0, 0, 0]
+sync: preserving outputs in /home/mmoslem3/scratch/PoisonBase
+sync: complete
