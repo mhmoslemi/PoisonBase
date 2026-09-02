@@ -58,6 +58,8 @@
 #         BUDGETS="0.001 0.002 0.005" sh sel_dpp.sh
 #     SELECT=exact JACOBIAN_BATCH_SIZE=64 sh sel_dpp.sh
 #     SELECT=a-mr JACOBIAN_BATCH_SIZE=64 sh sel_dpp.sh
+#     ATTACK=fc CRAFT_STEPS=500 CRAFT_ALPHA=0.0019608 FC_RESTARTS=4 \
+#         sh sel_dpp.sh
 #     ATTACK=sapa SHARP_SIGMA="0.01 0.05 0.1" SELECT=dpp sh sel_dpp.sh
 #     TARGET_SELECT=30 MODEL=VGG13BN ATTACK=sapa sh sel_dpp.sh   # first run of a
 #         combo: pick its 10 targets at difficulty 30. Once target_sets/ has the
@@ -85,6 +87,12 @@ SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
 USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-1}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
+# Crafting defaults are unchanged when these variables are not supplied.  They
+# are environment knobs so a Slurm job can keep its FC settings in a separate,
+# editable file instead of modifying this sweep driver.
+CRAFT_STEPS="${CRAFT_STEPS:-250}"
+CRAFT_ALPHA="${CRAFT_ALPHA:-0.0039216}"
+FC_RESTARTS="${FC_RESTARTS:-1}"
 case "$USE_JACOBIAN_SCORE" in
     0|1) ;;
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
@@ -116,6 +124,12 @@ case "$RECOMPUTE_DELTAS" in
     0) RECOMPUTE_FLAGS="" ;;
     1) RECOMPUTE_FLAGS="--recompute_deltas" ;;
     *) echo "RECOMPUTE_DELTAS=$RECOMPUTE_DELTAS (expected: 0 or 1)"; exit 1 ;;
+esac
+FORCE="${FORCE:-0}"
+case "$FORCE" in
+    0) FORCE_FLAGS="" ;;
+    1) FORCE_FLAGS="--FORCE" ;;
+    *) echo "FORCE=$FORCE (expected: 0 or 1)"; exit 1 ;;
 esac
 
 source "$PYTHON_ENV/bin/activate"
@@ -263,14 +277,15 @@ for sig in $SIGMAS; do
             --model "$model" --attack "$attack" --base "$BASE" \
             --class_pair "$pair" --pair_order poison-target \
             --budget "$bug" --epsilon 0.0313725 \
-            --craft_steps 250 --craft_alpha 0.0039216 \
-            --restarts 8 --craft_ensemble 5 $CFG_MEM \
+            --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
+            --restarts 8 --fc_restarts "$FC_RESTARTS" --craft_ensemble 5 $CFG_MEM \
             --base_dist cosine --lambda_margin 1.0 \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
             $TGT_FLAGS \
             $RECOMPUTE_FLAGS \
+            $FORCE_FLAGS \
             --num_victims "$NUM_VICTIMS" --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
             --victim_decay 40 --victim_wd 0.0 \
             --clean_baseline
