@@ -6,6 +6,7 @@
 # FC_RESTARTS: independent FC initializations; the lowest-loss result is kept.
 # Increasing CRAFT_STEPS or FC_RESTARTS increases job time.
 
-export CRAFT_STEPS=1000
-export CRAFT_ALPHA=0.0039216
+export CRAFT_STEPS=2500
+export CRAFT_ALPHA=0.0019608
+# export CRAFT_ALPHA=0.0039216
 export FC_RESTARTS=1
