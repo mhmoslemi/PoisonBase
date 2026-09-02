@@ -88,11 +88,16 @@ attack_run_name() {
     name="CIFAR10_${MODEL}_${ATTACK}_${base}_${CLASS_PAIR}_b${budget}_eps8_seed42"
     if [ "$base" = ours ]; then
         name+="_lam1_cosine"
-        if [ "$selection" = dpp ]; then
-            alpha_tag="$(fmt_g "${SEL_ALPHA:-2.0}")"
-            name+="_seldpp${alpha_tag}"
-        fi
-        if [ "${USE_JACOBIAN_SCORE:-0}" = 1 ]; then
+        case "$selection" in
+            dpp)
+                alpha_tag="$(fmt_g "${SEL_ALPHA:-2.0}")"
+                name+="_seldpp${alpha_tag}"
+                ;;
+            exact) name+="_selexactgigt" ;;
+            a-mr)  name+="_selAminusMR" ;;
+        esac
+        if [ "${USE_JACOBIAN_SCORE:-0}" = 1 ] && \
+           [ "$selection" != exact ] && [ "$selection" != a-mr ]; then
             jacobian_tag="$(fmt_g "${JACOBIAN_WEIGHT:-1.0}")"
             name+="_jacw${jacobian_tag}"
         fi

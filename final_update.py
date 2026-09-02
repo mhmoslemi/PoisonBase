@@ -42,6 +42,9 @@ Base selection (--base):
              AND sitting near the y_adv decision boundary. With
              --use_jacobian_score, subtract beta times the standardized exact
              candidate/target backbone-gradient interaction per surrogate.
+             --sel_exact_alignment ranks by the exact full-parameter
+             g_i^T g_t. --sel_a_minus_mr ranks by the backbone interaction A_i
+             plus (-M_i) times R_i, using the paper's A, M, and R definitions.
 
 Class pair naming follows MetaPoison: 'dog-bird' means poisons are drawn from
 'dog' (y_adv) and the target image is a 'bird'. Use --pair_order target-poison
@@ -140,6 +143,7 @@ CLASS_PAIRS = ['dog-bird', 'frog-airplane']   # the main sweep's pairs; --class_
 _LOG_PATH = None
 _LOG_TAG = ''          # set to '[gpu3]' inside a worker process
 _JACOBIAN_BACKENDS_LOGGED = set()
+_EXACT_ALIGNMENT_BACKENDS_LOGGED = set()
 
 RESULT_FIELDS = ['model', 'attack', 'base', 'class_pair', 'seed', 'budget',
                  'num_poisons', 'epsilon', 'target_idx', 'target_score', 'victim_id',
@@ -509,6 +513,17 @@ def _jacobian_backend_metadata():
     return ', '.join(sorted(backends)) if backends else None
 
 
+def _log_exact_alignment_backend(backend, reason=None):
+    if backend in _EXACT_ALIGNMENT_BACKENDS_LOGGED:
+        return
+    _EXACT_ALIGNMENT_BACKENDS_LOGGED.add(backend)
+    if reason:
+        log('  Exact gi/gt alignment backend: %s (functional JVP unavailable: %s)'
+            % (backend, reason))
+    else:
+        log('  Exact gi/gt alignment backend: %s' % backend)
+
+
 def _backbone_gradient_interactions(net, candidates, x_t_norm, y_adv,
                                     batch_size=64):
     """Return exact candidate/target CE-gradient dots over non-head parameters.
@@ -636,6 +651,123 @@ def _backbone_gradient_interactions(net, candidates, x_t_norm, y_adv,
     return result, backend
 
 
+def _full_gradient_interactions(net, candidates, x_t_norm, y_adv,
+                                batch_size=64):
+    """Return exact <g_i, g_t> over every model parameter for each candidate.
+
+    This is the full gradient alignment in Equation (2), including the final
+    classifier. As in the backbone-only implementation above, the primary path
+    uses one target reverse-mode gradient and batched functional JVPs. The
+    double-backward fallback is algebraically exact and never materializes a
+    candidate-by-parameter Jacobian.
+    """
+    if batch_size <= 0:
+        raise ValueError('exact-alignment batch size must be positive, got %d'
+                         % batch_size)
+    core = net.module if isinstance(net, nn.DataParallel) else net
+    parameters = dict(core.named_parameters())
+    if not parameters:
+        raise ValueError('exact gi/gt alignment requires a model with parameters')
+    buffers = dict(core.named_buffers())
+    states = [(module, module.training) for module in core.modules()]
+    core.eval()
+    target = x_t_norm.unsqueeze(0) if x_t_norm.ndim == candidates.ndim - 1 else x_t_norm
+    label_target = torch.full((target.shape[0],), int(y_adv), dtype=torch.long,
+                              device=target.device)
+
+    def functional_logits(model_params, x):
+        return torch.func.functional_call(core, (model_params, buffers), (x,))
+
+    target_grad = None
+    jvp_error = None
+    try:
+        with torch.enable_grad():
+            try:
+                if not all(hasattr(torch.func, name)
+                           for name in ('functional_call', 'grad', 'jvp')):
+                    raise RuntimeError('torch.func functional_call/grad/jvp is unavailable')
+
+                def target_loss(model_params):
+                    return F.cross_entropy(functional_logits(model_params, target),
+                                           label_target)
+
+                target_grad = torch.func.grad(target_loss)(parameters)
+                target_grad = {name: grad.detach()
+                               for name, grad in target_grad.items()}
+
+                values = []
+                for start in range(0, len(candidates), batch_size):
+                    batch = candidates[start:start + batch_size]
+
+                    def candidate_losses(model_params):
+                        logits = functional_logits(model_params, batch)
+                        labels = torch.full((len(batch),), int(y_adv), dtype=torch.long,
+                                            device=batch.device)
+                        return F.cross_entropy(logits, labels, reduction='none')
+
+                    # For every candidate i, this directional derivative is
+                    # sum_p (d ell_i / d p) * (d L_t / d p) = g_i^T g_t.
+                    _, tangent = torch.func.jvp(candidate_losses, (parameters,),
+                                                (target_grad,))
+                    values.append(tangent.detach())
+                result = torch.cat(values)
+                backend = 'torch.func JVP'
+            except Exception as exc:
+                jvp_error = exc
+                fallback_params = {
+                    name: value.detach().requires_grad_(True)
+                    for name, value in parameters.items()
+                }
+
+                def fallback_logits(x):
+                    return torch.func.functional_call(
+                        core, (fallback_params, buffers), (x,))
+
+                values = []
+                try:
+                    if target_grad is None:
+                        loss_t = F.cross_entropy(fallback_logits(target), label_target)
+                        grads_t = torch.autograd.grad(
+                            loss_t, tuple(fallback_params.values()))
+                        target_grad = {
+                            name: grad.detach()
+                            for name, grad in zip(fallback_params, grads_t)
+                        }
+                    parameter_values = tuple(fallback_params.values())
+                    target_values = tuple(target_grad.values())
+                    for start in range(0, len(candidates), batch_size):
+                        batch = candidates[start:start + batch_size]
+                        weights = torch.zeros(len(batch), device=batch.device,
+                                              dtype=batch.dtype, requires_grad=True)
+                        labels = torch.full((len(batch),), int(y_adv), dtype=torch.long,
+                                            device=batch.device)
+                        losses = F.cross_entropy(
+                            fallback_logits(batch), labels, reduction='none')
+                        mixed = torch.autograd.grad(
+                            torch.dot(weights, losses), parameter_values,
+                            create_graph=True)
+                        directional = sum((g * v).sum()
+                                          for g, v in zip(mixed, target_values))
+                        interaction = torch.autograd.grad(directional, weights)[0]
+                        values.append(interaction.detach())
+                    result = torch.cat(values)
+                    backend = 'dummy-weight double backward'
+                except Exception as fallback_error:
+                    raise RuntimeError(
+                        'exact full-parameter gi/gt alignment failed with both '
+                        'batched backends; torch.func JVP error: %s; '
+                        'double-backward error: %s'
+                        % (jvp_error, fallback_error)) from fallback_error
+    finally:
+        _restore_training_states(states)
+
+    reason = None
+    if jvp_error is not None:
+        reason = '%s: %s' % (type(jvp_error).__name__, str(jvp_error).split('\n')[0])
+    _log_exact_alignment_backend(backend, reason)
+    return result, backend
+
+
 def _log_interaction_diagnostics(surrogate_idx, interaction):
     finite = torch.isfinite(interaction)
     vals = interaction[finite]
@@ -717,6 +849,87 @@ def select_base_ours(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam, devic
         jacobian_batch_size=jacobian_batch_size)
     sel = torch.topk(score, k=N_p, largest=False).indices
     return cls_idx[sel]
+
+
+@torch.no_grad()
+def select_base_exact_alignment(nets, images_norm, labels, x_t_norm, y_adv, N_p,
+                                device, batch_size=64):
+    """Select by the exact full-parameter g_i^T g_t.
+
+    The raw dot-product scale can differ substantially across independently
+    trained surrogates. Standardizing within each surrogate's candidate pool
+    preserves that surrogate's ranking while preventing its gradient magnitude
+    from dominating the ensemble average.
+    """
+    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
+    if len(cls_idx) < N_p:
+        raise ValueError('class %d has %d images < N_p=%d'
+                         % (y_adv, len(cls_idx), N_p))
+    candidates = images_norm[cls_idx]
+    alignment = torch.zeros(len(cls_idx), device=device)
+    for net in nets:
+        interaction, _ = _full_gradient_interactions(
+            net, candidates, x_t_norm, y_adv, batch_size)
+        alignment += standardize(interaction)
+        del interaction
+    alignment /= len(nets)
+    selected = torch.topk(alignment, k=N_p, largest=True).indices
+    return cls_idx[selected]
+
+
+@torch.no_grad()
+def select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
+                           device, batch_size=64):
+    """Select by A_i + (-M_i) * R_i using the paper's component definitions.
+
+    For every surrogate, A_i is <grad_phi ell_i, grad_phi L_adv,t>, M_i is the
+    adversarial-class logit margin, and R_i is the raw representation inner
+    product <h_i, h_t>. Following the paper, each raw component is first
+    averaged over surrogates and then standardized across the candidate pool.
+    The standardized components are combined as A - M*R, which prevents their
+    otherwise incompatible raw scales from determining the result.
+    """
+    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
+    if len(cls_idx) < N_p:
+        raise ValueError('class %d has %d images < N_p=%d'
+                         % (y_adv, len(cls_idx), N_p))
+    candidates = images_norm[cls_idx]
+    margin = torch.zeros(len(cls_idx), device=device)
+    relevance = torch.zeros(len(cls_idx), device=device)
+    interaction = torch.zeros(len(cls_idx), device=device)
+    for net in nets:
+        states = [(module, module.training) for module in net.modules()]
+        net.eval()
+        try:
+            embed = embed_of(net)
+            target_feature = embed(x_t_norm.unsqueeze(0)).flatten(1)
+            margins, relevances = [], []
+            for start in range(0, len(candidates), batch_size):
+                batch = candidates[start:start + batch_size]
+                candidate_feature = embed(batch).flatten(1)
+                logits = net(batch)
+                adversarial_logit = logits[:, y_adv].clone()
+                other_logits = logits.clone()
+                other_logits[:, y_adv] = float('-inf')
+                margins.append(adversarial_logit - other_logits.max(dim=1).values)
+                relevances.append(
+                    (candidate_feature * target_feature).sum(dim=1))
+            margin += torch.cat(margins)
+            relevance += torch.cat(relevances)
+        finally:
+            _restore_training_states(states)
+
+        backbone_interaction, _ = _backbone_gradient_interactions(
+            net, candidates, x_t_norm, y_adv, batch_size)
+        interaction += backbone_interaction
+        del backbone_interaction
+
+    margin = standardize(margin / len(nets))
+    relevance = standardize(relevance / len(nets))
+    interaction = standardize(interaction / len(nets))
+    score = interaction + (-margin) * relevance
+    selected = torch.topk(score, k=N_p, largest=True).indices
+    return cls_idx[selected]
 
 
 # --------------------------------------------------------------------------- #
@@ -1571,6 +1784,16 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         base_idx = torch.tensor(cached_base, dtype=torch.long, device=device)
     elif args.base == 'random':
         base_idx = select_base_random(train_labs, y_adv, N_p, device, gen)
+    elif getattr(args, 'sel_exact_alignment', False):
+        base_idx = select_base_exact_alignment(
+            sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+            train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
+            batch_size=getattr(args, 'jacobian_batch_size', 64))
+    elif getattr(args, 'sel_a_minus_mr', False):
+        base_idx = select_base_a_minus_mr(
+            sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+            train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
+            batch_size=getattr(args, 'jacobian_batch_size', 64))
     elif getattr(args, 'sel_criterion', None):
         base_idx = select_base_criterion(
             args.sel_criterion,
@@ -2028,6 +2251,10 @@ def build_run_name(args):
             name += '_selmmr%g' % args.sel_mu
         elif args.sel_dpp:
             name += '_seldpp%g' % args.sel_alpha
+        elif getattr(args, 'sel_exact_alignment', False):
+            name += '_selexactgigt'
+        elif getattr(args, 'sel_a_minus_mr', False):
+            name += '_selAminusMR'
     # The exact interaction changes selected bases and must never reuse a baseline
     # poison cache.  Batch size/backend affect performance only, not run identity.
     if getattr(args, 'use_jacobian_score', False):
@@ -2127,6 +2354,14 @@ def main(args):
                getattr(args, 'jacobian_batch_size', 64)))
     else:
         log('Jacobian score: disabled')
+    if getattr(args, 'sel_exact_alignment', False):
+        log('Exact full-parameter gi^T gt selector: enabled, batch_size=%d; '
+            'per-surrogate alignment standardization enabled'
+            % getattr(args, 'jacobian_batch_size', 64))
+    if getattr(args, 'sel_a_minus_mr', False):
+        log('A - MR selector: standardized A + (-M)*R, batch_size=%d; '
+            'components averaged over surrogates before standardization'
+            % getattr(args, 'jacobian_batch_size', 64))
 
     y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
     N_p = int(round(args.budget * N_total)) if args.budget else args.num_poisons
@@ -2436,7 +2671,16 @@ def parse_args(argv=None):
     p.add_argument('--jacobian_weight', type=float, default=1.0,
                    help='nonnegative beta multiplying the standardized Jacobian term')
     p.add_argument('--jacobian_batch_size', type=int, default=64,
-                   help='positive candidate batch size for exact Jacobian interactions')
+                   help='positive candidate batch size for exact Jacobian or full '
+                        'gi/gt interactions')
+    p.add_argument('--sel_exact_alignment', action='store_true',
+                   default=argparse.SUPPRESS,
+                   help='select by exact full-parameter g_i^T g_t; each surrogate '
+                        'is standardized before averaging')
+    p.add_argument('--sel_a_minus_mr', action='store_true',
+                   default=argparse.SUPPRESS,
+                   help='select by standardized A_i + (-M_i)*R_i using the paper\'s '
+                        'components, averaged over surrogates before scaling')
 
     # --- diversity-aware base selection (--base ours only) --------------------
     # All three reuse the SAME per-candidate score as plain --base ours and only
@@ -2532,6 +2776,32 @@ def parse_args(argv=None):
     if args.use_jacobian_score and args.sel_criterion:
         p.error('--use_jacobian_score cannot be combined with --sel_criterion, '
                 'which replaces the proposed pointwise score')
+    exact_alignment = getattr(args, 'sel_exact_alignment', False)
+    a_minus_mr = getattr(args, 'sel_a_minus_mr', False)
+    if exact_alignment and args.base != 'ours':
+        p.error('--sel_exact_alignment only affects --base ours')
+    if exact_alignment and on:
+        p.error('--sel_exact_alignment cannot be combined with %s' % on[0])
+    if exact_alignment and args.sel_criterion:
+        p.error('--sel_exact_alignment cannot be combined with --sel_criterion')
+    if exact_alignment and args.base_topr:
+        p.error('--sel_exact_alignment cannot be combined with --base_topr')
+    if exact_alignment and args.use_jacobian_score:
+        p.error('--sel_exact_alignment already uses exact gi/gt and cannot be '
+                'combined with --use_jacobian_score')
+    if a_minus_mr and args.base != 'ours':
+        p.error('--sel_a_minus_mr only affects --base ours')
+    if a_minus_mr and on:
+        p.error('--sel_a_minus_mr cannot be combined with %s' % on[0])
+    if a_minus_mr and args.sel_criterion:
+        p.error('--sel_a_minus_mr cannot be combined with --sel_criterion')
+    if a_minus_mr and args.base_topr:
+        p.error('--sel_a_minus_mr cannot be combined with --base_topr')
+    if a_minus_mr and args.use_jacobian_score:
+        p.error('--sel_a_minus_mr already contains A and cannot be combined '
+                'with --use_jacobian_score')
+    if exact_alignment and a_minus_mr:
+        p.error('--sel_exact_alignment and --sel_a_minus_mr are mutually exclusive')
     # --sel_model with --base random is allowed but does nothing to the result:
     # select_base_random draws from the class pool with a per-target rng and
     # never touches a net, so such a run reproduces the S = A one exactly. It

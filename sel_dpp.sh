@@ -3,7 +3,7 @@
 # Base-selection sweep driver.
 #
 # SELECT picks how the N_p bases are chosen; everything else (crafting, victims,
-# surrogates) is identical across the three, so the comparison is paired:
+# surrogates) is identical across the five, so the comparison is paired:
 #
 #   random   uniform over the poison class          -> --base random
 #   ours     lowest standardized d(x) + lam*M(x),   -> --base ours   (no --sel_*)
@@ -11,6 +11,13 @@
 #   dpp      greedy log-det (DPP MAP) with quality  -> --base ours --sel_dpp
 #            q_i = exp(-SEL_ALPHA * score_i). Small alpha = more diversity,
 #            large alpha reproduces plain 'ours'.
+#   exact    exact full-parameter g_i^T g_t         -> --base ours
+#                                                    --sel_exact_alignment
+#   a-mr     A_i + (-M_i) * R_i, using the paper's  -> --base ours
+#            A, M, and R definitions                  --sel_a_minus_mr
+# The exact mode standardizes each surrogate before averaging. A-MR follows the
+# paper: average each component over surrogates, standardize A/M/R across the
+# candidate pool, and then form A + (-M)*R.
 #
 # Set USE_JACOBIAN_SCORE=1 to add the exact standardized backbone-gradient
 # interaction to the pointwise quality cost for ours or dpp. JACOBIAN_WEIGHT is
@@ -19,8 +26,8 @@
 #     USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 SELECT=dpp sh sel_dpp.sh
 #
 # SELECT is the authority: SEL_ALPHA is read ONLY when SELECT=dpp. Under
-# random / ours it is ignored, no --sel_* flag is passed, and it does not appear
-# in the run name -- so setting it cannot silently change a non-dpp run.
+# random / ours / exact / a-mr it is ignored and does not appear in the run
+# name, so setting it cannot silently change a non-dpp run.
 #
 # Runs final_update.py (final.py is untouched).
 #
@@ -49,6 +56,8 @@
 #     MODEL=VGG13BN CLASS_PAIR="dog-bird frog-airplane" sh sel_dpp.sh
 #     SELECT="random ours dpp" MODEL="ResNet20BN VGG13BN" ATTACK="fc gradmatch" \
 #         BUDGETS="0.001 0.002 0.005" sh sel_dpp.sh
+#     SELECT=exact JACOBIAN_BATCH_SIZE=64 sh sel_dpp.sh
+#     SELECT=a-mr JACOBIAN_BATCH_SIZE=64 sh sel_dpp.sh
 #     ATTACK=sapa SHARP_SIGMA="0.01 0.05 0.1" SELECT=dpp sh sel_dpp.sh
 #     TARGET_SELECT=30 MODEL=VGG13BN ATTACK=sapa sh sel_dpp.sh   # first run of a
 #         combo: pick its 10 targets at difficulty 30. Once target_sets/ has the
@@ -132,8 +141,8 @@ fi
 # reject a bad SELECT once, up front, instead of after hours of surrogate training
 for sel in $SELECT; do
     case "$sel" in
-        random|ours|dpp) ;;
-        *) echo "unknown SELECT=$sel (expected: random | ours | dpp)"; exit 1 ;;
+        random|ours|dpp|exact|a-mr) ;;
+        *) echo "unknown SELECT=$sel (expected: random | ours | dpp | exact | a-mr)"; exit 1 ;;
     esac
 done
 
@@ -198,22 +207,31 @@ PY
 
 for sel in $SELECT; do
 
-    # --- the one knob that differs between the three selections ---------------
+    # --- the one knob that differs between the five selections ----------------
     case "$sel" in
         random) BASE=random; SEL_FLAGS="";                              SEL_NOTE="random" ;;
         ours)   BASE=ours;   SEL_FLAGS="";                              SEL_NOTE="ours (plain greedy top-N_p by score)" ;;
         dpp)    BASE=ours;   SEL_FLAGS="--sel_dpp --sel_alpha $SEL_ALPHA"; SEL_NOTE="dpp (alpha=$SEL_ALPHA)" ;;
+        exact)  BASE=ours;   SEL_FLAGS="--sel_exact_alignment --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="exact full-parameter g_i^T g_t (per-surrogate standardized)" ;;
+        a-mr)   BASE=ours;   SEL_FLAGS="--sel_a_minus_mr --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="A - MR: standardized A + (-M)*R" ;;
     esac
     JACOBIAN_FLAGS=""
     JACOBIAN_NOTE="Jacobian score disabled"
-    if [ "$USE_JACOBIAN_SCORE" = "1" ]; then
-        if [ "$sel" = "random" ]; then
-            JACOBIAN_NOTE="Jacobian score not applicable to random; run unchanged"
-            echo "    Jacobian score not applicable to SELECT=random; leaving random run unchanged"
-        else
-            JACOBIAN_FLAGS="--use_jacobian_score --jacobian_weight $JACOBIAN_WEIGHT --jacobian_batch_size $JACOBIAN_BATCH_SIZE"
-            JACOBIAN_NOTE="Jacobian score enabled (weight=$JACOBIAN_WEIGHT, batch=$JACOBIAN_BATCH_SIZE)"
-        fi
+    if [ "$sel" = "exact" ]; then
+        JACOBIAN_NOTE="exact selector uses full-parameter gi^T gt (batch=$JACOBIAN_BATCH_SIZE)"
+    elif [ "$sel" = "a-mr" ]; then
+        JACOBIAN_NOTE="A - MR uses paper A/M/R (batch=$JACOBIAN_BATCH_SIZE); average then standardize, then A + (-M)*R"
+    elif [ "$USE_JACOBIAN_SCORE" = "1" ]; then
+        case "$sel" in
+            random)
+                JACOBIAN_NOTE="Jacobian score not applicable to random; run unchanged"
+                echo "    Jacobian score not applicable to SELECT=random; leaving random run unchanged"
+                ;;
+            *)
+                JACOBIAN_FLAGS="--use_jacobian_score --jacobian_weight $JACOBIAN_WEIGHT --jacobian_batch_size $JACOBIAN_BATCH_SIZE"
+                JACOBIAN_NOTE="Jacobian score enabled (weight=$JACOBIAN_WEIGHT, batch=$JACOBIAN_BATCH_SIZE)"
+                ;;
+        esac
     fi
 
     # sigma is a real loop for sapa and a single no-op pass for everything else,
