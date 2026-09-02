@@ -3,7 +3,7 @@
 # template 40 times with MODEL, ATTACK, CLASS_PAIR, BUDGETS, and SELECT exported.
 #SBATCH --account=aip-yiweilu
 #SBATCH --job-name=exact_amr_batch2
-#SBATCH --time=0-08:00:00
+#SBATCH --time=0-02:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
