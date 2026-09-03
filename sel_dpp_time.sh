@@ -44,7 +44,6 @@
 
 MODEL="${MODEL:-ConvNetBN VGG13BN ResNet20BN}"
 ATTACK="${ATTACK:-fc}"
-CLASS_PAIR="${CLASS_PAIR:-frog-airplane dog-bird}"
 BUDGETS="${BUDGETS:-0.001}"
 SELECT="${SELECT:-dpp}"
 
@@ -57,7 +56,27 @@ case "$USE_JACOBIAN_SCORE" in
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
 esac
 
-DATASET="${DATASET:-CIFAR10}"
+DATASET="${DATASET:-SVHN}"
+
+# CLASS_PAIR default depends on DATASET, since CIFAR10's named pairs
+# (dog-bird, frog-airplane) don't exist anywhere else. For SVHN, class names
+# are just the digit strings '0'..'9', so a plain name pair works. CIFAR100
+# and TinyImageNet class name spellings vary by how the dataset was prepared,
+# so those use plain class INDICES instead ('3-7') -- final_update_time.py's
+# parse_pair falls back to treating a token as an index when it isn't a
+# literal class name, so this works regardless of the exact class name
+# strings. The pair itself is arbitrary; only its existence in the dataset
+# matters here, not which classes it names.
+if [ -z "$CLASS_PAIR" ]; then
+    case "$DATASET" in
+        CIFAR10) CLASS_PAIR="frog-airplane dog-bird" ;;
+        SVHN) CLASS_PAIR="1-7" ;;
+        CIFAR100) CLASS_PAIR="3-7" ;;
+        TinyImageNet) CLASS_PAIR="3-7" ;;
+        *) CLASS_PAIR="0-1" ;;
+    esac
+fi
+
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
 OUT_DIR="${OUT_DIR:-ours_result}"
 CACHE_DIR="${CACHE_DIR:-./cache}"
@@ -143,9 +162,14 @@ for pair in pairs:
     try:
         tgt = cfg['difficulty'][model][key][pair]
     except KeyError:
-        sys.stderr.write('!! sweep_config.json has no difficulty for %s / %s / %s -- '
-                         'skipping this pair\n' % (model, key, pair))
-        continue
+        # sweep_config.json is CIFAR10-only in practice -- a dataset/model/
+        # attack/pair combo it has never seen (SVHN, CIFAR100, TinyImageNet,
+        # or any pair besides the CIFAR10 ones) still times fine, it just has
+        # no paired-difficulty label, so fall back to a fixed degree instead
+        # of skipping the combo entirely.
+        tgt = 50
+        sys.stderr.write('   note: sweep_config.json has no difficulty for %s / %s / %s -- '
+                         'defaulting to degree %s\n' % (model, key, pair, tgt))
     # pinned if the file is there, difficulty degree otherwise -- sapa falls
     # back to the gradmatch target set, so the two attacks are timed on the
     # identical images
