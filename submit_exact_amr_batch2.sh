@@ -37,14 +37,14 @@ while IFS="$(printf '\t')" read -r config_id model attack class_pair budget; do
         pair_tag=$(printf '%s' "$class_pair" | sed 's/dog-bird/db/; s/frog-airplane/fa/')
         budget_tag=$(printf '%s' "$budget" | tr -d '.')
         job_name="xamr2_${config_id}_${model_tag}_${attack_tag}_${pair_tag}_b${budget_tag}_${selector_tag}"
-        output_path="$LOG_DIR/${job_name}-%j.out"
+        output_path="$LOG_DIR/${job_name}-boyuwang-%j.out"
         export_arg="ALL,SOURCE_ROOT=$SOURCE_ROOT,MODEL=$model,ATTACK=$attack,CLASS_PAIR=$class_pair,BUDGETS=$budget,SELECT=$selection"
 
         if [ "${DRY_RUN:-0}" = 1 ]; then
             printf 'sbatch --account=%s --job-name=%s --output=%s --export=%s %s\n' \
                 aip-yiweilu "$job_name" "$output_path" "$export_arg" "$JOB_SCRIPT"
         else
-            sbatch --account=aip-yiweilu \
+            sbatch --account=aip-boyuwang \
                 --job-name="$job_name" \
                 --output="$output_path" \
                 --export="$export_arg" \
