@@ -1,0 +1,87 @@
+[2026-09-02 21:07:34] === run start: CIFAR10_ConvNetBN_sapa_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_selAminusM_worst0.05_ce5_tgt35 on cuda [0] ===
+[2026-09-02 21:07:34] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "/tmp/attack_if/cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 8, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_component": "a-minus-m", "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/ConvNetBN_gradmatch_frog-airplane.json", "target_select": 35, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-02 21:07:34] Jacobian score: disabled
+[2026-09-02 21:07:34] A-M component selector: raw components averaged over surrogates, then each used component standardized across candidates; batch_size=64
+[2026-09-02 21:07:34] N_total=50000 budget=0.01 -> N_p=500 poisons, y_adv=6(frog) target_class=0(airplane)
+[2026-09-02 21:07:34] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-02 21:07:34]   crafting on 5/20 surrogates
+[2026-09-02 21:07:34] === clean victims (5 x ConvNetBN) ===
+[2026-09-02 21:07:35]   clean baseline CTA = 0.8120 +/- 0.0079
+[2026-09-02 21:07:35]   target pool 1000 -> eligible 994 (6 already predicted as y_adv or dropped)
+[2026-09-02 21:07:35]   chosen 8 targets (file), p_adv range 0.0000..0.0000
+[2026-09-02 21:07:35]   targets: [496, 2087, 8941, 9820, 3825, 1796, 2548, 6437]
+[2026-09-02 21:07:35] === target 496 (1/8) ===
+[2026-09-02 21:07:36]   Jacobian score exact backend: torch.func JVP
+[2026-09-02 21:16:14]   target 496: crafted 500 poisons in 515 s, obj=0.27388
+[2026-09-02 21:16:14]   target 496: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 21:17:06]   [t496 v1/5] fail (pred=airplane) CTA=0.7983
+[2026-09-02 21:17:56]   [t496 v2/5] fail (pred=airplane) CTA=0.8034
+[2026-09-02 21:18:46]   [t496 v3/5] fail (pred=airplane) CTA=0.8046
+[2026-09-02 21:19:36]   [t496 v4/5] SUCCESS (pred=frog) CTA=0.8062
+[2026-09-02 21:20:26]   [t496 v5/5] SUCCESS (pred=frog) CTA=0.8042
+[2026-09-02 21:20:26]   target 496, 5 victims on this gpu: ASR=40.0% CTA=0.8033 +/- 0.0027
+[2026-09-02 21:20:26] === target 2087 (2/8) ===
+[2026-09-02 21:29:05]   target 2087: crafted 500 poisons in 515 s, obj=0.27848
+[2026-09-02 21:29:05]   target 2087: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 21:29:56]   [t2087 v1/5] fail (pred=horse) CTA=0.8033
+[2026-09-02 21:30:46]   [t2087 v2/5] fail (pred=airplane) CTA=0.7974
+[2026-09-02 21:31:36]   [t2087 v3/5] fail (pred=airplane) CTA=0.7965
+[2026-09-02 21:32:26]   [t2087 v4/5] fail (pred=deer) CTA=0.7997
+[2026-09-02 21:33:16]   [t2087 v5/5] fail (pred=deer) CTA=0.7935
+[2026-09-02 21:33:16]   target 2087, 5 victims on this gpu: ASR=0.0% CTA=0.7981 +/- 0.0033
+[2026-09-02 21:33:16] === target 8941 (3/8) ===
+[2026-09-02 21:41:55]   target 8941: crafted 500 poisons in 515 s, obj=0.35431
+[2026-09-02 21:41:55]   target 8941: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 21:42:46]   [t8941 v1/5] fail (pred=airplane) CTA=0.8109
+[2026-09-02 21:43:37]   [t8941 v2/5] fail (pred=airplane) CTA=0.7376
+[2026-09-02 21:44:27]   [t8941 v3/5] fail (pred=airplane) CTA=0.8051
+[2026-09-02 21:45:17]   [t8941 v4/5] fail (pred=airplane) CTA=0.8080
+[2026-09-02 21:46:07]   [t8941 v5/5] fail (pred=airplane) CTA=0.7948
+[2026-09-02 21:46:07]   target 8941, 5 victims on this gpu: ASR=0.0% CTA=0.7913 +/- 0.0274
+[2026-09-02 21:46:07] === target 9820 (4/8) ===
+[2026-09-02 21:54:46]   target 9820: crafted 500 poisons in 515 s, obj=0.28759
+[2026-09-02 21:54:46]   target 9820: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 21:55:37]   [t9820 v1/5] fail (pred=airplane) CTA=0.7973
+[2026-09-02 21:56:27]   [t9820 v2/5] fail (pred=ship) CTA=0.8033
+[2026-09-02 21:57:17]   [t9820 v3/5] fail (pred=airplane) CTA=0.8035
+[2026-09-02 21:58:07]   [t9820 v4/5] fail (pred=airplane) CTA=0.8010
+[2026-09-02 21:58:57]   [t9820 v5/5] fail (pred=truck) CTA=0.8091
+[2026-09-02 21:58:57]   target 9820, 5 victims on this gpu: ASR=0.0% CTA=0.8028 +/- 0.0038
+[2026-09-02 21:58:57] === target 3825 (5/8) ===
+[2026-09-02 22:07:37]   target 3825: crafted 500 poisons in 516 s, obj=0.44052
+[2026-09-02 22:07:37]   target 3825: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 22:08:28]   [t3825 v1/5] fail (pred=airplane) CTA=0.8088
+[2026-09-02 22:09:18]   [t3825 v2/5] fail (pred=airplane) CTA=0.8107
+[2026-09-02 22:10:09]   [t3825 v3/5] fail (pred=airplane) CTA=0.8093
+[2026-09-02 22:10:59]   [t3825 v4/5] fail (pred=airplane) CTA=0.8063
+[2026-09-02 22:11:49]   [t3825 v5/5] fail (pred=airplane) CTA=0.8026
+[2026-09-02 22:11:49]   target 3825, 5 victims on this gpu: ASR=0.0% CTA=0.8075 +/- 0.0028
+[2026-09-02 22:11:49] === target 1796 (6/8) ===
+[2026-09-02 22:20:28]   target 1796: crafted 500 poisons in 515 s, obj=0.29937
+[2026-09-02 22:20:28]   target 1796: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 22:21:20]   [t1796 v1/5] fail (pred=airplane) CTA=0.8003
+[2026-09-02 22:22:10]   [t1796 v2/5] fail (pred=airplane) CTA=0.8109
+[2026-09-02 22:23:01]   [t1796 v3/5] fail (pred=airplane) CTA=0.8052
+[2026-09-02 22:23:51]   [t1796 v4/5] fail (pred=ship) CTA=0.8009
+[2026-09-02 22:24:42]   [t1796 v5/5] SUCCESS (pred=frog) CTA=0.8107
+[2026-09-02 22:24:42]   target 1796, 5 victims on this gpu: ASR=20.0% CTA=0.8056 +/- 0.0046
+[2026-09-02 22:24:42] === target 2548 (7/8) ===
+[2026-09-02 22:33:19]   target 2548: crafted 500 poisons in 513 s, obj=0.25395
+[2026-09-02 22:33:19]   target 2548: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 22:34:10]   [t2548 v1/5] SUCCESS (pred=frog) CTA=0.8022
+[2026-09-02 22:35:00]   [t2548 v2/5] fail (pred=airplane) CTA=0.7786
+[2026-09-02 22:35:50]   [t2548 v3/5] fail (pred=airplane) CTA=0.7969
+[2026-09-02 22:36:40]   [t2548 v4/5] fail (pred=airplane) CTA=0.8009
+[2026-09-02 22:37:31]   [t2548 v5/5] SUCCESS (pred=frog) CTA=0.8076
+[2026-09-02 22:37:31]   target 2548, 5 victims on this gpu: ASR=40.0% CTA=0.7972 +/- 0.0099
+[2026-09-02 22:37:31] === target 6437 (8/8) ===
+[2026-09-02 22:46:09]   target 6437: crafted 500 poisons in 515 s, obj=0.31689
+[2026-09-02 22:46:09]   target 6437: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-02 22:47:01]   [t6437 v1/5] fail (pred=airplane) CTA=0.8010
+[2026-09-02 22:47:51]   [t6437 v2/5] fail (pred=airplane) CTA=0.7996
+[2026-09-02 22:48:41]   [t6437 v3/5] fail (pred=airplane) CTA=0.8147
+[2026-09-02 22:49:31]   [t6437 v4/5] fail (pred=deer) CTA=0.8115
+[2026-09-02 22:50:21]   [t6437 v5/5] fail (pred=deer) CTA=0.8076
+[2026-09-02 22:50:21]   target 6437, 5 victims on this gpu: ASR=0.0% CTA=0.8069 +/- 0.0058
+[2026-09-02 22:50:21] ==== CIFAR10_ConvNetBN_sapa_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_selAminusM_worst0.05_ce5_tgt35 : ASR = 12.5% +/- 17.1% | CTA = 0.8016 (baseline 0.8120) ====
+[2026-09-02 22:50:21]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [27, 0, 0, 0, 4, 0, 5, 1, 2, 1]
