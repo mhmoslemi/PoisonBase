@@ -57,7 +57,7 @@ case "$USE_JACOBIAN_SCORE" in
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
 esac
 
-DATASET="${DATASET:-SVHN}"
+DATASET="${DATASET:-CIFAR10}"
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
 OUT_DIR="${OUT_DIR:-ours_result}"
 CACHE_DIR="${CACHE_DIR:-./cache}"

@@ -95,3 +95,110 @@
 [2026-09-03 18:18:11]     pair dog-bird target 3495 repeat 5/5: d=0.6087s M=0.6005s A=21.8657s sort=0.0145s end2end=23.0894s peak_mem=1214.0MB (50 bases)
 [2026-09-03 18:18:34]     pair dog-bird target 2903 repeat 1/5: d=0.6095s M=0.6027s A=21.9065s sort=0.0150s end2end=23.1336s peak_mem=1214.0MB (50 bases)
 [2026-09-03 18:18:57]     pair dog-bird target 2903 repeat 2/5: d=0.6077s M=0.5989s A=22.0477s sort=0.0148s end2end=23.2691s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:19:20]     pair dog-bird target 2903 repeat 3/5: d=0.6090s M=0.6003s A=21.9234s sort=0.0146s end2end=23.1473s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:19:43]     pair dog-bird target 2903 repeat 4/5: d=0.6088s M=0.5999s A=21.8997s sort=0.0148s end2end=23.1232s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:20:06]     pair dog-bird target 2903 repeat 5/5: d=0.6080s M=0.6010s A=21.8690s sort=0.0148s end2end=23.0928s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:20:29]     pair dog-bird target 6697 repeat 1/5: d=0.6085s M=0.6008s A=21.7418s sort=0.0147s end2end=22.9658s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:20:53]     pair dog-bird target 6697 repeat 2/5: d=0.6083s M=0.6002s A=21.8774s sort=0.0150s end2end=23.1008s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:21:16]     pair dog-bird target 6697 repeat 3/5: d=0.6085s M=0.6002s A=22.0806s sort=0.0149s end2end=23.3043s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:21:39]     pair dog-bird target 6697 repeat 4/5: d=0.6101s M=0.6027s A=22.0147s sort=0.0149s end2end=23.2423s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:29:48] === [time_mode] run start: CIFAR10_ResNet20BN_fc_ours_frog-airplane+dog-bird_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 18:29:48] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.001, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 3, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ResNet20BN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 18:29:48]   2 class pair(s): frog-airplane+dog-bird
+[2026-09-03 18:30:00] N_total=50000 budget=0.001 -> N_p=50 poisons
+[2026-09-03 18:30:00] === surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-03 18:30:00]   target pool 1000 -> eligible 997 (3 already predicted as y_adv or dropped)
+[2026-09-03 18:30:00]   chosen 3 targets (file), p_adv range 0.0356..0.1768
+[2026-09-03 18:30:00]   warm-up call (untimed)...
+[2026-09-03 18:30:02]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 18:30:15] === class pair frog-airplane: y_adv=6(frog) target_class=0(airplane) ===
+[2026-09-03 18:30:15]     pinned from target_sets/ResNet20BN_fc_frog-airplane.json (same images sel_dpp.sh would attack)
+[2026-09-03 18:30:15]   target pool 1000 -> eligible 997 (3 already predicted as y_adv or dropped)
+[2026-09-03 18:30:15]   chosen 3 targets (file), p_adv range 0.0356..0.1768
+[2026-09-03 18:30:15]     targets: [9273, 2535, 4118]
+[2026-09-03 18:30:29]     pair frog-airplane target 9273 repeat 1/5: d=0.5015s M=0.4914s A=13.0099s sort=0.0083s end2end=14.0112s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:30:43]     pair frog-airplane target 9273 repeat 2/5: d=0.5017s M=0.4913s A=12.7584s sort=0.0083s end2end=13.7598s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:30:56]     pair frog-airplane target 9273 repeat 3/5: d=0.5014s M=0.4914s A=12.8914s sort=0.0085s end2end=13.8926s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:31:10]     pair frog-airplane target 9273 repeat 4/5: d=0.5015s M=0.4915s A=12.6942s sort=0.0083s end2end=13.6956s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:31:24]     pair frog-airplane target 9273 repeat 5/5: d=0.5017s M=0.4912s A=13.1842s sort=0.0088s end2end=14.1860s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:31:38]     pair frog-airplane target 2535 repeat 1/5: d=0.5021s M=0.4913s A=12.9638s sort=0.0092s end2end=13.9664s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:31:53]     pair frog-airplane target 2535 repeat 2/5: d=0.5019s M=0.4913s A=13.1994s sort=0.0084s end2end=14.2011s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:32:07]     pair frog-airplane target 2535 repeat 3/5: d=0.5019s M=0.4914s A=13.3546s sort=0.0091s end2end=14.3570s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:32:21]     pair frog-airplane target 2535 repeat 4/5: d=0.5018s M=0.4914s A=12.9240s sort=0.0094s end2end=13.9265s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:32:35]     pair frog-airplane target 2535 repeat 5/5: d=0.5017s M=0.4912s A=13.0898s sort=0.0081s end2end=14.0909s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:32:49]     pair frog-airplane target 4118 repeat 1/5: d=0.5017s M=0.4914s A=13.1687s sort=0.0086s end2end=14.1704s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:33:03]     pair frog-airplane target 4118 repeat 2/5: d=0.5020s M=0.4914s A=13.3728s sort=0.0086s end2end=14.3747s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:33:18]     pair frog-airplane target 4118 repeat 3/5: d=0.5017s M=0.4916s A=13.2464s sort=0.0085s end2end=14.2481s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:33:32]     pair frog-airplane target 4118 repeat 4/5: d=0.5018s M=0.4913s A=13.2844s sort=0.0088s end2end=14.2864s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:33:46]     pair frog-airplane target 4118 repeat 5/5: d=0.5020s M=0.4914s A=13.1412s sort=0.0081s end2end=14.1427s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:33:46] === class pair dog-bird: y_adv=5(dog) target_class=2(bird) ===
+[2026-09-03 18:33:46]     pinned from target_sets/ResNet20BN_fc_dog-bird.json (same images sel_dpp.sh would attack)
+[2026-09-03 18:33:46]   target pool 1000 -> eligible 978 (22 already predicted as y_adv or dropped)
+[2026-09-03 18:33:46]   chosen 3 targets (file), p_adv range 0.0556..0.3204
+[2026-09-03 18:33:46]     targets: [3495, 2903, 6697]
+[2026-09-03 18:34:01]     pair dog-bird target 3495 repeat 1/5: d=0.5011s M=0.4911s A=13.4418s sort=0.0086s end2end=14.4425s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:34:15]     pair dog-bird target 3495 repeat 2/5: d=0.5018s M=0.4915s A=13.1403s sort=0.0093s end2end=14.1428s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:34:29]     pair dog-bird target 3495 repeat 3/5: d=0.5017s M=0.4914s A=12.8891s sort=0.0082s end2end=13.8904s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:34:43]     pair dog-bird target 3495 repeat 4/5: d=0.5015s M=0.4914s A=13.2305s sort=0.0084s end2end=14.2316s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:34:57]     pair dog-bird target 3495 repeat 5/5: d=0.5017s M=0.4913s A=13.3831s sort=0.0082s end2end=14.3843s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:35:10] === [time_mode] run start: CIFAR10_ResNet20BN_fc_ours_frog-airplane+dog-bird_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 18:35:10] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.001, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 3, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ResNet20BN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 18:35:10]   2 class pair(s): frog-airplane+dog-bird
+[2026-09-03 18:35:11]     pair dog-bird target 2903 repeat 1/5: d=0.5014s M=0.4911s A=13.1209s sort=0.0083s end2end=14.1216s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:35:26]     pair dog-bird target 2903 repeat 2/5: d=0.5018s M=0.4912s A=13.0366s sort=0.0086s end2end=14.0382s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:35:32] N_total=50000 budget=0.001 -> N_p=50 poisons
+[2026-09-03 18:35:32] === surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-03 18:35:33]   target pool 1000 -> eligible 997 (3 already predicted as y_adv or dropped)
+[2026-09-03 18:35:33]   chosen 3 targets (file), p_adv range 0.0357..0.1768
+[2026-09-03 18:35:33]   warm-up call (untimed)...
+[2026-09-03 18:35:36]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 18:35:40]     pair dog-bird target 2903 repeat 3/5: d=0.5018s M=0.4915s A=13.1813s sort=0.0091s end2end=14.1836s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:35:54]     pair dog-bird target 2903 repeat 4/5: d=0.5019s M=0.4917s A=13.5093s sort=0.0091s end2end=14.5120s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:35:57] === class pair frog-airplane: y_adv=6(frog) target_class=0(airplane) ===
+[2026-09-03 18:35:57]     pinned from target_sets/ResNet20BN_fc_frog-airplane.json (same images sel_dpp.sh would attack)
+[2026-09-03 18:35:57]   target pool 1000 -> eligible 997 (3 already predicted as y_adv or dropped)
+[2026-09-03 18:35:57]   chosen 3 targets (file), p_adv range 0.0357..0.1768
+[2026-09-03 18:35:57]     targets: [9273, 2535, 4118]
+[2026-09-03 18:36:08]     pair dog-bird target 2903 repeat 5/5: d=0.5019s M=0.4914s A=12.9467s sort=0.0082s end2end=13.9483s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:36:21]     pair frog-airplane target 9273 repeat 1/5: d=0.6109s M=0.6042s A=22.1697s sort=0.0153s end2end=23.4001s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:36:22]     pair dog-bird target 6697 repeat 1/5: d=0.5017s M=0.4914s A=12.4655s sort=0.0082s end2end=13.4667s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:36:36]     pair dog-bird target 6697 repeat 2/5: d=0.5015s M=0.4911s A=12.8442s sort=0.0086s end2end=13.8454s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:36:44]     pair frog-airplane target 9273 repeat 2/5: d=0.6106s M=0.6041s A=22.2061s sort=0.0150s end2end=23.4358s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:36:49]     pair dog-bird target 6697 repeat 3/5: d=0.5018s M=0.4914s A=12.9849s sort=0.0084s end2end=13.9865s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:37:03]     pair dog-bird target 6697 repeat 4/5: d=0.5018s M=0.4914s A=12.8049s sort=0.0090s end2end=13.8071s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:37:07]     pair frog-airplane target 9273 repeat 3/5: d=0.6110s M=0.6029s A=22.1824s sort=0.0148s end2end=23.4111s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:37:17]     pair dog-bird target 6697 repeat 5/5: d=0.5020s M=0.4911s A=12.8384s sort=0.0087s end2end=13.8401s peak_mem=1260.8MB (50 bases)
+[2026-09-03 18:37:17] ==== TIMING SUMMARY: CIFAR10_ResNet20BN_fc_ours_frog-airplane+dog-bird_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1 | CIFAR10 / ResNet20BN | 2 class pair(s), 5 repeat(s)/target = 30 measured selections (pooled across pairs) ====
+[2026-09-03 18:37:17]   d       : time 0.5017s +/- 0.0002s | mem   1066.3MB +/-    0.0MB  (n=30)
+[2026-09-03 18:37:17]   M       : time 0.4913s +/- 0.0001s | mem   1067.8MB +/-    0.0MB  (n=30)
+[2026-09-03 18:37:17]   A       : time 13.0700s +/- 0.2361s | mem   1260.8MB +/-    0.0MB  (n=30)
+[2026-09-03 18:37:17]   sort    : time 0.0086s +/- 0.0004s | mem   1260.8MB +/-    0.0MB  (n=30)
+[2026-09-03 18:37:17]   combined: time 14.0717s +/- 0.2362s | mem   1260.8MB +/-    0.0MB  (n=30)
+[2026-09-03 18:37:17]   wrote ours_result/TIME_CIFAR10_ResNet20BN_fc_ours_frog-airplane+dog-bird_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1/timing.json
+[2026-09-03 18:37:31]     pair frog-airplane target 9273 repeat 4/5: d=0.6102s M=0.6019s A=22.1623s sort=0.0148s end2end=23.3893s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:37:54]     pair frog-airplane target 9273 repeat 5/5: d=0.6098s M=0.6020s A=22.3210s sort=0.0150s end2end=23.5479s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:38:18]     pair frog-airplane target 2535 repeat 1/5: d=0.6099s M=0.6019s A=22.4535s sort=0.0157s end2end=23.6809s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:38:42]     pair frog-airplane target 2535 repeat 2/5: d=0.6094s M=0.6011s A=22.3606s sort=0.0149s end2end=23.5860s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:39:05]     pair frog-airplane target 2535 repeat 3/5: d=0.6094s M=0.6012s A=22.4980s sort=0.0151s end2end=23.7236s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:39:29]     pair frog-airplane target 2535 repeat 4/5: d=0.6094s M=0.6012s A=22.3052s sort=0.0150s end2end=23.5308s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:39:52]     pair frog-airplane target 2535 repeat 5/5: d=0.6092s M=0.6015s A=22.3904s sort=0.0149s end2end=23.6160s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:40:16]     pair frog-airplane target 4118 repeat 1/5: d=0.6092s M=0.6012s A=22.2980s sort=0.0152s end2end=23.5237s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:40:40]     pair frog-airplane target 4118 repeat 2/5: d=0.6093s M=0.6011s A=22.3177s sort=0.0150s end2end=23.5430s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:41:03]     pair frog-airplane target 4118 repeat 3/5: d=0.6090s M=0.6012s A=22.2982s sort=0.0149s end2end=23.5233s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:41:27]     pair frog-airplane target 4118 repeat 4/5: d=0.6092s M=0.6008s A=22.3483s sort=0.0148s end2end=23.5730s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:41:50]     pair frog-airplane target 4118 repeat 5/5: d=0.6092s M=0.6006s A=22.3059s sort=0.0151s end2end=23.5308s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:41:50] === class pair dog-bird: y_adv=5(dog) target_class=2(bird) ===
+[2026-09-03 18:41:50]     pinned from target_sets/ResNet20BN_fc_dog-bird.json (same images sel_dpp.sh would attack)
+[2026-09-03 18:41:50]   target pool 1000 -> eligible 978 (22 already predicted as y_adv or dropped)
+[2026-09-03 18:41:50]   chosen 3 targets (file), p_adv range 0.0555..0.3206
+[2026-09-03 18:41:50]     targets: [3495, 2903, 6697]
+[2026-09-03 18:42:14]     pair dog-bird target 3495 repeat 1/5: d=0.6084s M=0.6002s A=22.2625s sort=0.0152s end2end=23.4863s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:42:37]     pair dog-bird target 3495 repeat 2/5: d=0.6116s M=0.6043s A=22.3457s sort=0.0147s end2end=23.5763s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:43:01]     pair dog-bird target 3495 repeat 3/5: d=0.6097s M=0.6005s A=22.3913s sort=0.0150s end2end=23.6164s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:43:25]     pair dog-bird target 3495 repeat 4/5: d=0.6089s M=0.6016s A=22.3330s sort=0.0149s end2end=23.5584s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:43:48]     pair dog-bird target 3495 repeat 5/5: d=0.6092s M=0.6008s A=22.4687s sort=0.0151s end2end=23.6938s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:44:12]     pair dog-bird target 2903 repeat 1/5: d=0.6096s M=0.6006s A=22.3867s sort=0.0151s end2end=23.6119s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:44:35]     pair dog-bird target 2903 repeat 2/5: d=0.6095s M=0.6005s A=22.3935s sort=0.0151s end2end=23.6186s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:44:59]     pair dog-bird target 2903 repeat 3/5: d=0.6107s M=0.6029s A=22.3939s sort=0.0149s end2end=23.6223s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:45:22]     pair dog-bird target 2903 repeat 4/5: d=0.6089s M=0.6009s A=22.1020s sort=0.0148s end2end=23.3265s peak_mem=1214.0MB (50 bases)
+[2026-09-03 18:45:46]     pair dog-bird target 2903 repeat 5/5: d=0.6093s M=0.6002s A=22.3980s sort=0.0149s end2end=23.6224s peak_mem=1214.0MB (50 bases)
