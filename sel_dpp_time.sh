@@ -40,10 +40,11 @@
 #     NUM_TARGETS=10 TIME_REPEATS=20 SELECT=dpp sh sel_dpp_time.sh
 #     BUDGETS="0.001 0.01 0.04" SELECT=dpp sh sel_dpp_time.sh   # N_p scaling
 #
+# MODELS=(ConvNetBN VGG13BN ResNet20BN)
 
-MODEL="${MODEL:-VGG13BN}"
+MODEL="${MODEL:-ConvNetBN VGG13BN ResNet20BN}"
 ATTACK="${ATTACK:-fc}"
-CLASS_PAIR="${CLASS_PAIR:-frog-airplane}"
+CLASS_PAIR="${CLASS_PAIR:-frog-airplane dog-bird}"
 BUDGETS="${BUDGETS:-0.001}"
 SELECT="${SELECT:-dpp}"
 
@@ -56,7 +57,7 @@ case "$USE_JACOBIAN_SCORE" in
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
 esac
 
-DATASET="${DATASET:-CIFAR10}"
+DATASET="${DATASET:-SVHN}"
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
 OUT_DIR="${OUT_DIR:-ours_result}"
 CACHE_DIR="${CACHE_DIR:-./cache}"
@@ -66,8 +67,8 @@ PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
 
 # how many real targets to select and how many timed repeats per target --
 # defaults give 10 x 10 = 100 measured selections per combo.
-NUM_TARGETS="${NUM_TARGETS:-10}"
-TIME_REPEATS="${TIME_REPEATS:-10}"
+NUM_TARGETS="${NUM_TARGETS:-3}"
+TIME_REPEATS="${TIME_REPEATS:-5}"
 
 # Difficulty degree to select targets with the FIRST time a combo is run, i.e.
 # when target_sets/<MODEL>_<ATTACK>_<PAIR>.json does not exist yet. 0..100
