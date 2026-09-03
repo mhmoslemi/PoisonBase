@@ -2419,18 +2419,26 @@ def build_run_name(args):
 #
 # select_base_ours / _ours_div('dpp') / _exact_alignment / _a_minus_mr /
 # _components all end the same way: some per-candidate quantities are computed
-# (feature distance, margin M, the Jacobian interaction A, the representation
-# inner product R -- one or more forward/backward passes over the WHOLE
-# candidate pool per surrogate), then those quantities are combined into one
-# score and N_p candidates are picked (torch.topk, or the greedy DPP log-det
-# loop). The functions below are timing-instrumented duplicates of that
-# dispatch, each split at exactly that boundary into a "compute" phase and a
-# "sort" phase. They call the SAME shared helpers the real selectors call
-# (_ours_pointwise_score, _ours_score_and_feats, _full_gradient_interactions,
-# _backbone_gradient_interactions) so the numbers they produce are identical;
-# only the wrapping (topk / greedy loop) is duplicated, so that its cost can be
-# timed on its own. The original select_base_* functions above are untouched
-# and still define the real run's behavior whenever --time_mode is not passed.
+# (feature distance d, margin M, the Jacobian backbone interaction A, the raw
+# representation inner product R -- whichever the selector needs, one or more
+# forward/backward passes over the WHOLE candidate pool per surrogate), then
+# those quantities are combined into one score and N_p candidates are picked
+# (torch.topk, or the greedy DPP log-det loop). The functions below are
+# timing-instrumented duplicates of that dispatch, split into ONE phase PER
+# COMPONENT (d / M / A / R / gi_gt, whichever apply) plus a final 'sort' phase
+# for the combine + topk / greedy step. Where the original computes two
+# components in one interleaved per-batch loop (--base ours's d and M; a-mr's
+# M and R), the timed duplicate does each as its own full pass over every
+# surrogate instead -- same total forward/backward work, same final score,
+# only reordered, which is immaterial since these components never depend on
+# one another. All of them run under torch.no_grad(), same as the originals
+# they duplicate (_ours_pointwise_score, select_base_exact_alignment,
+# select_base_a_minus_mr, select_base_components are themselves decorated
+# @torch.no_grad()) -- WITHOUT this every forward pass here would build and
+# retain a full autograd graph with nothing to ever call .backward() and free
+# it, so memory grows across the whole candidate pool x every surrogate until
+# the GPU OOMs. The original select_base_* functions above are untouched and
+# still define the real run's behavior whenever --time_mode is not passed.
 # --------------------------------------------------------------------------- #
 
 def _is_cuda(device):
@@ -2438,19 +2446,22 @@ def _is_cuda(device):
 
 
 class _Stopwatch:
-    """perf_counter checkpoints with a CUDA sync at every mark.
+    """Named checkpoints for both elapsed time and cumulative peak GPU memory.
 
-    Everything timed here launches async CUDA kernels, so a plain
-    time.perf_counter() around the Python call would mostly measure how fast
-    the CPU can enqueue work, not how long the GPU took. Syncing at start()
-    and at every mark() makes each interval the actual wall-clock cost of the
-    work between the previous mark and this one.
+    Call .start() once, then .mark(name) after each phase. .elapsed[name] is
+    the wall-clock time of THAT phase alone (CUDA-synced, so async kernels are
+    timed correctly). .mem_mb[name] is torch.cuda.max_memory_allocated() read
+    (never reset) at that checkpoint, i.e. the cumulative peak GPU memory used
+    by the call SO FAR, since whatever reset_peak_memory_stats() the caller did
+    before .start(). The last mark's mem_mb is therefore the true peak for the
+    whole call.
     """
 
     def __init__(self, device):
         self.device = device
         self._t = None
         self.elapsed = {}
+        self.mem_mb = {}
 
     def _sync(self):
         if _is_cuda(self.device):
@@ -2466,47 +2477,136 @@ class _Stopwatch:
         now = time.perf_counter()
         self.elapsed[name] = now - self._t
         self._t = now
+        self.mem_mb[name] = (torch.cuda.max_memory_allocated(self.device) / (1024.0 ** 2)
+                             if _is_cuda(self.device) else 0.0)
         return self
 
 
+@torch.no_grad()
+def timed_ours_components(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
+                          sw, base_dist='l2', bs=512, collect_feats=False,
+                          use_jacobian_score=False, jacobian_weight=1.0,
+                          jacobian_batch_size=64):
+    """Timed duplicate of _ours_pointwise_score, split into a 'd' phase, an 'M'
+    phase, and (if enabled) an 'A' phase, each a full pass over every surrogate,
+    instead of one per-batch loop that computes d and M together. Marks 'd',
+    'M', and (if use_jacobian_score) 'A' on ``sw``. Returns (cls_idx, score,
+    feats) exactly like _ours_pointwise_score / _ours_score_and_feats.
+    """
+    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
+    cand = images_norm[cls_idx]
+    n_nets = len(nets)
+
+    # ---- d: feature distance to the target, standardized per surrogate ------
+    d_total = torch.zeros(len(cls_idx), device=device)
+    feat_blocks = [] if collect_feats else None
+    for net in nets:
+        states = [(module, module.training) for module in net.modules()]
+        net.eval()
+        try:
+            emb = embed_of(net)
+            f_t = emb(x_t_norm.unsqueeze(0))
+            ds, fs = [], []
+            for i in range(0, len(cand), bs):
+                b = cand[i:i + bs]
+                fb = emb(b)
+                if base_dist == 'cosine':
+                    d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
+                else:
+                    d = ((fb - f_t) ** 2).sum(dim=1)
+                ds.append(d)
+                if collect_feats:
+                    fs.append(F.normalize(fb.detach().flatten(1), dim=1))
+            d_total += standardize(torch.cat(ds))
+            if collect_feats:
+                feat_blocks.append(torch.cat(fs))
+        finally:
+            _restore_training_states(states)
+    sw.mark('d')
+
+    # ---- M: adversarial-class logit margin, standardized per surrogate ------
+    m_total = torch.zeros(len(cls_idx), device=device)
+    for net in nets:
+        states = [(module, module.training) for module in net.modules()]
+        net.eval()
+        try:
+            ms = []
+            for i in range(0, len(cand), bs):
+                b = cand[i:i + bs]
+                z = net(b)
+                z_adv = z[:, y_adv].clone()
+                z_o = z.clone()
+                z_o[:, y_adv] = float('-inf')
+                ms.append(z_adv - z_o.max(dim=1).values)
+            m_total += standardize(torch.cat(ms))
+        finally:
+            _restore_training_states(states)
+    sw.mark('M')
+
+    # ---- A (optional): exact backbone-gradient interaction -------------------
+    a_total = None
+    if use_jacobian_score:
+        a_total = torch.zeros(len(cls_idx), device=device)
+        for surrogate_idx, net in enumerate(nets):
+            interaction, _ = _backbone_gradient_interactions(
+                net, cand, x_t_norm, y_adv, jacobian_batch_size)
+            _log_interaction_diagnostics(surrogate_idx, interaction)
+            a_total += standardize(interaction)
+            del interaction
+        sw.mark('A')
+
+    score = d_total + lam * m_total
+    if use_jacobian_score and jacobian_weight != 0:
+        score = score - jacobian_weight * a_total
+    score = score / n_nets
+
+    feats = (torch.cat(feat_blocks, dim=1) / math.sqrt(n_nets)
+             if collect_feats else None)
+    return cls_idx, score, feats
+
+
+@torch.no_grad()
 def timed_select_base_ours(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam,
                            device, base_dist='l2', bs=512, use_jacobian_score=False,
                            jacobian_weight=1.0, jacobian_batch_size=64):
-    """Timed duplicate of select_base_ours. Returns (base_idx, compute_s, sort_s)."""
+    """Timed duplicate of select_base_ours. Returns (base_idx, stopwatch) with
+    phases 'd', 'M', ('A' if enabled), 'sort'."""
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
     sw = _Stopwatch(device).start()
-    # ---- compute: d(x) [+ lambda*M(x)] [+ Jacobian A(x)], ensemble-averaged --
-    cls_idx, score, _ = _ours_pointwise_score(
-        nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
+    cls_idx, score, _ = timed_ours_components(
+        nets, images_norm, labels, x_t_norm, y_adv, lam, device, sw,
+        base_dist=base_dist, bs=bs, collect_feats=False,
         use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
         jacobian_batch_size=jacobian_batch_size)
-    sw.mark('compute')
-    # ---- sort: plain greedy top-N_p by score -------------------------------
     sel = torch.topk(score, k=N_p, largest=False).indices
     base_idx = cls_idx[sel]
     sw.mark('sort')
-    return base_idx, sw.elapsed['compute'], sw.elapsed['sort']
+    return base_idx, sw
 
 
+@torch.no_grad()
 def timed_select_base_dpp(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam,
                           device, base_dist='l2', bs=512, alpha=1.0,
                           use_jacobian_score=False, jacobian_weight=1.0,
                           jacobian_batch_size=64):
-    """Timed duplicate of select_base_ours_div(mode='dpp')."""
+    """Timed duplicate of select_base_ours_div(mode='dpp'). Returns (base_idx,
+    stopwatch) with phases 'd', 'M', ('A' if enabled), 'sort' (the final
+    standardize + greedy log-det loop is folded into 'sort', matching the
+    original, where it happens right before the mode branch)."""
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
     sw = _Stopwatch(device).start()
-    # ---- compute: same score as 'ours' above, plus per-surrogate features --
-    cls_idx, score, feats = _ours_score_and_feats(
-        nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
+    cls_idx, score, feats = timed_ours_components(
+        nets, images_norm, labels, x_t_norm, y_adv, lam, device, sw,
+        base_dist=base_dist, bs=bs, collect_feats=True,
         use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
         jacobian_batch_size=jacobian_batch_size)
     N = len(cls_idx)
     score = standardize(score)          # monotone: does not change plain ranking
-    sw.mark('compute')
+
     # ---- sort: greedy log-det MAP for a DPP, verbatim from
     # select_base_ours_div's 'dpp' branch (Chen et al., NeurIPS 2018) ---------
     score = score.double()
@@ -2526,20 +2626,20 @@ def timed_select_base_dpp(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam,
         sel.append(j)
     base_idx = cls_idx[torch.tensor(sel, device=device)]
     sw.mark('sort')
-    return base_idx, sw.elapsed['compute'], sw.elapsed['sort']
+    return base_idx, sw
 
 
+@torch.no_grad()
 def timed_select_base_exact_alignment(nets, images_norm, labels, x_t_norm, y_adv,
                                       N_p, device, batch_size=64):
-    """Timed duplicate of select_base_exact_alignment (the exact g_i^T g_t)."""
+    """Timed duplicate of select_base_exact_alignment (the exact g_i^T g_t).
+    Returns (base_idx, stopwatch) with phases 'gi_gt', 'sort'."""
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d'
                          % (y_adv, len(cls_idx), N_p))
     candidates = images_norm[cls_idx]
     sw = _Stopwatch(device).start()
-    # ---- compute: full-parameter g_i^T g_t per surrogate, standardized, ----
-    # ---- then averaged over the ensemble ------------------------------------
     alignment = torch.zeros(len(cls_idx), device=device)
     for net in nets:
         interaction, _ = _full_gradient_interactions(
@@ -2547,68 +2647,94 @@ def timed_select_base_exact_alignment(nets, images_norm, labels, x_t_norm, y_adv
         alignment += standardize(interaction)
         del interaction
     alignment /= len(nets)
-    sw.mark('compute')
-    # ---- sort: top-N_p by alignment -----------------------------------------
+    sw.mark('gi_gt')
     selected = torch.topk(alignment, k=N_p, largest=True).indices
     base_idx = cls_idx[selected]
     sw.mark('sort')
-    return base_idx, sw.elapsed['compute'], sw.elapsed['sort']
+    return base_idx, sw
 
 
+@torch.no_grad()
 def timed_select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
                                  device, batch_size=64):
-    """Timed duplicate of select_base_a_minus_mr: A_i + (-M_i) * R_i."""
+    """Timed duplicate of select_base_a_minus_mr: A_i + (-M_i) * R_i. Returns
+    (base_idx, stopwatch) with phases 'A', 'M', 'R', 'sort'.
+
+    The original computes M and R together (one loop per net, both from the
+    same batch) and A separately. Here A, M, and R are each a full, separate
+    pass over every surrogate, so each can be timed/memory-marked on its own;
+    the values are identical since none of the three depends on another.
+    """
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d'
                          % (y_adv, len(cls_idx), N_p))
     candidates = images_norm[cls_idx]
     sw = _Stopwatch(device).start()
-    # ---- compute: A (backbone gradient interaction), M (logit margin), -----
-    # ---- R (raw representation inner product with the target), each --------
-    # ---- averaged over surrogates and then standardized ---------------------
-    margin = torch.zeros(len(cls_idx), device=device)
-    relevance = torch.zeros(len(cls_idx), device=device)
+
+    # ---- A: backbone gradient interaction ------------------------------------
     interaction = torch.zeros(len(cls_idx), device=device)
+    for net in nets:
+        backbone_interaction, _ = _backbone_gradient_interactions(
+            net, candidates, x_t_norm, y_adv, batch_size)
+        interaction += backbone_interaction
+        del backbone_interaction
+    interaction = standardize(interaction / len(nets))
+    sw.mark('A')
+
+    # ---- M: adversarial-class logit margin -----------------------------------
+    margin = torch.zeros(len(cls_idx), device=device)
+    for net in nets:
+        states = [(module, module.training) for module in net.modules()]
+        net.eval()
+        try:
+            margins = []
+            for start in range(0, len(candidates), batch_size):
+                batch = candidates[start:start + batch_size]
+                logits = net(batch)
+                adversarial_logit = logits[:, y_adv].clone()
+                other_logits = logits.clone()
+                other_logits[:, y_adv] = float('-inf')
+                margins.append(adversarial_logit - other_logits.max(dim=1).values)
+            margin += torch.cat(margins)
+        finally:
+            _restore_training_states(states)
+    margin = standardize(margin / len(nets))
+    sw.mark('M')
+
+    # ---- R: raw representation inner product with the target ----------------
+    relevance = torch.zeros(len(cls_idx), device=device)
     for net in nets:
         states = [(module, module.training) for module in net.modules()]
         net.eval()
         try:
             embed = embed_of(net)
             target_feature = embed(x_t_norm.unsqueeze(0)).flatten(1)
-            margins, relevances = [], []
+            relevances = []
             for start in range(0, len(candidates), batch_size):
                 batch = candidates[start:start + batch_size]
                 candidate_feature = embed(batch).flatten(1)
-                logits = net(batch)
-                adversarial_logit = logits[:, y_adv].clone()
-                other_logits = logits.clone()
-                other_logits[:, y_adv] = float('-inf')
-                margins.append(adversarial_logit - other_logits.max(dim=1).values)
                 relevances.append((candidate_feature * target_feature).sum(dim=1))
-            margin += torch.cat(margins)
             relevance += torch.cat(relevances)
         finally:
             _restore_training_states(states)
-        backbone_interaction, _ = _backbone_gradient_interactions(
-            net, candidates, x_t_norm, y_adv, batch_size)
-        interaction += backbone_interaction
-        del backbone_interaction
-    margin = standardize(margin / len(nets))
     relevance = standardize(relevance / len(nets))
-    interaction = standardize(interaction / len(nets))
-    sw.mark('compute')
+    sw.mark('R')
+
     # ---- sort: A + (-M)*R, then top-N_p --------------------------------------
     score = interaction + (-margin) * relevance
     selected = torch.topk(score, k=N_p, largest=True).indices
     base_idx = cls_idx[selected]
     sw.mark('sort')
-    return base_idx, sw.elapsed['compute'], sw.elapsed['sort']
+    return base_idx, sw
 
 
+@torch.no_grad()
 def timed_select_base_components(formula, nets, images_norm, labels, x_t_norm,
                                  y_adv, N_p, device, batch_size=64):
-    """Timed duplicate of select_base_components (the six -M/R/A/... ablations)."""
+    """Timed duplicate of select_base_components (the six -M/R/A/... ablations).
+    Returns (base_idx, stopwatch) with phases for whichever of 'A'/'M'/'R' the
+    formula needs, plus 'sort'."""
     if formula not in COMPONENT_SELECTOR_LABELS:
         raise ValueError('unknown component selector %r' % formula)
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
@@ -2619,57 +2745,61 @@ def timed_select_base_components(formula, nets, images_norm, labels, x_t_norm,
     need_margin = formula in ('minus-m', 'a-minus-m', 'minus-m-times-r')
     need_relevance = formula in ('r', 'a-plus-r', 'minus-m-times-r')
     need_interaction = formula in ('a', 'a-minus-m', 'a-plus-r')
-    margin = torch.zeros(len(cls_idx), device=device) if need_margin else None
-    relevance = (torch.zeros(len(cls_idx), device=device)
-                 if need_relevance else None)
-    interaction = (torch.zeros(len(cls_idx), device=device)
-                   if need_interaction else None)
-    sw = _Stopwatch(device).start()
-    # ---- compute: only the components ``formula`` actually needs ------------
-    for net in nets:
-        if need_margin or need_relevance:
-            states = [(module, module.training) for module in net.modules()]
-            net.eval()
-            try:
-                embed = embed_of(net)
-                target_feature = (embed(x_t_norm.unsqueeze(0)).flatten(1)
-                                  if need_relevance else None)
-                margins, relevances = [], []
-                for start in range(0, len(candidates), batch_size):
-                    batch = candidates[start:start + batch_size]
-                    if need_relevance:
-                        candidate_feature = embed(batch).flatten(1)
-                        relevances.append(
-                            (candidate_feature * target_feature).sum(dim=1))
-                    if need_margin:
-                        logits = net(batch)
-                        adversarial_logit = logits[:, y_adv].clone()
-                        other_logits = logits.clone()
-                        other_logits[:, y_adv] = float('-inf')
-                        margins.append(
-                            adversarial_logit - other_logits.max(dim=1).values)
-                if need_margin:
-                    margin += torch.cat(margins)
-                if need_relevance:
-                    relevance += torch.cat(relevances)
-            finally:
-                _restore_training_states(states)
 
-        if need_interaction:
+    sw = _Stopwatch(device).start()
+
+    interaction = None
+    if need_interaction:
+        interaction = torch.zeros(len(cls_idx), device=device)
+        for net in nets:
             backbone_interaction, _ = _backbone_gradient_interactions(
                 net, candidates, x_t_norm, y_adv, batch_size)
             interaction += backbone_interaction
             del backbone_interaction
-
-    if need_margin:
-        margin = standardize(margin / len(nets))
-    if need_relevance:
-        relevance = standardize(relevance / len(nets))
-    if need_interaction:
         interaction = standardize(interaction / len(nets))
-    sw.mark('compute')
-    # ---- sort: the requested expression of the standardized components, ----
-    # ---- then top-N_p ---------------------------------------------------------
+        sw.mark('A')
+
+    margin = None
+    if need_margin:
+        margin = torch.zeros(len(cls_idx), device=device)
+        for net in nets:
+            states = [(module, module.training) for module in net.modules()]
+            net.eval()
+            try:
+                margins = []
+                for start in range(0, len(candidates), batch_size):
+                    batch = candidates[start:start + batch_size]
+                    logits = net(batch)
+                    adversarial_logit = logits[:, y_adv].clone()
+                    other_logits = logits.clone()
+                    other_logits[:, y_adv] = float('-inf')
+                    margins.append(adversarial_logit - other_logits.max(dim=1).values)
+                margin += torch.cat(margins)
+            finally:
+                _restore_training_states(states)
+        margin = standardize(margin / len(nets))
+        sw.mark('M')
+
+    relevance = None
+    if need_relevance:
+        relevance = torch.zeros(len(cls_idx), device=device)
+        for net in nets:
+            states = [(module, module.training) for module in net.modules()]
+            net.eval()
+            try:
+                embed = embed_of(net)
+                target_feature = embed(x_t_norm.unsqueeze(0)).flatten(1)
+                relevances = []
+                for start in range(0, len(candidates), batch_size):
+                    batch = candidates[start:start + batch_size]
+                    candidate_feature = embed(batch).flatten(1)
+                    relevances.append((candidate_feature * target_feature).sum(dim=1))
+                relevance += torch.cat(relevances)
+            finally:
+                _restore_training_states(states)
+        relevance = standardize(relevance / len(nets))
+        sw.mark('R')
+
     if formula == 'minus-m':
         score = -margin
     elif formula == 'r':
@@ -2685,7 +2815,7 @@ def timed_select_base_components(formula, nets, images_norm, labels, x_t_norm,
     selected = torch.topk(score, k=N_p, largest=True).indices
     base_idx = cls_idx[selected]
     sw.mark('sort')
-    return base_idx, sw.elapsed['compute'], sw.elapsed['sort']
+    return base_idx, sw
 
 
 def time_main(args):
@@ -2696,9 +2826,15 @@ def time_main(args):
     part is not skipped), picks --num_targets real targets exactly as a normal
     run would, then for EACH target calls the timed selector --time_repeats
     times (one untimed warm-up call first, so first-call CUDA/cuDNN/torch.func
-    warm-up never pollutes a measured repeat). compute/sort/end-to-end time and
-    peak GPU memory are collected over all (targets x repeats) calls and
-    reported as mean +/- std, then written to <out_dir>/<run_name>_timing.json.
+    warm-up never pollutes a measured repeat).
+
+    Every (target, repeat) measurement is pooled per COMPONENT -- e.g. for
+    a-mr, 'A', 'M', and 'R' each get their own mean/std over all repeats, not
+    just one lumped "compute" number -- plus a 'sort' phase and a 'combined'
+    end-to-end total (sum of components + sort). Time is each phase's own
+    duration; memory is the cumulative peak GPU memory reached by the end of
+    that phase, so 'sort' is the true peak for the whole call. Everything is
+    logged and written to <out_dir>/TIME_<run name>/timing.json.
     """
     global _LOG_PATH
     gpus = resolve_gpus(args.gpus)
@@ -2768,23 +2904,22 @@ def time_main(args):
             rgen = torch.Generator(device='cpu').manual_seed(
                 args.seed * 100003 + int(tidx))
             base_idx = select_base_random(train_labs, y_adv, N_p, device, rgen)
-            sw.mark('compute')
+            sw.mark('draw')
             sw.mark('sort')     # a uniform draw has no separate ranking step
-            t_compute, t_sort = sw.elapsed['compute'], sw.elapsed['sort']
         elif getattr(args, 'sel_exact_alignment', False):
-            base_idx, t_compute, t_sort = timed_select_base_exact_alignment(
+            base_idx, sw = timed_select_base_exact_alignment(
                 sel_nets, train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
                 batch_size=args.jacobian_batch_size)
         elif getattr(args, 'sel_a_minus_mr', False):
-            base_idx, t_compute, t_sort = timed_select_base_a_minus_mr(
+            base_idx, sw = timed_select_base_a_minus_mr(
                 sel_nets, train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
                 batch_size=args.jacobian_batch_size)
         elif getattr(args, 'sel_component', None):
-            base_idx, t_compute, t_sort = timed_select_base_components(
+            base_idx, sw = timed_select_base_components(
                 args.sel_component, sel_nets, train_imgs, train_labs, x_t_norm,
                 y_adv, N_p, device, batch_size=args.jacobian_batch_size)
         elif args.sel_dpp:
-            base_idx, t_compute, t_sort = timed_select_base_dpp(
+            base_idx, sw = timed_select_base_dpp(
                 sel_nets, train_imgs, train_labs, x_t_norm, y_adv, N_p,
                 args.lambda_margin, device, base_dist=args.base_dist,
                 alpha=args.sel_alpha, **jacobian_kwargs)
@@ -2797,14 +2932,12 @@ def time_main(args):
                 'above (mirroring the pattern for the other selectors) if you need '
                 'to time one of them.')
         else:
-            base_idx, t_compute, t_sort = timed_select_base_ours(
+            base_idx, sw = timed_select_base_ours(
                 sel_nets, train_imgs, train_labs, x_t_norm, y_adv, N_p,
                 args.lambda_margin, device, base_dist=args.base_dist,
                 **jacobian_kwargs)
 
-        peak_mem_mb = (torch.cuda.max_memory_allocated(device) / (1024.0 ** 2)
-                       if _is_cuda(device) else 0.0)
-        return t_compute, t_sort, peak_mem_mb, len(base_idx)
+        return sw, len(base_idx)
 
     # one untimed warm-up call (first target), so lazy CUDA context init, cuDNN
     # algorithm search, and torch.func's first-call tracing overhead never land
@@ -2812,35 +2945,48 @@ def time_main(args):
     log('  warm-up call (untimed)...')
     run_once(targets[0])
 
-    all_compute, all_sort, all_end, all_mem = [], [], [], []
+    pooled = defaultdict(lambda: {'time': [], 'mem': []})
+    end_to_end_time, end_to_end_mem, all_n_bases = [], [], []
     for tidx in targets:
         for r in range(args.time_repeats):
-            t_c, t_s, mem, n_sel = run_once(tidx)
-            all_compute.append(t_c)
-            all_sort.append(t_s)
-            all_end.append(t_c + t_s)
-            all_mem.append(mem)
-            log('  target %d repeat %d/%d: compute=%.4fs sort=%.4fs end2end=%.4fs '
-                'peak_mem=%.1fMB (%d bases)'
-                % (tidx, r + 1, args.time_repeats, t_c, t_s, t_c + t_s, mem, n_sel))
+            sw, n_sel = run_once(tidx)
+            for name, t in sw.elapsed.items():
+                pooled[name]['time'].append(t)
+                pooled[name]['mem'].append(sw.mem_mb[name])
+            e2e_t = sum(sw.elapsed.values())
+            e2e_m = sw.mem_mb['sort']
+            end_to_end_time.append(e2e_t)
+            end_to_end_mem.append(e2e_m)
+            all_n_bases.append(n_sel)
+            phase_str = ' '.join('%s=%.4fs' % (k, v) for k, v in sw.elapsed.items())
+            log('  target %d repeat %d/%d: %s end2end=%.4fs peak_mem=%.1fMB (%d bases)'
+                % (tidx, r + 1, args.time_repeats, phase_str, e2e_t, e2e_m, n_sel))
 
     def _stats(v):
         a = np.array(v, dtype=np.float64)
         return float(a.mean()), float(a.std())
 
-    c_mean, c_std = _stats(all_compute)
-    s_mean, s_std = _stats(all_sort)
-    e_mean, e_std = _stats(all_end)
-    m_mean, m_std = _stats(all_mem)
+    phase_stats = {}
+    for name, vals in pooled.items():
+        t_mean, t_std = _stats(vals['time'])
+        m_mean, m_std = _stats(vals['mem'])
+        phase_stats[name] = {'time_mean_s': t_mean, 'time_std_s': t_std,
+                             'mem_mean_mb': m_mean, 'mem_std_mb': m_std,
+                             'n': len(vals['time'])}
+    e2e_t_mean, e2e_t_std = _stats(end_to_end_time)
+    e2e_m_mean, e2e_m_std = _stats(end_to_end_mem)
+    total_n = len(end_to_end_time)
 
     log('==== TIMING SUMMARY: %s | %s / %s | %d target(s) x %d repeat(s) = '
         '%d measured selections ===='
         % (build_run_name(args), args.dataset, args.model,
-           len(targets), args.time_repeats, len(all_compute)))
-    log('  compute time : %.4f s  +/-  %.4f s' % (c_mean, c_std))
-    log('  sort time    : %.4f s  +/-  %.4f s' % (s_mean, s_std))
-    log('  end-to-end   : %.4f s  +/-  %.4f s' % (e_mean, e_std))
-    log('  peak GPU mem : %.1f MB  +/-  %.1f MB' % (m_mean, m_std))
+           len(targets), args.time_repeats, total_n))
+    for name, s in phase_stats.items():
+        log('  %-8s: time %.4fs +/- %.4fs | mem %8.1fMB +/- %6.1fMB  (n=%d)'
+            % (name, s['time_mean_s'], s['time_std_s'],
+               s['mem_mean_mb'], s['mem_std_mb'], s['n']))
+    log('  %-8s: time %.4fs +/- %.4fs | mem %8.1fMB +/- %6.1fMB  (n=%d)'
+        % ('combined', e2e_t_mean, e2e_t_std, e2e_m_mean, e2e_m_std, total_n))
 
     out = {
         'dataset': args.dataset, 'model': args.model, 'attack': args.attack,
@@ -2855,14 +3001,17 @@ def time_main(args):
         'budget': args.budget, 'num_poisons': N_p,
         'num_surrogates': args.num_surrogates,
         'num_targets': len(targets), 'repeats_per_target': args.time_repeats,
-        'total_measured_selections': len(all_compute),
-        'compute_mean_s': c_mean, 'compute_std_s': c_std,
-        'sort_mean_s': s_mean, 'sort_std_s': s_std,
-        'end_to_end_mean_s': e_mean, 'end_to_end_std_s': e_std,
-        'peak_mem_mean_mb': m_mean, 'peak_mem_std_mb': m_std,
+        'total_measured_selections': total_n,
+        'phase_breakdown': phase_stats,
+        'combined': {'time_mean_s': e2e_t_mean, 'time_std_s': e2e_t_std,
+                    'mem_mean_mb': e2e_m_mean, 'mem_std_mb': e2e_m_std},
         'targets': targets,
-        'per_run': {'compute_s': all_compute, 'sort_s': all_sort,
-                   'end_to_end_s': all_end, 'peak_mem_mb': all_mem},
+        'per_run': {
+            'phases': {name: {'time_s': vals['time'], 'mem_mb': vals['mem']}
+                      for name, vals in pooled.items()},
+            'end_to_end_s': end_to_end_time, 'peak_mem_mb': end_to_end_mem,
+            'n_bases': all_n_bases,
+        },
     }
     timing_path = os.path.join(run_dir, 'timing.json')
     with open(timing_path, 'w') as f:
