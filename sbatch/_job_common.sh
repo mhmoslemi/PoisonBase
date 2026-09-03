@@ -95,9 +95,19 @@ attack_run_name() {
                 ;;
             exact) name+="_selexactgigt" ;;
             a-mr)  name+="_selAminusMR" ;;
+            minus-m) name+="_selMinusM" ;;
+            r) name+="_selR" ;;
+            a) name+="_selA" ;;
+            a-minus-m) name+="_selAminusM" ;;
+            a-plus-r) name+="_selAplusR" ;;
+            minus-m-times-r) name+="_selMinusMtimesR" ;;
         esac
         if [ "${USE_JACOBIAN_SCORE:-0}" = 1 ] && \
-           [ "$selection" != exact ] && [ "$selection" != a-mr ]; then
+           [ "$selection" != exact ] && [ "$selection" != a-mr ] && \
+           [ "$selection" != minus-m ] && [ "$selection" != r ] && \
+           [ "$selection" != a ] && [ "$selection" != a-minus-m ] && \
+           [ "$selection" != a-plus-r ] && \
+           [ "$selection" != minus-m-times-r ]; then
             jacobian_tag="$(fmt_g "${JACOBIAN_WEIGHT:-1.0}")"
             name+="_jacw${jacobian_tag}"
         fi

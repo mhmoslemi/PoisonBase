@@ -3,7 +3,7 @@
 # Base-selection sweep driver.
 #
 # SELECT picks how the N_p bases are chosen; everything else (crafting, victims,
-# surrogates) is identical across the five, so the comparison is paired:
+# surrogates) is identical across selectors, so the comparison is paired:
 #
 #   random   uniform over the poison class          -> --base random
 #   ours     lowest standardized d(x) + lam*M(x),   -> --base ours   (no --sel_*)
@@ -15,6 +15,15 @@
 #                                                    --sel_exact_alignment
 #   a-mr     A_i + (-M_i) * R_i, using the paper's  -> --base ours
 #            A, M, and R definitions                  --sel_a_minus_mr
+#   minus-m  -M_i                                    -> --base ours
+#   r        R_i                                      -> --base ours
+#   a        A_i                                      -> --base ours
+#   a-minus-m  A_i - M_i                              -> --base ours
+#   a-plus-r   A_i + R_i                              -> --base ours
+#   minus-m-times-r  (-M_i) * R_i                     -> --base ours
+# The six component ablations above use --sel_component. Their needed raw
+# components are averaged over surrogates, each is standardized across the
+# candidate pool, and only then is the displayed expression evaluated.
 # The exact mode standardizes each surrogate before averaging. A-MR follows the
 # paper: average each component over surrogates, standardize A/M/R across the
 # candidate pool, and then form A + (-M)*R.
@@ -26,8 +35,8 @@
 #     USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 SELECT=dpp sh sel_dpp.sh
 #
 # SELECT is the authority: SEL_ALPHA is read ONLY when SELECT=dpp. Under
-# random / ours / exact / a-mr it is ignored and does not appear in the run
-# name, so setting it cannot silently change a non-dpp run.
+# every non-dpp selector it is ignored and does not appear in the run name, so
+# setting it cannot silently change a non-dpp run.
 #
 # Runs final_update.py (final.py is untouched).
 #
@@ -58,6 +67,7 @@
 #         BUDGETS="0.001 0.002 0.005" sh sel_dpp.sh
 #     SELECT=exact JACOBIAN_BATCH_SIZE=64 sh sel_dpp.sh
 #     SELECT=a-mr JACOBIAN_BATCH_SIZE=64 sh sel_dpp.sh
+#     SELECT="minus-m r a a-minus-m a-plus-r minus-m-times-r" sh sel_dpp.sh
 #     ATTACK=fc CRAFT_STEPS=500 CRAFT_ALPHA=0.0019608 FC_RESTARTS=4 \
 #         sh sel_dpp.sh
 #     ATTACK=sapa SHARP_SIGMA="0.01 0.05 0.1" SELECT=dpp sh sel_dpp.sh
@@ -155,8 +165,8 @@ fi
 # reject a bad SELECT once, up front, instead of after hours of surrogate training
 for sel in $SELECT; do
     case "$sel" in
-        random|ours|dpp|exact|a-mr) ;;
-        *) echo "unknown SELECT=$sel (expected: random | ours | dpp | exact | a-mr)"; exit 1 ;;
+        random|ours|dpp|exact|a-mr|minus-m|r|a|a-minus-m|a-plus-r|minus-m-times-r) ;;
+        *) echo "unknown SELECT=$sel (expected: random | ours | dpp | exact | a-mr | minus-m | r | a | a-minus-m | a-plus-r | minus-m-times-r)"; exit 1 ;;
     esac
 done
 
@@ -221,13 +231,19 @@ PY
 
 for sel in $SELECT; do
 
-    # --- the one knob that differs between the five selections ----------------
+    # --- selector-specific flags -----------------------------------------------
     case "$sel" in
         random) BASE=random; SEL_FLAGS="";                              SEL_NOTE="random" ;;
         ours)   BASE=ours;   SEL_FLAGS="";                              SEL_NOTE="ours (plain greedy top-N_p by score)" ;;
         dpp)    BASE=ours;   SEL_FLAGS="--sel_dpp --sel_alpha $SEL_ALPHA"; SEL_NOTE="dpp (alpha=$SEL_ALPHA)" ;;
         exact)  BASE=ours;   SEL_FLAGS="--sel_exact_alignment --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="exact full-parameter g_i^T g_t (per-surrogate standardized)" ;;
         a-mr)   BASE=ours;   SEL_FLAGS="--sel_a_minus_mr --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="A - MR: standardized A + (-M)*R" ;;
+        minus-m) BASE=ours; SEL_FLAGS="--sel_component minus-m --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="component ablation: -M" ;;
+        r) BASE=ours; SEL_FLAGS="--sel_component r --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="component ablation: R" ;;
+        a) BASE=ours; SEL_FLAGS="--sel_component a --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="component ablation: A" ;;
+        a-minus-m) BASE=ours; SEL_FLAGS="--sel_component a-minus-m --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="component ablation: A-M" ;;
+        a-plus-r) BASE=ours; SEL_FLAGS="--sel_component a-plus-r --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="component ablation: A+R" ;;
+        minus-m-times-r) BASE=ours; SEL_FLAGS="--sel_component minus-m-times-r --jacobian_batch_size $JACOBIAN_BATCH_SIZE"; SEL_NOTE="component ablation: (-M)*R" ;;
     esac
     JACOBIAN_FLAGS=""
     JACOBIAN_NOTE="Jacobian score disabled"
@@ -235,6 +251,10 @@ for sel in $SELECT; do
         JACOBIAN_NOTE="exact selector uses full-parameter gi^T gt (batch=$JACOBIAN_BATCH_SIZE)"
     elif [ "$sel" = "a-mr" ]; then
         JACOBIAN_NOTE="A - MR uses paper A/M/R (batch=$JACOBIAN_BATCH_SIZE); average then standardize, then A + (-M)*R"
+    elif [ "$sel" = "minus-m" ] || [ "$sel" = "r" ] || \
+         [ "$sel" = "a" ] || [ "$sel" = "a-minus-m" ] || \
+         [ "$sel" = "a-plus-r" ] || [ "$sel" = "minus-m-times-r" ]; then
+        JACOBIAN_NOTE="$SEL_NOTE; needed raw components are averaged over surrogates, then standardized (batch=$JACOBIAN_BATCH_SIZE)"
     elif [ "$USE_JACOBIAN_SCORE" = "1" ]; then
         case "$sel" in
             random)

@@ -45,6 +45,8 @@ Base selection (--base):
              --sel_exact_alignment ranks by the exact full-parameter
              g_i^T g_t. --sel_a_minus_mr ranks by the backbone interaction A_i
              plus (-M_i) times R_i, using the paper's A, M, and R definitions.
+             --sel_component selects one of the component ablations -M, R, A,
+             A-M, A+R, or (-M)*R with the same component definitions/scaling.
 
 Class pair naming follows MetaPoison: 'dog-bird' means poisons are drawn from
 'dog' (y_adv) and the target image is a 'bird'. Use --pair_order target-poison
@@ -877,18 +879,115 @@ def select_base_exact_alignment(nets, images_norm, labels, x_t_norm, y_adv, N_p,
     return cls_idx[selected]
 
 
+COMPONENT_SELECTOR_LABELS = {
+    'minus-m': '-M',
+    'r': 'R',
+    'a': 'A',
+    'a-minus-m': 'A-M',
+    'a-plus-r': 'A+R',
+    'minus-m-times-r': '(-M)*R',
+}
+
+COMPONENT_SELECTOR_SUFFIXES = {
+    'minus-m': 'MinusM',
+    'r': 'R',
+    'a': 'A',
+    'a-minus-m': 'AminusM',
+    'a-plus-r': 'AplusR',
+    'minus-m-times-r': 'MinusMtimesR',
+}
+
+
+@torch.no_grad()
+def select_base_components(nets, images_norm, labels, x_t_norm, y_adv, N_p,
+                           device, formula, batch_size=64):
+    """Select using a scaled expression of the paper's A, M, and R components.
+
+    A_i is <grad_phi ell_i, grad_phi L_adv,t>, M_i is the adversarial-class
+    logit margin, and R_i is the raw representation inner product <h_i, h_t>.
+    Each component used by ``formula`` is averaged over surrogates in its raw
+    scale and then standardized across the candidate pool before the requested
+    expression is evaluated. Components absent from the expression are not
+    computed; in particular, formulas without A avoid the expensive backbone
+    gradient interaction.
+    """
+    if formula not in COMPONENT_SELECTOR_LABELS:
+        raise ValueError('unknown component selector %r' % formula)
+    cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
+    if len(cls_idx) < N_p:
+        raise ValueError('class %d has %d images < N_p=%d'
+                         % (y_adv, len(cls_idx), N_p))
+    candidates = images_norm[cls_idx]
+    need_margin = formula in ('minus-m', 'a-minus-m', 'minus-m-times-r')
+    need_relevance = formula in ('r', 'a-plus-r', 'minus-m-times-r')
+    need_interaction = formula in ('a', 'a-minus-m', 'a-plus-r')
+    margin = torch.zeros(len(cls_idx), device=device) if need_margin else None
+    relevance = (torch.zeros(len(cls_idx), device=device)
+                 if need_relevance else None)
+    interaction = (torch.zeros(len(cls_idx), device=device)
+                   if need_interaction else None)
+    for net in nets:
+        if need_margin or need_relevance:
+            states = [(module, module.training) for module in net.modules()]
+            net.eval()
+            try:
+                embed = embed_of(net)
+                target_feature = (embed(x_t_norm.unsqueeze(0)).flatten(1)
+                                  if need_relevance else None)
+                margins, relevances = [], []
+                for start in range(0, len(candidates), batch_size):
+                    batch = candidates[start:start + batch_size]
+                    if need_relevance:
+                        candidate_feature = embed(batch).flatten(1)
+                        relevances.append(
+                            (candidate_feature * target_feature).sum(dim=1))
+                    if need_margin:
+                        logits = net(batch)
+                        adversarial_logit = logits[:, y_adv].clone()
+                        other_logits = logits.clone()
+                        other_logits[:, y_adv] = float('-inf')
+                        margins.append(
+                            adversarial_logit - other_logits.max(dim=1).values)
+                if need_margin:
+                    margin += torch.cat(margins)
+                if need_relevance:
+                    relevance += torch.cat(relevances)
+            finally:
+                _restore_training_states(states)
+
+        if need_interaction:
+            backbone_interaction, _ = _backbone_gradient_interactions(
+                net, candidates, x_t_norm, y_adv, batch_size)
+            interaction += backbone_interaction
+            del backbone_interaction
+
+    if need_margin:
+        margin = standardize(margin / len(nets))
+    if need_relevance:
+        relevance = standardize(relevance / len(nets))
+    if need_interaction:
+        interaction = standardize(interaction / len(nets))
+
+    if formula == 'minus-m':
+        score = -margin
+    elif formula == 'r':
+        score = relevance
+    elif formula == 'a':
+        score = interaction
+    elif formula == 'a-minus-m':
+        score = interaction - margin
+    elif formula == 'a-plus-r':
+        score = interaction + relevance
+    else:  # minus-m-times-r
+        score = (-margin) * relevance
+    selected = torch.topk(score, k=N_p, largest=True).indices
+    return cls_idx[selected]
+
+
 @torch.no_grad()
 def select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
                            device, batch_size=64):
-    """Select by A_i + (-M_i) * R_i using the paper's component definitions.
-
-    For every surrogate, A_i is <grad_phi ell_i, grad_phi L_adv,t>, M_i is the
-    adversarial-class logit margin, and R_i is the raw representation inner
-    product <h_i, h_t>. Following the paper, each raw component is first
-    averaged over surrogates and then standardized across the candidate pool.
-    The standardized components are combined as A - M*R, which prevents their
-    otherwise incompatible raw scales from determining the result.
-    """
+    """Select by A_i + (-M_i) * R_i using the paper's scaled components."""
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d'
@@ -912,18 +1011,15 @@ def select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
                 other_logits = logits.clone()
                 other_logits[:, y_adv] = float('-inf')
                 margins.append(adversarial_logit - other_logits.max(dim=1).values)
-                relevances.append(
-                    (candidate_feature * target_feature).sum(dim=1))
+                relevances.append((candidate_feature * target_feature).sum(dim=1))
             margin += torch.cat(margins)
             relevance += torch.cat(relevances)
         finally:
             _restore_training_states(states)
-
         backbone_interaction, _ = _backbone_gradient_interactions(
             net, candidates, x_t_norm, y_adv, batch_size)
         interaction += backbone_interaction
         del backbone_interaction
-
     margin = standardize(margin / len(nets))
     relevance = standardize(relevance / len(nets))
     interaction = standardize(interaction / len(nets))
@@ -1794,6 +1890,12 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
             sel_nets[:args.sel_K] if args.sel_K else sel_nets,
             train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
             batch_size=getattr(args, 'jacobian_batch_size', 64))
+    elif getattr(args, 'sel_component', None):
+        base_idx = select_base_components(
+            sel_nets[:args.sel_K] if args.sel_K else sel_nets,
+            train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
+            formula=args.sel_component,
+            batch_size=getattr(args, 'jacobian_batch_size', 64))
     elif getattr(args, 'sel_criterion', None):
         base_idx = select_base_criterion(
             args.sel_criterion,
@@ -2255,6 +2357,8 @@ def build_run_name(args):
             name += '_selexactgigt'
         elif getattr(args, 'sel_a_minus_mr', False):
             name += '_selAminusMR'
+        elif getattr(args, 'sel_component', None):
+            name += '_sel%s' % COMPONENT_SELECTOR_SUFFIXES[args.sel_component]
     # The exact interaction changes selected bases and must never reuse a baseline
     # poison cache.  Batch size/backend affect performance only, not run identity.
     if getattr(args, 'use_jacobian_score', False):
@@ -2362,6 +2466,11 @@ def main(args):
         log('A - MR selector: standardized A + (-M)*R, batch_size=%d; '
             'components averaged over surrogates before standardization'
             % getattr(args, 'jacobian_batch_size', 64))
+    if getattr(args, 'sel_component', None):
+        log('%s component selector: raw components averaged over surrogates, '
+            'then each used component standardized across candidates; batch_size=%d'
+            % (COMPONENT_SELECTOR_LABELS[args.sel_component],
+               getattr(args, 'jacobian_batch_size', 64)))
 
     y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
     N_p = int(round(args.budget * N_total)) if args.budget else args.num_poisons
@@ -2681,6 +2790,11 @@ def parse_args(argv=None):
                    default=argparse.SUPPRESS,
                    help='select by standardized A_i + (-M_i)*R_i using the paper\'s '
                         'components, averaged over surrogates before scaling')
+    p.add_argument('--sel_component', type=str, default=argparse.SUPPRESS,
+                   choices=list(COMPONENT_SELECTOR_LABELS),
+                   help='select by one paper-component expression: -M, R, A, A-M, '
+                        'A+R, or (-M)*R. Raw components are averaged over surrogates '
+                        'and each used component is standardized before combining')
 
     # --- diversity-aware base selection (--base ours only) --------------------
     # All three reuse the SAME per-candidate score as plain --base ours and only
@@ -2778,6 +2892,7 @@ def parse_args(argv=None):
                 'which replaces the proposed pointwise score')
     exact_alignment = getattr(args, 'sel_exact_alignment', False)
     a_minus_mr = getattr(args, 'sel_a_minus_mr', False)
+    sel_component = getattr(args, 'sel_component', None)
     if exact_alignment and args.base != 'ours':
         p.error('--sel_exact_alignment only affects --base ours')
     if exact_alignment and on:
@@ -2802,6 +2917,19 @@ def parse_args(argv=None):
                 'with --use_jacobian_score')
     if exact_alignment and a_minus_mr:
         p.error('--sel_exact_alignment and --sel_a_minus_mr are mutually exclusive')
+    if sel_component and args.base != 'ours':
+        p.error('--sel_component only affects --base ours')
+    if sel_component and on:
+        p.error('--sel_component cannot be combined with %s' % on[0])
+    if sel_component and args.sel_criterion:
+        p.error('--sel_component cannot be combined with --sel_criterion')
+    if sel_component and args.base_topr:
+        p.error('--sel_component cannot be combined with --base_topr')
+    if sel_component and args.use_jacobian_score:
+        p.error('--sel_component cannot be combined with --use_jacobian_score')
+    if sel_component and (exact_alignment or a_minus_mr):
+        p.error('--sel_component, --sel_exact_alignment, and --sel_a_minus_mr '
+                'are mutually exclusive')
     # --sel_model with --base random is allowed but does nothing to the result:
     # select_base_random draws from the class pool with a per-target rng and
     # never touches a net, so such a run reproduces the S = A one exactly. It
