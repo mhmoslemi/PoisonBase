@@ -1,0 +1,694 @@
+\section{Statistical Analysis of Main Results}
+\label{app:statistical-analysis}
+
+The main evaluation in
+Table~\ref{tab:sweep_asr_clean_minus_cta} considers ten attack targets, each
+paired with six independently initialized victim models. For a given target,
+these six victim runs share the same target image and the same optimized poison
+set. Consequently, treating all 60 victim outcomes as independent observations
+would artificially inflate the effective sample size. To avoid this, we treat
+the target as the unit of statistical analysis.
+For each selection method
+$v \in \{\mathrm{\textsc{Rand}}, \mathrm{\textsc{Graft}}\}$, let
+$a^{(v)}_{t,s} \in \{0,1\}$ indicate whether the attack succeeds for target $t$
+and victim model $s$. We first compute the success rate for each target and then
+obtain the overall attack success rate (ASR) by averaging across targets:
+\[
+r^{(v)}_t
+=
+\frac{1}{6}
+\sum_{s=1}^{6} a^{(v)}_{t,s},
+\qquad
+\mathrm{ASR}^{(v)}
+=
+\frac{1}{10}
+\sum_{t=1}^{10} r^{(v)}_t.
+\]
+Standard errors are computed across the ten target-level success rates.
+\textsc{Rand} and \textsc{Graft} are evaluated using the same targets and victim-model protocol,
+so their comparison is paired. For each target, we define the paired difference
+\[
+d_t
+=
+r^{(\mathrm{\textsc{Graft}})}_t-r^{(\mathrm{\textsc{Rand}})}_t,
+\qquad
+\Delta
+=
+\frac{1}{10}
+\sum_{t=1}^{10} d_t,
+\]
+where $\Delta$ is the mean improvement in ASR obtained by \textsc{Graft} over \textsc{Rand}.
+
+A confidence interval (CI) is a range that quantifies sampling uncertainty around an estimate. A 95\% CI procedure will, under repeated sampling, produce intervals containing the true population value in 95\% of repetitions. Here, the CI reflects uncertainty in $\Delta$ from evaluating only a finite set of attack targets.
+We estimate this uncertainty with a paired bootstrap over targets. The bootstrap mimics re-evaluating on new target sets by repeatedly resampling from the ten observed targets. In every replicate, we sample ten targets with replacement. Consequently, certain targets can be selected multiple times, whereas others may not be selected at all. Each time a target is selected, we keep all six of its victim outcomes under both \textsc{Rand} and \textsc{Graft}, then recompute $\Delta$ for that resampled set. This preserves dependence among runs for the same target and the pairing between \textsc{Rand} and \textsc{Graft}.
+Repeating this many times yields a bootstrap distribution of $\Delta$, showing how the estimated improvement could vary across target samples. We take the 2.5th and 97.5th percentiles of this distribution as the paired 95\% bootstrap CI. A narrow CI suggests the improvement is stable across targets, and a wide CI indicates greater target-to-target variability.
+
+
+
+
+\begin{table*}[h]
+\centering
+\caption{
+Target-level ConvNet results. \textsc{Rand} and \textsc{Graft}\textsuperscript{+} report mean ASR (\%) across
+ten targets, with standard errors in parentheses. The 95\% CI columns
+report paired bootstrap confidence intervals for the \textsc{Graft}\textsuperscript{+}--\textsc{Rand}
+difference in percentage points.
+}
+\vspace{-0.5em}
+\label{tab:main-stats-convnet}
+
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.10}
+
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{@{}c@{\hspace{5pt}}c ccc ccc ccc@{}}
+\toprule
+& &
+\multicolumn{3}{c}{BP} &
+\multicolumn{3}{c}{GM} &
+\multicolumn{3}{c}{SAPA}
+\\
+
+\cmidrule(lr){3-5}
+\cmidrule(lr){6-8}
+\cmidrule(lr){9-11}
+
+&
+$\rho$ &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI
+\\[-2pt]
+
+&
+{\footnotesize $(\times10^{-3})$} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}}
+\\
+
+\midrule
+
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textnormal{\textbf{dog$\rightarrow$bird}}}}
+&
+1 &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+2 &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+5 &
+\asr{13.3}{6.5} &
+\asr{}{} &
+\ci{[]} &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{6.7}{3.7} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+10 &
+\asr{35.0}{8.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{21.7}{7.9} &
+\asr{}{} &
+\ci{[]} &
+\asr{23.3}{7.5} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+20 &
+\asr{73.3}{9.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{43.3}{9.4} &
+\asr{}{} &
+\ci{[]} &
+\asr{50.0}{10.5} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+40 &
+\asr{91.7}{3.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{83.3}{10.5} &
+\asr{}{} &
+\ci{[]} &
+\asr{76.7}{10.3} &
+\asr{}{} &
+\ci{[]}
+\\
+
+\midrule
+
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textnormal{\textbf{frog$\rightarrow$airplane}}}}
+&
+1 &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+2 &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+5 &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+10 &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{3.3}{2.2} &
+\asr{}{} &
+\ci{[]} &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+20 &
+\asr{10.0}{4.4} &
+\asr{}{} &
+\ci{[]} &
+\asr{3.3}{3.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{8.3}{5.1} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+40 &
+\asr{30.0}{10.2} &
+\asr{}{} &
+\ci{[]} &
+\asr{16.7}{7.9} &
+\asr{}{} &
+\ci{[]} &
+\asr{25.0}{8.3} &
+\asr{}{} &
+\ci{[]}
+\\
+
+\bottomrule
+\end{tabular}%
+}
+
+\end{table*}
+ 
+
+ 
+\begin{table*}[h!]
+\centering
+\caption{
+Target-level ResNet20 results. \textsc{Rand} and \textsc{Graft}\textsuperscript{+} report mean ASR (\%), with standard errors in parentheses. The 95\% CI columns
+report paired bootstrap confidence intervals.
+}
+\vspace{-0.5em}
+\label{tab:main-stats-resnet}
+
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.10}
+
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{@{}c@{\hspace{5pt}}c ccc ccc ccc@{}}
+\toprule
+& &
+\multicolumn{3}{c}{BP} &
+\multicolumn{3}{c}{GM} &
+\multicolumn{3}{c}{SAPA}
+\\
+
+\cmidrule(lr){3-5}
+\cmidrule(lr){6-8}
+\cmidrule(lr){9-11}
+
+&
+$\rho$ &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI
+\\[-2pt]
+
+&
+{\footnotesize $(\times10^{-3})$} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}}
+\\
+
+\midrule
+
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textnormal{\textbf{dog$\rightarrow$bird}}}}
+&
+1 &
+\asr{11.7}{5.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{15.0}{5.2} &
+\asr{}{} &
+\ci{[]} &
+\asr{18.3}{6.3} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+2 &
+\asr{16.7}{5.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{31.7}{8.4} &
+\asr{}{} &
+\ci{[]} &
+\asr{21.7}{7.9} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+5 &
+\asr{30.0}{7.8} &
+\asr{}{} &
+\ci{[]} &
+\asr{43.3}{7.5} &
+\asr{}{} &
+\ci{[]} &
+\asr{55.0}{10.6} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+10 &
+\asr{43.3}{10.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{56.7}{11.4} &
+\asr{}{} &
+\ci{[]} &
+\asr{65.0}{8.8} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+20 &
+\asr{55.0}{8.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{75.0}{8.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{95.0}{3.6} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+40 &
+\asr{48.3}{12.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{98.3}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{98.3}{1.7} &
+\asr{}{} &
+\ci{[]}
+\\
+
+\midrule
+
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textnormal{\textbf{frog$\rightarrow$airplane}}}}
+&
+1 &
+\asr{8.3}{3.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+2 &
+\asr{8.3}{3.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{5.0}{3.6} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+5 &
+\asr{18.3}{5.8} &
+\asr{}{} &
+\ci{[]} &
+\asr{8.3}{3.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{3.3}{2.2} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+10 &
+\asr{16.7}{5.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{26.7}{9.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{21.7}{6.6} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+20 &
+\asr{30.0}{10.2} &
+\asr{}{} &
+\ci{[]} &
+\asr{45.0}{8.6} &
+\asr{}{} &
+\ci{[]} &
+\asr{40.0}{7.1} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+40 &
+\asr{33.3}{10.8} &
+\asr{}{} &
+\ci{[]} &
+\asr{70.0}{7.8} &
+\asr{}{} &
+\ci{[]} &
+\asr{81.7}{5.2} &
+\asr{}{} &
+\ci{[]}
+\\
+
+\bottomrule
+\end{tabular}%
+}
+
+\end{table*}
+
+
+% ============================================================
+% VGG13
+% ============================================================
+
+\begin{table*}[h!]
+\centering
+\caption{
+Target-level VGG13 results. \textsc{Rand} and \textsc{Graft}\textsuperscript{+} report mean ASR (\%), with standard errors in parentheses. The 95\% CI columns
+report paired bootstrap confidence intervals.
+}
+\label{tab:main-stats-vgg}
+\vspace{-0.5em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.10}
+
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{@{}c@{\hspace{5pt}}c ccc ccc ccc@{}}
+\toprule
+& &
+\multicolumn{3}{c}{BP} &
+\multicolumn{3}{c}{GM} &
+\multicolumn{3}{c}{SAPA}
+\\
+
+\cmidrule(lr){3-5}
+\cmidrule(lr){6-8}
+\cmidrule(lr){9-11}
+
+&
+$\rho$ &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI &
+\textsc{Rand} & \textsc{Graft}\textsuperscript{+} & 95\% CI
+\\[-2pt]
+
+&
+{\footnotesize $(\times10^{-3})$} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}} &
+{\footnotesize ASR (SE)} &
+{\footnotesize ASR (SE)} &
+{\footnotesize \textsc{Graft}\textsuperscript{+}--\textsc{Rand}}
+\\
+
+\midrule
+
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textnormal{\textbf{dog$\rightarrow$bird}}}}
+&
+1 &
+\asr{21.7}{6.1} &
+\asr{}{} &
+\ci{[]} &
+\asr{13.3}{6.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{11.7}{5.6} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+2 &
+\asr{41.7}{10.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{21.7}{9.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{26.7}{9.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+5 &
+\asr{45.0}{7.9} &
+\asr{}{} &
+\ci{[]} &
+\asr{55.0}{9.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{60.0}{9.7} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+10 &
+\asr{41.7}{8.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{76.7}{10.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{88.3}{5.6} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+20 &
+\asr{61.7}{11.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{96.7}{3.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{100.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+40 &
+\asr{75.0}{5.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{98.3}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{100.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+\midrule
+
+\multirow{6}{*}{\rotatebox[origin=c]{90}{\textnormal{\textbf{frog$\rightarrow$airplane}}}}
+&
+1 &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]} &
+\asr{0.0}{0.0} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+2 &
+\asr{1.7}{1.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{5.0}{3.6} &
+\asr{}{} &
+\ci{[]} &
+\asr{10.0}{4.4} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+5 &
+\asr{3.3}{2.2} &
+\asr{}{} &
+\ci{[]} &
+\asr{16.7}{6.6} &
+\asr{}{} &
+\ci{[]} &
+\asr{15.0}{6.8} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+10 &
+\asr{13.3}{4.8} &
+\asr{}{} &
+\ci{[]} &
+\asr{28.3}{8.6} &
+\asr{}{} &
+\ci{[]} &
+\asr{20.0}{8.5} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+20 &
+\asr{10.0}{6.7} &
+\asr{}{} &
+\ci{[]} &
+\asr{56.7}{10.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{53.3}{9.9} &
+\asr{}{} &
+\ci{[]}
+\\
+
+&
+40 &
+\asr{16.7}{8.6} &
+\asr{}{} &
+\ci{[]} &
+\asr{78.3}{10.3} &
+\asr{}{} &
+\ci{[]} &
+\asr{85.0}{10.1} &
+\asr{}{} &
+\ci{[]}
+\\
+
+\bottomrule
+\end{tabular}%
+}
+
+\end{table*}

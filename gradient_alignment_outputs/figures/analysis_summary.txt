@@ -1,0 +1,40 @@
+Gradient-alignment analysis summary
+===================================
+Complete combinations analyzed: 8
+Target candidate pools analyzed: 80
+
+Target-wise rank correlation with exact <g_i,g_t>
+  GRAFT beta=0 median Spearman: 0.4742
+  GRAFT+ beta=1 median Spearman: 0.7481
+  Backbone A alone median Spearman: 0.9995
+  beta=1 improves over beta=0 on 80/80 targets
+
+CIFAR-10 agreement at the paper poison budgets
+  rho=0.001, m=50: exact-set recovery beta0=4.97%, beta1=79.60%, A=98.83%; selected-union Spearman beta0=-0.717, beta1=0.716, A=0.998
+  rho=0.002, m=100: exact-set recovery beta0=7.17%, beta1=76.70%, A=98.85%; selected-union Spearman beta0=-0.675, beta1=0.689, A=0.999
+  rho=0.005, m=250: exact-set recovery beta0=13.23%, beta1=72.77%, A=99.12%; selected-union Spearman beta0=-0.620, beta1=0.580, A=0.999
+  rho=0.01, m=500: exact-set recovery beta0=21.49%, beta1=69.53%, A=99.26%; selected-union Spearman beta0=-0.530, beta1=0.525, A=1.000
+  rho=0.02, m=1000: exact-set recovery beta0=34.95%, beta1=68.05%, A=99.38%; selected-union Spearman beta0=-0.385, beta1=0.483, A=1.000
+  rho=0.04, m=2000: exact-set recovery beta0=56.94%, beta1=72.26%, A=99.56%; selected-union Spearman beta0=-0.136, beta1=0.495, A=1.000
+
+CIFAR-10 multiplicative score at the same budgets
+  rho=0.001, m=50: high-first recovery=0.00%, local Spearman=-0.883; low-first recovery=65.17%, local Spearman=0.289
+  rho=0.002, m=100: high-first recovery=0.00%, local Spearman=-0.899; low-first recovery=70.50%, local Spearman=0.395
+  rho=0.005, m=250: high-first recovery=0.00%, local Spearman=-0.918; low-first recovery=78.88%, local Spearman=0.602
+  rho=0.01, m=500: high-first recovery=0.00%, local Spearman=-0.957; low-first recovery=84.86%, local Spearman=0.742
+  rho=0.02, m=1000: high-first recovery=0.00%, local Spearman=-0.977; low-first recovery=90.26%, local Spearman=0.850
+  rho=0.04, m=2000: high-first recovery=0.04%, local Spearman=-0.991; low-first recovery=95.40%, local Spearman=0.941
+
+Median absolute-magnitude decomposition
+  Backbone A: 96.60%
+  Classifier weights: 3.36%
+  Classifier bias: 0.10%
+
+Interpretation
+  Figure 1 tests global rank agreement without mixing target scales.
+  Figure 2 measures exact-set recovery at rho=m/n from the paper.
+  Figure 3 quantifies the contribution omitted by backbone-only A.
+  Figure 4 separates the evidence supplied by M, R, A, and their sums.
+  Figure 5 measures budget-local Spearman on the union of selected sets.
+  Figure 6 compares additive GRAFT+ with both ranking directions of (-M)RA.
+  These are descriptive correlations; they do not establish an approximation error bound.
