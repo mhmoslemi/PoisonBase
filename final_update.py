@@ -174,6 +174,11 @@ def standardize(v, eps=1e-8):
     return (v - v.mean()) / (v.std() + eps)
 
 
+def rho_to_m(rho, training_set_size):
+    """Map a poison ratio to its absolute budget exactly as attack runs do."""
+    return int(round(rho * training_set_size))
+
+
 def flat_grad(grads):
     return torch.cat([g.reshape(-1) for g in grads])
 
@@ -2473,7 +2478,7 @@ def main(args):
                getattr(args, 'jacobian_batch_size', 64)))
 
     y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
-    N_p = int(round(args.budget * N_total)) if args.budget else args.num_poisons
+    N_p = rho_to_m(args.budget, N_total) if args.budget else args.num_poisons
     log('N_total=%d budget=%g -> N_p=%d poisons, y_adv=%d(%s) target_class=%d(%s)'
         % (N_total, args.budget or 0, N_p, y_adv, class_names[y_adv],
            target_class, class_names[target_class]))
