@@ -1,0 +1,58 @@
+\begin{table*}[t]
+\centering
+\caption{
+Matched attack success rate (ASR, \%) across 30 architecture, attack,
+class-pair, and poisoning-budget configurations.  $R-M$ denotes the
+selector without the parameter-gradient interaction, while \textsc{Graft}
+denotes the full selector.  Higher is better.
+}
+\label{tab:matched-asr-selector-comparison}
+\vspace{0.25em}
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.04}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}rlllcrrrrrrrrrrr@{}}
+\toprule
+\# & Architecture & Attack & Pair & $\rho$ &
+$R-M$ & \textsc{Graft} & \shortstack{$g_i^\top g_t$} &
+$A-MR$ & $-M$ & $R$ & $A$ & $A-M$ & $A+R$ & $ -MR$ \\
+
+\midrule
+ 1 & VGG13    & GM   & D$\rightarrow$B & .002 & 57.5 & 77.5 & 87.5 & 72.5 & 82.5 &  5.0 &  85.0 & 77.5 & 82.5 & 55.0 \\
+ 2 & ResNet20 & SAPA & D$\rightarrow$B & .001 & 42.5 & 37.5 & 47.5 & 35.0 & 40.0 &  7.5 &  42.5 & 42.5 & 40.0 & 10.0 \\
+ 3 & VGG13    & FC   & D$\rightarrow$B & .001 & 27.5 & 30.0 & 35.0 & 25.0 & 27.5 & 12.5 &  27.5 & 25.0 & 20.0 & 37.5 \\
+ 4 & VGG13    & FC   & D$\rightarrow$B & .002 & 40.0 & 37.5 & 35.0 & 45.0 & 25.0 & 27.5 &  45.0 & 35.0 & 40.0 & 40.0 \\
+ 5 & VGG13    & SAPA & D$\rightarrow$B & .005 & 95.0 & 95.0 & $100.0$ & 100.0 & $100.0$ & 25.0 & 100.0 & 97.5 & 97.5 & 92.5 \\
+ 6 & ConvNet  & FC   & D$\rightarrow$B & .002 & 70.0 & 75.0 & 47.5 & 57.5 & 45.0 & 22.5 &  55.0 & 62.5 & 62.5 & 12.5 \\
+ 7 & ResNet20 & FC   & D$\rightarrow$B & .005 & 37.5 & 27.5 & 27.5 & 35.0 & 45.0 &  5.0 &  30.0 & 30.0 & 35.0 & 15.0 \\
+ 8 & VGG13    & SAPA & D$\rightarrow$B & .001 & 52.5 & 87.5 & 65.0 & $43.5$ & 80.0 &  0.0 &  62.5 & 65.0 & 42.5 & 35.0 \\
+ 9 & VGG13    & FC   & D$\rightarrow$B & .005 & 55.0 & 55.0 & 50.0 & $75.8$ & 50.0 & 27.5 &  55.0 & 55.0 & 42.5 & 45.0 \\
+10 & ConvNet  & SAPA & D$\rightarrow$B & .005 & 62.5 & 72.5 & 82.5 & 85.0 & 62.5 & 25.0 &  62.5 & 57.5 & 67.5 & 37.5 \\
+\addlinespace[2pt]
+11 & ResNet20 & GM   & D$\rightarrow$B & .001 & 35.0 & 40.0 & 50.0 & 42.5 & 40.0 &  7.5 & 37.5 & 45.0 & 30.0 &  7.5 \\
+12 & ConvNet  & SAPA & D$\rightarrow$B & .010 & 95.0 & 90.0 & 87.5 & 95.0 & 95.0 & 50.0 & 90.0 & 92.5 & 92.5 & 60.0 \\
+13 & ConvNet  & GM   & D$\rightarrow$B & .005 & 77.5 & 65.0 & 87.5 & 62.5 & 55.0 & 20.0 & 72.5 & 65.0 & 72.5 & 40.0 \\
+14 & VGG13    & GM   & D$\rightarrow$B & .001 & 52.5 & 70.0 & $71.4$ & 65.0 & 67.5 &  5.0 & 60.0 & 62.5 & 47.5 & 42.5 \\
+15 & ConvNet  & GM   & F$\rightarrow$A & .010 & 20.0 & 15.0 & 22.5 & $12.0$ & 17.5 &  0.0 & 17.5 & 22.5 & 15.0 &  7.5 \\
+16 & ResNet20 & GM   & D$\rightarrow$B & .002 & 57.5 & 60.0 & 57.5 & 32.5 & $51.4$ &  2.5 & 62.5 & 60.0 & 50.0 & 12.5 \\
+17 & ResNet20 & FC   & D$\rightarrow$B & .001 & 17.5 & 12.5 & 15.0 & 25.0 & 17.5 & 12.5 & 10.0 &  7.5 & 17.5 & 12.5 \\
+18 & ConvNet  & SAPA & D$\rightarrow$B & .001 & 27.5 & 30.0 & 20.0 & 32.5 & 15.0 &  5.0 & 25.0 & 27.5 & 15.0 &  7.5 \\
+19 & ResNet20 & FC   & F$\rightarrow$A & .010 & 40.0 & 22.5 & 20.0 & 30.0 & 22.5 &  2.5 & 30.0 & 25.0 & 20.0 & 22.5 \\
+20 & ConvNet  & SAPA & F$\rightarrow$A & .010 & 15.0 &  5.0 & 25.0 & 20.0 & 20.0 &  2.5 & 22.5 & 12.5 & 17.5 & 12.5 \\
+21 & ConvNet  & GM   & D$\rightarrow$B & .002 & 40.0 & 55.0 & 35.0 & 35.0 & 32.5 & 15.0 & 37.5 & 45.0 & 40.0 & 17.5 \\
+22 & ResNet20 & GM   & F$\rightarrow$A & .002 & 30.0 & 27.5 & 25.0 & 20.0 & $25.7$ &  0.0 & 32.5 & 22.5 & 25.0 &  0.0 \\
+23 & ResNet20 & SAPA & F$\rightarrow$A & .002 & 20.0 & 35.0 & 22.5 & 12.5 & $22.9$ &  2.5 & 15.0 & 35.0 & 27.5 &  2.5 \\
+24 & ConvNet  & GM   & D$\rightarrow$B & .001 & 12.5 & 45.0 & 15.0 & 27.5 & 17.5 &  7.5 & 25.0 & 27.5 & 27.5 & 10.0 \\
+25 & ConvNet  & GM   & F$\rightarrow$A & .005 &  5.0 & 15.0 & 10.0 & 17.5 &  2.5 &  0.0 &  7.5 & 10.0 &  7.5 &  7.5 \\
+26 & VGG13    & GM   & F$\rightarrow$A & .001 & 40.0 & 40.0 & $14.3$ & 27.5 & 35.0 &  0.0 & 27.5 & 12.5 & 25.0 & 12.5 \\
+27 & VGG13    & FC   & F$\rightarrow$A & .001 &  7.5 &  7.5 & 12.5 & 15.0 &  5.0 &  0.0 &  7.5 & 10.0 &  5.0 &  0.0 \\
+28 & ResNet20 & SAPA & F$\rightarrow$A & .001 & 27.5 & 32.5 & 20.0 & 17.5 & $25.0$ &  0.0 & 10.0 & 10.0 & 17.5 &  5.0 \\
+29 & ConvNet  & FC   & D$\rightarrow$B & .001 & 32.5 & 50.0 & 42.5 & 25.0 & 35.0 &  2.5 & 30.0 & 27.5 & 37.5 &  5.0 \\
+30 & ResNet20 & FC   & F$\rightarrow$A & .001 &  2.5 & 12.5 & 12.5 &  7.5 &  7.5 &  5.0 &  7.5 &  2.5 &  5.0 &  7.5 \\
+\midrule
+
+\multicolumn{5}{l}{\textbf{All configurations, mean}} & \textbf{39.8} & \textbf{44.2} & \textbf{41.4} & \textbf{39.9} & $\mathbf{38.9}$ & \textbf{9.9} & \textbf{39.8} & \textbf{39.0} & \textbf{37.5} & \textbf{22.4} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
