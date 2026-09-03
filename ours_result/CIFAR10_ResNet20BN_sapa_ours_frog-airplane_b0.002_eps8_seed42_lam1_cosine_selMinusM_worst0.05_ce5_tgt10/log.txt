@@ -1,16 +1,3 @@
-stage: optional directory absent: /home/mmoslem3/scratch/attack_if/ours_result/CIFAR10_ResNet20BN_sapa_ours_frog-airplane_b0.002_eps8_seed42_lam1_cosine_selMinusM_worst0.05_ce5_tgt10
-job: 5194420 cmp30b_23_resnet20bn_sapa_fa_b0002_minus_m on kn001
-work: /tmp/attack_if
-config: source /home/mmoslem3/ENV/bin/activate; SOURCE_ROOT=/home/mmoslem3/scratch/attack_if PERSIST_DATA_ROOT=/home/mmoslem3/scratch/data MODEL=ResNet20BN ATTACK=sapa CLASS_PAIR=frog-airplane BUDGETS=0.002 SELECT=minus-m NUM_TARGETS=8 NUM_VICTIMS=5 sh sel_dpp.sh
-protocol: attack=8 targets x 5 victims
-gpu: NVIDIA L40S
-=== component ablation: -M | ResNet20BN / sapa / frog-airplane | sharp worst sigma=0.05 ===
-    targets: pinned from target_sets/ResNet20BN_gradmatch_frog-airplane.json (same 10 the random-base run attacked)
-    difficulty label tgt10   craft flags: none
-    component ablation: -M; needed raw components are averaged over surrogates, then standardized (batch=64)
-    budgets: 0.002
-
---- minus-m | ResNet20BN / sapa / frog-airplane | sharp worst sigma=0.05 | budget 0.002 ---
 [2026-09-02 23:12:03] === run start: CIFAR10_ResNet20BN_sapa_ours_frog-airplane_b0.002_eps8_seed42_lam1_cosine_selMinusM_worst0.05_ce5_tgt10 on cuda [0] ===
 [2026-09-02 23:12:03] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/attack_if/cache", "class_pair": "frog-airplane", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 8, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_component": "minus-m", "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/ResNet20BN_gradmatch_frog-airplane.json", "target_select": 10, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
 [2026-09-02 23:12:03] Jacobian score: disabled
@@ -97,6 +84,3 @@ gpu: NVIDIA L40S
 [2026-09-03 01:16:49]   target 2570, 5 victims on this gpu: ASR=80.0% CTA=0.8350 +/- 0.0022
 [2026-09-03 01:16:49] ==== CIFAR10_ResNet20BN_sapa_ours_frog-airplane_b0.002_eps8_seed42_lam1_cosine_selMinusM_worst0.05_ce5_tgt10 : ASR = 30.0% +/- 28.3% | CTA = 0.8373 (baseline 0.8401) ====
 [2026-09-03 01:16:49]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [20, 0, 3, 1, 0, 0, 12, 3, 1, 0]
-
-sync: preserving outputs in /home/mmoslem3/scratch/attack_if
-sync: complete
