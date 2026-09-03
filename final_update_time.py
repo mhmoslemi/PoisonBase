@@ -2821,17 +2821,22 @@ def timed_select_base_components(formula, nets, images_norm, labels, x_t_norm,
 def time_main(args):
     """--time_mode entry point: base-selection overhead only.
 
-    No poison crafting, no victim training. Loads the dataset, trains/loads the
-    real surrogate ensemble (base selection needs real trained nets, so this
-    part is not skipped), picks --num_targets real targets exactly as a normal
-    run would, then for EACH target calls the timed selector --time_repeats
-    times (one untimed warm-up call first, so first-call CUDA/cuDNN/torch.func
-    warm-up never pollutes a measured repeat).
+    No poison crafting, no victim training. Loads the dataset and trains/loads
+    the real surrogate ensemble ONCE (surrogate_dir's cache key never depends
+    on class_pair -- see surrogate_dir -- so this is correct and shared across
+    every class pair below, not just an optimization).
 
-    Every (target, repeat) measurement is pooled per COMPONENT -- e.g. for
-    a-mr, 'A', 'M', and 'R' each get their own mean/std over all repeats, not
-    just one lumped "compute" number -- plus a 'sort' phase and a 'combined'
-    end-to-end total (sum of components + sort). Time is each phase's own
+    If --time_pairs_file is given (a JSON list of {class_pair, target_idx_file,
+    target_select, note}), it loops those class pairs ONE AT A TIME -- full
+    target selection + --time_repeats timed calls per target for pair 1, then
+    the same for pair 2, etc. -- and pools EVERY (pair, target, repeat)
+    measurement into ONE combined breakdown, not a separate average per pair.
+    Without --time_pairs_file it falls back to the single pair from
+    --class_pair/--target_idx_file/--target_select, unchanged from before.
+
+    Every measurement is pooled per COMPONENT -- e.g. for a-mr, 'A', 'M', and
+    'R' each get their own mean/std, not one lumped "compute" number -- plus a
+    'sort' phase and a 'combined' end-to-end total. Time is each phase's own
     duration; memory is the cumulative peak GPU memory reached by the end of
     that phase, so 'sort' is the true peak for the whole call. Everything is
     logged and written to <out_dir>/TIME_<run name>/timing.json.
@@ -2843,13 +2848,31 @@ def time_main(args):
         torch.cuda.set_device(gpus[0])
     set_seed(args.seed)
 
-    run_dir = os.path.join(args.out_dir, 'TIME_' + build_run_name(args))
+    if args.time_pairs_file:
+        with open(args.time_pairs_file) as f:
+            pair_configs = json.load(f)
+        for pc in pair_configs:
+            ts = pc.get('target_select')
+            if isinstance(ts, float):
+                pc['target_select'] = int(ts)
+    else:
+        pair_configs = [{'class_pair': args.class_pair,
+                        'target_idx_file': args.target_idx_file,
+                        'target_select': args.target_select, 'note': None}]
+    if not pair_configs:
+        raise ValueError('--time_pairs_file resolved to zero usable class pairs')
+
+    pair_label = '+'.join(pc['class_pair'] for pc in pair_configs)
+    name_args = argparse.Namespace(**vars(args))
+    name_args.class_pair = pair_label
+    run_dir = os.path.join(args.out_dir, 'TIME_' + build_run_name(name_args))
     os.makedirs(run_dir, exist_ok=True)
     _LOG_PATH = os.path.join(run_dir, 'log.txt')
 
     log('=== [time_mode] run start: %s on %s (no crafting, no victim training) ==='
-        % (build_run_name(args), ('cuda %s' % gpus) if gpus else 'cpu'))
+        % (build_run_name(name_args), ('cuda %s' % gpus) if gpus else 'cpu'))
     log('args: %s' % json.dumps(vars(args), sort_keys=True))
+    log('  %d class pair(s): %s' % (len(pair_configs), pair_label))
 
     ctx = build_context(args, device)
     channel, im_size = ctx['channel'], ctx['im_size']
@@ -2859,11 +2882,8 @@ def time_main(args):
     dsa_param = ctx['dsa_param']
     N_total = train_imgs.shape[0]
 
-    y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
     N_p = rho_to_m(args.budget, N_total) if args.budget else args.num_poisons
-    log('N_total=%d budget=%g -> N_p=%d poisons, y_adv=%d(%s) target_class=%d(%s)'
-        % (N_total, args.budget or 0, N_p, y_adv, class_names[y_adv],
-           target_class, class_names[target_class]))
+    log('N_total=%d budget=%g -> N_p=%d poisons' % (N_total, args.budget or 0, N_p))
 
     log('=== surrogates (%d x %s, trained on the full real set) ==='
         % (args.num_surrogates, args.model))
@@ -2879,19 +2899,13 @@ def time_main(args):
     if args.sel_K:
         sel_nets = sel_nets[:args.sel_K]
 
-    # target ranking uses the surrogates -- time_mode never trains clean victims
-    gen = torch.Generator(device='cpu').manual_seed(args.seed)
-    targets, target_scores = select_targets(args, surrogates, test_imgs, test_labs,
-                                            y_adv, target_class, gen)
-    log('  targets: %s' % targets)
-
     jacobian_kwargs = {
         'use_jacobian_score': getattr(args, 'use_jacobian_score', False),
         'jacobian_weight': getattr(args, 'jacobian_weight', 1.0),
         'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
     }
 
-    def run_once(tidx):
+    def run_once(tidx, y_adv):
         x_t_norm = test_imgs[tidx]
         # same per-target reseed prepare_poisons uses, so a timed run selects
         # exactly the bases a real run would
@@ -2939,28 +2953,55 @@ def time_main(args):
 
         return sw, len(base_idx)
 
-    # one untimed warm-up call (first target), so lazy CUDA context init, cuDNN
-    # algorithm search, and torch.func's first-call tracing overhead never land
-    # inside a measured repeat
+    # one untimed warm-up call (first pair's first target), so lazy CUDA
+    # context init, cuDNN algorithm search, and torch.func's first-call
+    # tracing overhead never land inside a measured repeat
+    warm_pc = pair_configs[0]
+    args.class_pair = warm_pc['class_pair']
+    args.target_idx_file = warm_pc.get('target_idx_file')
+    args.target_select = warm_pc['target_select']
+    warm_y_adv, warm_target_class = parse_pair(args.class_pair, class_names,
+                                               args.pair_order)
+    warm_gen = torch.Generator(device='cpu').manual_seed(args.seed)
+    warm_targets, _ = select_targets(args, surrogates, test_imgs, test_labs,
+                                     warm_y_adv, warm_target_class, warm_gen)
     log('  warm-up call (untimed)...')
-    run_once(targets[0])
+    run_once(warm_targets[0], warm_y_adv)
 
     pooled = defaultdict(lambda: {'time': [], 'mem': []})
     end_to_end_time, end_to_end_mem, all_n_bases = [], [], []
-    for tidx in targets:
-        for r in range(args.time_repeats):
-            sw, n_sel = run_once(tidx)
-            for name, t in sw.elapsed.items():
-                pooled[name]['time'].append(t)
-                pooled[name]['mem'].append(sw.mem_mb[name])
-            e2e_t = sum(sw.elapsed.values())
-            e2e_m = sw.mem_mb['sort']
-            end_to_end_time.append(e2e_t)
-            end_to_end_mem.append(e2e_m)
-            all_n_bases.append(n_sel)
-            phase_str = ' '.join('%s=%.4fs' % (k, v) for k, v in sw.elapsed.items())
-            log('  target %d repeat %d/%d: %s end2end=%.4fs peak_mem=%.1fMB (%d bases)'
-                % (tidx, r + 1, args.time_repeats, phase_str, e2e_t, e2e_m, n_sel))
+
+    for pc in pair_configs:
+        args.class_pair = pc['class_pair']
+        args.target_idx_file = pc.get('target_idx_file')
+        args.target_select = pc['target_select']
+        y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
+        log('=== class pair %s: y_adv=%d(%s) target_class=%d(%s) ==='
+            % (args.class_pair, y_adv, class_names[y_adv],
+               target_class, class_names[target_class]))
+        if pc.get('note'):
+            log('    %s' % pc['note'])
+        gen = torch.Generator(device='cpu').manual_seed(args.seed)
+        targets, target_scores = select_targets(args, surrogates, test_imgs, test_labs,
+                                                y_adv, target_class, gen)
+        log('    targets: %s' % targets)
+
+        for tidx in targets:
+            for r in range(args.time_repeats):
+                sw, n_sel = run_once(tidx, y_adv)
+                for name, t in sw.elapsed.items():
+                    pooled[name]['time'].append(t)
+                    pooled[name]['mem'].append(sw.mem_mb[name])
+                e2e_t = sum(sw.elapsed.values())
+                e2e_m = sw.mem_mb['sort']
+                end_to_end_time.append(e2e_t)
+                end_to_end_mem.append(e2e_m)
+                all_n_bases.append(n_sel)
+                phase_str = ' '.join('%s=%.4fs' % (k, v) for k, v in sw.elapsed.items())
+                log('    pair %s target %d repeat %d/%d: %s end2end=%.4fs '
+                    'peak_mem=%.1fMB (%d bases)'
+                    % (pc['class_pair'], tidx, r + 1, args.time_repeats,
+                       phase_str, e2e_t, e2e_m, n_sel))
 
     def _stats(v):
         a = np.array(v, dtype=np.float64)
@@ -2977,10 +3018,10 @@ def time_main(args):
     e2e_m_mean, e2e_m_std = _stats(end_to_end_mem)
     total_n = len(end_to_end_time)
 
-    log('==== TIMING SUMMARY: %s | %s / %s | %d target(s) x %d repeat(s) = '
-        '%d measured selections ===='
-        % (build_run_name(args), args.dataset, args.model,
-           len(targets), args.time_repeats, total_n))
+    log('==== TIMING SUMMARY: %s | %s / %s | %d class pair(s), %d repeat(s)/target '
+        '= %d measured selections (pooled across pairs) ===='
+        % (build_run_name(name_args), args.dataset, args.model, len(pair_configs),
+           args.time_repeats, total_n))
     for name, s in phase_stats.items():
         log('  %-8s: time %.4fs +/- %.4fs | mem %8.1fMB +/- %6.1fMB  (n=%d)'
             % (name, s['time_mean_s'], s['time_std_s'],
@@ -2990,7 +3031,7 @@ def time_main(args):
 
     out = {
         'dataset': args.dataset, 'model': args.model, 'attack': args.attack,
-        'class_pair': args.class_pair, 'base': args.base,
+        'class_pairs': [pc['class_pair'] for pc in pair_configs], 'base': args.base,
         'sel_dpp': bool(args.sel_dpp), 'sel_alpha': args.sel_alpha,
         'sel_exact_alignment': bool(getattr(args, 'sel_exact_alignment', False)),
         'sel_a_minus_mr': bool(getattr(args, 'sel_a_minus_mr', False)),
@@ -3000,12 +3041,11 @@ def time_main(args):
         'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
         'budget': args.budget, 'num_poisons': N_p,
         'num_surrogates': args.num_surrogates,
-        'num_targets': len(targets), 'repeats_per_target': args.time_repeats,
+        'repeats_per_target': args.time_repeats,
         'total_measured_selections': total_n,
         'phase_breakdown': phase_stats,
         'combined': {'time_mean_s': e2e_t_mean, 'time_std_s': e2e_t_std,
                     'mem_mean_mb': e2e_m_mean, 'mem_std_mb': e2e_m_std},
-        'targets': targets,
         'per_run': {
             'phases': {name: {'time_s': vals['time'], 'mem_mb': vals['mem']}
                       for name, vals in pooled.items()},
@@ -3488,6 +3528,12 @@ def parse_args(argv=None):
                         'memory only; no crafting, no victim training')
     p.add_argument('--time_repeats', type=int, default=10,
                    help='--time_mode: how many timed repeats per target')
+    p.add_argument('--time_pairs_file', type=str, default=None,
+                   help='--time_mode: path to a JSON file listing multiple class '
+                        'pairs to pool into ONE aggregate -- a list of objects '
+                        'each with class_pair, target_idx_file (or null), '
+                        'target_select, and an optional note. Overrides '
+                        '--class_pair/--target_idx_file/--target_select.')
     args = p.parse_args(argv)
 
     if args.FORCE:

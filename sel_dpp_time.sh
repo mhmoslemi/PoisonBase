@@ -116,51 +116,72 @@ case "$TARGET_SELECT" in
     *) [ "$TARGET_SELECT" -le 100 ] || { echo "TARGET_SELECT=$TARGET_SELECT out of range 0..100"; exit 1; } ;;
 esac
 
+mkdir -p "$OUT_DIR"
+
 for model in $MODEL; do
 for attack in $ATTACK; do
-for pair in $CLASS_PAIR; do
 
-    # --- difficulty label, straight from sweep_config.json (same source as
-    # sel_dpp.sh, so a timing run's targets line up with a real run's) --------
-    CFG="$(python - "$model" "$attack" "$pair" <<'PY'
-import json, sys
-model, attack, pair = sys.argv[1:4]
+    # --- build ONE JSON file describing every class pair in CLASS_PAIR for
+    # this (model, attack): per pair, the difficulty label from
+    # sweep_config.json, and whether a target_sets/ file pins its targets --
+    # same lookup as before, emitted as data so final_update_time.py can loop
+    # the pairs itself IN ONE PROCESS and pool them into one aggregate instead
+    # of averaging each pair separately. A pair missing from sweep_config.json
+    # is dropped with a warning instead of aborting the whole combo. ----------
+    PAIRS_FILE="${OUT_DIR}/.time_pairs_${model}_${attack}.json"
+    python - "$model" "$attack" "$TARGET_SELECT" $CLASS_PAIR > "$PAIRS_FILE" <<'PY'
+import json, os, sys
+model, attack, target_select_env = sys.argv[1], sys.argv[2], sys.argv[3]
+pairs = sys.argv[4:]
 cfg = json.load(open('sweep_config.json'))
 # sapa is gradmatch + a sharpness-aware target gradient: same difficulty label,
 # so it reads the gradmatch entry rather than needing its own.
 key = 'gradmatch' if attack == 'sapa' else attack
-try:
-    tgt = cfg['difficulty'][model][key][pair]
-except KeyError:
-    sys.exit('sweep_config.json has no difficulty for %s / %s / %s' % (model, key, pair))
-print('CFG_TGT=%s' % tgt)
-print('CFG_KEY=%s' % key)
+out = []
+for pair in pairs:
+    try:
+        tgt = cfg['difficulty'][model][key][pair]
+    except KeyError:
+        sys.stderr.write('!! sweep_config.json has no difficulty for %s / %s / %s -- '
+                         'skipping this pair\n' % (model, key, pair))
+        continue
+    # pinned if the file is there, difficulty degree otherwise -- sapa falls
+    # back to the gradmatch target set, so the two attacks are timed on the
+    # identical images
+    idx = 'target_sets/%s_%s_%s.json' % (model, attack, pair)
+    if not (os.path.exists(idx) and os.path.getsize(idx) > 0) and attack != key:
+        alt = 'target_sets/%s_%s_%s.json' % (model, key, pair)
+        if os.path.exists(alt) and os.path.getsize(alt) > 0:
+            idx = alt
+    pinned = os.path.exists(idx) and os.path.getsize(idx) > 0
+    if pinned:
+        target_idx_file, target_select = idx, tgt
+        note = 'pinned from %s (same images sel_dpp.sh would attack)' % idx
+        if target_select_env:
+            note += '; TARGET_SELECT=%s ignored -- combo already pinned' % target_select_env
+    elif target_select_env:
+        target_idx_file = None
+        try:
+            target_select = int(target_select_env)
+        except ValueError:
+            target_select = target_select_env
+        note = 'no pinned set -- selecting by TARGET_SELECT=%s' % target_select_env
+    else:
+        target_idx_file, target_select = None, tgt
+        note = 'no pinned set found -- selecting by difficulty degree tgt%s' % tgt
+    out.append({'class_pair': pair, 'target_idx_file': target_idx_file,
+               'target_select': target_select, 'note': note})
+if not out:
+    sys.exit('no usable class pairs for %s / %s' % (model, attack))
+json.dump(out, sys.stdout)
 PY
-    )" || { echo "!! skipping $model / $attack / $pair"; echo; continue; }
-    eval "$CFG"
-
-    # --- targets: pinned if the file is there, difficulty degree otherwise -----
-    # sapa falls back to the gradmatch target set, so the two attacks are timed
-    # on the identical images
-    IDX="target_sets/${model}_${attack}_${pair}.json"
-    if [ ! -s "$IDX" ] && [ "$attack" != "$CFG_KEY" ]; then
-        IDX="target_sets/${model}_${CFG_KEY}_${pair}.json"
+    if [ $? -ne 0 ]; then
+        echo "!! skipping $model / $attack (no usable class pairs)"
+        rm -f "$PAIRS_FILE"
+        echo
+        continue
     fi
-    if [ -s "$IDX" ]; then
-        TGT_FLAGS="--target_idx_file $IDX"
-        TGT_DEG="$CFG_TGT"
-        TGT_NOTE="pinned from $IDX (same images sel_dpp.sh would attack)"
-        [ -n "$TARGET_SELECT" ] && \
-            TGT_NOTE="$TGT_NOTE; TARGET_SELECT=$TARGET_SELECT ignored -- combo already pinned"
-    elif [ -n "$TARGET_SELECT" ]; then
-        TGT_FLAGS=""
-        TGT_DEG="$TARGET_SELECT"
-        TGT_NOTE="no pinned set -- selecting by TARGET_SELECT=$TARGET_SELECT"
-    else
-        TGT_FLAGS=""
-        TGT_DEG="$CFG_TGT"
-        TGT_NOTE="no pinned set found -- selecting by difficulty degree tgt$CFG_TGT"
-    fi
+    N_PAIRS=$(python -c "import json; print(len(json.load(open('$PAIRS_FILE'))))")
 
 for sel in $SELECT; do
 
@@ -216,31 +237,28 @@ for sig in $SIGMAS; do
         SHARP_NOTE=""
     fi
 
-    echo "=== TIMING $SEL_NOTE | $model / $attack / $pair$SHARP_NOTE ==="
-    echo "    targets: $TGT_NOTE ($NUM_TARGETS targets x $TIME_REPEATS repeats)"
-    echo "    difficulty label tgt$TGT_DEG"
+    echo "=== TIMING $SEL_NOTE | $model / $attack$SHARP_NOTE | $N_PAIRS class pair(s): $CLASS_PAIR ==="
+    echo "    $NUM_TARGETS targets/pair x $TIME_REPEATS repeats = $((N_PAIRS * NUM_TARGETS * TIME_REPEATS)) pooled measurements"
     echo "    $JACOBIAN_NOTE"
     echo "    budgets: $BUDGETS"
     echo
 
     for bug in $BUDGETS; do
-        echo "--- $sel | $model / $attack / $pair$SHARP_NOTE | budget $bug ---"
+        echo "--- $sel | $model / $attack$SHARP_NOTE | budget $bug ---"
         python final_update_time.py \
             --dataset "$DATASET" --data_path "$DATA_PATH" --seed "$SEED" \
             --cache_dir "$CACHE_DIR" --out_dir "$OUT_DIR" \
             --model "$model" --attack "$attack" --base "$BASE" \
-            --class_pair "$pair" --pair_order poison-target \
+            --pair_order poison-target \
             --budget "$bug" \
             --base_dist cosine --lambda_margin 1.0 \
             $SEL_FLAGS $JACOBIAN_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
-            --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
-            $TGT_FLAGS \
-            --time_mode --time_repeats "$TIME_REPEATS"
+            --num_targets "$NUM_TARGETS" \
+            --time_mode --time_repeats "$TIME_REPEATS" --time_pairs_file "$PAIRS_FILE"
     done
     echo
 
-done
 done
 done
 done
