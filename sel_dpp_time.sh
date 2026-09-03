@@ -7,56 +7,45 @@
 # compute the per-candidate quantities (feature distance d, margin M, the
 # Jacobian backbone-gradient interaction A, the raw representation inner
 # product R -- whichever SELECT actually needs) and how long it takes to sort
-# / rank the candidate pool from them, plus the peak GPU memory each phase
-# reaches. No poison is ever crafted and no victim is ever trained.
+# / rank the candidate pool from them, plus the peak GPU memory that step
+# uses. No poison is ever crafted and no victim is ever trained.
 #
 # SELECT is the same selector menu as sel_dpp.sh (see there for exact
-# per-selector formulas). CLASS_PAIR may list MULTIPLE pairs -- unlike
-# sel_dpp.sh, this script pools every (class pair x target x repeat)
-# measurement into ONE aggregate per (model, attack, select, budget) combo,
-# since the point here is overhead, not per-pair ASR. With the defaults (2
-# class pairs x 3 targets x 3 repeats) that is 18 measured selections per
-# combo. Each class pair still gets its own real --num_targets targets (pinned
-# file if target_sets/ already has one, else the combo's difficulty degree from
-# sweep_config.json, exactly like sel_dpp.sh); the surrogate ensemble is
-# trained/loaded only ONCE per combo and shared across every pair, since the
-# surrogate cache key never depends on class_pair (see surrogate_dir).
+# per-selector formulas). For MODEL/ATTACK/CLASS_PAIR/BUDGETS this script
+# picks the SAME --num_targets real targets a normal run would (pinned file if
+# target_sets/ already has one, else the combo's difficulty degree from
+# sweep_config.json, exactly like sel_dpp.sh), then times each selector
+# TIME_REPEATS times per target. With the defaults (10 targets x 10 repeats)
+# that is 100 timed selections per (model, attack, pair, select, budget) combo.
 #
 # Runs final_update_time.py --time_mode (final_update.py and final.py are both
-# untouched). A combo whose surrogates are already cached in CACHE_DIR times in
-# seconds instead of the hours a full sel_dpp.sh run takes.
+# untouched). final_update_time.py's --time_mode path still trains/loads the
+# real surrogate ensemble -- selection needs real nets -- it just never crafts
+# a poison or trains a victim, so a combo that already has cached surrogates in
+# CACHE_DIR times in seconds instead of the hours a full sel_dpp.sh run takes.
 #
-# Per (model, attack, select, budget) combo this prints, and saves to
+# Per (model, attack, pair, select, budget) combo this prints, and saves to
 # <OUT_DIR>/TIME_<run name>/timing.json:
-#   one phase per component the selector actually computes -- e.g. d/M/(A) for
-#   ours and dpp, A/M/R for a-mr, gi_gt for exact, whichever subset of A/M/R a
-#   component ablation needs -- each as mean +/- std time and mean +/- std
-#   cumulative peak GPU memory, pooled across every class pair
-#   sort           (combining the standardized components + topk / greedy DPP)
-#   combined       (all components + sort, i.e. true end-to-end)
-# plus a per-class-pair end-to-end sub-summary for a sanity check that no pair
-# is a wild outlier.
+#   compute time  (the expensive per-candidate forward/backward passes)
+#   sort time     (combining the standardized components + topk / greedy DPP)
+#   end-to-end    (compute + sort)
+#   peak GPU mem
+# each as mean +/- std over the TIME_REPEATS x --num_targets measured calls.
 #
 # Usage, same env-var sweep style as sel_dpp.sh:
 #
 #     sh sel_dpp_time.sh
 #     SELECT="ours dpp exact a-mr" MODEL=VGG13BN sh sel_dpp_time.sh
 #     SELECT="minus-m r a a-minus-m a-plus-r minus-m-times-r" sh sel_dpp_time.sh
-#     CLASS_PAIR="dog-bird frog-airplane" NUM_TARGETS=10 TIME_REPEATS=10 \
-#         SELECT=dpp sh sel_dpp_time.sh   # 2 x 10 x 10 = 200 pooled selections
+#     NUM_TARGETS=10 TIME_REPEATS=20 SELECT=dpp sh sel_dpp_time.sh
 #     BUDGETS="0.001 0.01 0.04" SELECT=dpp sh sel_dpp_time.sh   # N_p scaling
 #
 
-# MODELS=(ConvNetBN VGG13BN ResNet20BN)
-# ATTACKS=(fc gradmatch sapa)
-# BASES=(random ours)
-# CLASS_PAIRS=(dog-bird frog-airplane)
-
-MODEL="${MODEL:-ConvNetBN VGG13BN ResNet20BN}"
+MODEL="${MODEL:-VGG13BN}"
 ATTACK="${ATTACK:-fc}"
-CLASS_PAIR="${CLASS_PAIR:-frog-airplane dog-bird}"
+CLASS_PAIR="${CLASS_PAIR:-frog-airplane}"
 BUDGETS="${BUDGETS:-0.001}"
-SELECT="${SELECT:-ours}"
+SELECT="${SELECT:-dpp}"
 
 SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
 USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-1}"
@@ -75,10 +64,10 @@ SEED="${SEED:-42}"
 PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
 
-# how many real targets per class pair, and how many timed repeats per target --
-# defaults give 2 pairs x 3 targets x 3 repeats = 18 pooled measurements/combo.
-NUM_TARGETS="${NUM_TARGETS:-3}"
-TIME_REPEATS="${TIME_REPEATS:-3}"
+# how many real targets to select and how many timed repeats per target --
+# defaults give 10 x 10 = 100 measured selections per combo.
+NUM_TARGETS="${NUM_TARGETS:-10}"
+TIME_REPEATS="${TIME_REPEATS:-10}"
 
 # Difficulty degree to select targets with the FIRST time a combo is run, i.e.
 # when target_sets/<MODEL>_<ATTACK>_<PAIR>.json does not exist yet. 0..100
@@ -127,72 +116,51 @@ case "$TARGET_SELECT" in
     *) [ "$TARGET_SELECT" -le 100 ] || { echo "TARGET_SELECT=$TARGET_SELECT out of range 0..100"; exit 1; } ;;
 esac
 
-mkdir -p "$OUT_DIR"
-
 for model in $MODEL; do
 for attack in $ATTACK; do
+for pair in $CLASS_PAIR; do
 
-    # --- build ONE JSON file describing every class pair for this (model,
-    # attack): per pair, the difficulty label from sweep_config.json, and
-    # whether a target_sets/ file pins its targets -- exactly the same lookup
-    # sel_dpp.sh does per pair, just emitted as data instead of shell flags, so
-    # final_update_time.py can loop the pairs itself and pool them into one
-    # aggregate. A pair missing from sweep_config.json is dropped with a
-    # warning instead of aborting the whole combo. ------------------------------
-    PAIRS_FILE="${OUT_DIR}/.time_pairs_${model}_${attack}.json"
-    python - "$model" "$attack" "$TARGET_SELECT" $CLASS_PAIR > "$PAIRS_FILE" <<'PY'
-import json, os, sys
-model, attack, target_select_env = sys.argv[1], sys.argv[2], sys.argv[3]
-pairs = sys.argv[4:]
+    # --- difficulty label, straight from sweep_config.json (same source as
+    # sel_dpp.sh, so a timing run's targets line up with a real run's) --------
+    CFG="$(python - "$model" "$attack" "$pair" <<'PY'
+import json, sys
+model, attack, pair = sys.argv[1:4]
 cfg = json.load(open('sweep_config.json'))
 # sapa is gradmatch + a sharpness-aware target gradient: same difficulty label,
 # so it reads the gradmatch entry rather than needing its own.
 key = 'gradmatch' if attack == 'sapa' else attack
-out = []
-for pair in pairs:
-    try:
-        tgt = cfg['difficulty'][model][key][pair]
-    except KeyError:
-        sys.stderr.write('!! sweep_config.json has no difficulty for %s / %s / %s -- '
-                         'skipping this pair\n' % (model, key, pair))
-        continue
-    # pinned if the file is there, difficulty degree otherwise -- sapa falls
-    # back to the gradmatch target set, so the two attacks are timed on the
-    # identical images
-    idx = 'target_sets/%s_%s_%s.json' % (model, attack, pair)
-    if not (os.path.exists(idx) and os.path.getsize(idx) > 0) and attack != key:
-        alt = 'target_sets/%s_%s_%s.json' % (model, key, pair)
-        if os.path.exists(alt) and os.path.getsize(alt) > 0:
-            idx = alt
-    pinned = os.path.exists(idx) and os.path.getsize(idx) > 0
-    if pinned:
-        target_idx_file, target_select = idx, tgt
-        note = 'pinned from %s (same images sel_dpp.sh would attack)' % idx
-        if target_select_env:
-            note += '; TARGET_SELECT=%s ignored -- combo already pinned' % target_select_env
-    elif target_select_env:
-        target_idx_file = None
-        try:
-            target_select = int(target_select_env)
-        except ValueError:
-            target_select = target_select_env
-        note = 'no pinned set -- selecting by TARGET_SELECT=%s' % target_select_env
-    else:
-        target_idx_file, target_select = None, tgt
-        note = 'no pinned set found -- selecting by difficulty degree tgt%s' % tgt
-    out.append({'class_pair': pair, 'target_idx_file': target_idx_file,
-               'target_select': target_select, 'note': note})
-if not out:
-    sys.exit('no usable class pairs for %s / %s' % (model, attack))
-json.dump(out, sys.stdout)
+try:
+    tgt = cfg['difficulty'][model][key][pair]
+except KeyError:
+    sys.exit('sweep_config.json has no difficulty for %s / %s / %s' % (model, key, pair))
+print('CFG_TGT=%s' % tgt)
+print('CFG_KEY=%s' % key)
 PY
-    if [ $? -ne 0 ]; then
-        echo "!! skipping $model / $attack (no usable class pairs)"
-        rm -f "$PAIRS_FILE"
-        echo
-        continue
+    )" || { echo "!! skipping $model / $attack / $pair"; echo; continue; }
+    eval "$CFG"
+
+    # --- targets: pinned if the file is there, difficulty degree otherwise -----
+    # sapa falls back to the gradmatch target set, so the two attacks are timed
+    # on the identical images
+    IDX="target_sets/${model}_${attack}_${pair}.json"
+    if [ ! -s "$IDX" ] && [ "$attack" != "$CFG_KEY" ]; then
+        IDX="target_sets/${model}_${CFG_KEY}_${pair}.json"
     fi
-    N_PAIRS=$(python -c "import json; print(len(json.load(open('$PAIRS_FILE'))))")
+    if [ -s "$IDX" ]; then
+        TGT_FLAGS="--target_idx_file $IDX"
+        TGT_DEG="$CFG_TGT"
+        TGT_NOTE="pinned from $IDX (same images sel_dpp.sh would attack)"
+        [ -n "$TARGET_SELECT" ] && \
+            TGT_NOTE="$TGT_NOTE; TARGET_SELECT=$TARGET_SELECT ignored -- combo already pinned"
+    elif [ -n "$TARGET_SELECT" ]; then
+        TGT_FLAGS=""
+        TGT_DEG="$TARGET_SELECT"
+        TGT_NOTE="no pinned set -- selecting by TARGET_SELECT=$TARGET_SELECT"
+    else
+        TGT_FLAGS=""
+        TGT_DEG="$CFG_TGT"
+        TGT_NOTE="no pinned set found -- selecting by difficulty degree tgt$CFG_TGT"
+    fi
 
 for sel in $SELECT; do
 
@@ -248,28 +216,31 @@ for sig in $SIGMAS; do
         SHARP_NOTE=""
     fi
 
-    echo "=== TIMING $SEL_NOTE | $model / $attack$SHARP_NOTE | $N_PAIRS class pair(s): $CLASS_PAIR ==="
-    echo "    $NUM_TARGETS targets/pair x $TIME_REPEATS repeats = $((N_PAIRS * NUM_TARGETS * TIME_REPEATS)) pooled measurements"
+    echo "=== TIMING $SEL_NOTE | $model / $attack / $pair$SHARP_NOTE ==="
+    echo "    targets: $TGT_NOTE ($NUM_TARGETS targets x $TIME_REPEATS repeats)"
+    echo "    difficulty label tgt$TGT_DEG"
     echo "    $JACOBIAN_NOTE"
     echo "    budgets: $BUDGETS"
     echo
 
     for bug in $BUDGETS; do
-        echo "--- $sel | $model / $attack$SHARP_NOTE | budget $bug ---"
+        echo "--- $sel | $model / $attack / $pair$SHARP_NOTE | budget $bug ---"
         python final_update_time.py \
             --dataset "$DATASET" --data_path "$DATA_PATH" --seed "$SEED" \
             --cache_dir "$CACHE_DIR" --out_dir "$OUT_DIR" \
             --model "$model" --attack "$attack" --base "$BASE" \
-            --pair_order poison-target \
+            --class_pair "$pair" --pair_order poison-target \
             --budget "$bug" \
             --base_dist cosine --lambda_margin 1.0 \
             $SEL_FLAGS $JACOBIAN_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
-            --num_targets "$NUM_TARGETS" \
-            --time_mode --time_repeats "$TIME_REPEATS" --time_pairs_file "$PAIRS_FILE"
+            --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
+            $TGT_FLAGS \
+            --time_mode --time_repeats "$TIME_REPEATS"
     done
     echo
 
+done
 done
 done
 done
