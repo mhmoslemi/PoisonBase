@@ -395,3 +395,81 @@
 [2026-09-05 01:11:39] === [scatter_mode] run start: CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 on cuda [0] (no selection, no crafting, no victim training) ===
 [2026-09-05 01:11:39] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.02, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 128, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 5, "out_dir": "scatter_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "scatter_bins": 20, "scatter_dpi": 200, "scatter_formats": "png,pdf", "scatter_mode": true, "scatter_points": 2500, "scatter_topk_max": 0, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/ConvNetBN_fc_dog-bird.json", "target_select": 50, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
 [2026-09-05 01:11:39] Jacobian score: enabled in this config, weight=1 -> the real ranking is x - 1 * y
+[2026-09-05 01:11:51] N_total=50000 budget=0.02 -> N_p=1000 poisons (not selected here), y_adv=5(dog) target_class=2(bird)
+[2026-09-05 01:11:51] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-05 01:11:51] === clean victims (5 x ConvNetBN), only to rank targets ===
+[2026-09-05 01:11:51]   target pool 1000 -> eligible 962 (38 already predicted as y_adv or dropped)
+[2026-09-05 01:11:51]   chosen 2 targets (file), p_adv range 0.0000..0.0009
+[2026-09-05 01:11:51]   targets: [2540, 8129]
+[2026-09-05 01:11:51]   poison-class pool 5000 candidates -> plotting a seeded random subset of 2500
+[2026-09-05 01:11:52]   Jacobian score exact backend: torch.func JVP
+[2026-09-05 01:11:54]   target 2540 (1/2): 5000 candidates in 3 s | subset Pearson=0.550 Spearman=0.758 | full-pool Pearson=0.549 Spearman=0.753
+[2026-09-05 01:11:55]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target2540.png
+[2026-09-05 01:11:55]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target2540.pdf
+[2026-09-05 01:11:57]   target 8129 (2/2): 5000 candidates in 2 s | subset Pearson=0.549 Spearman=0.776 | full-pool Pearson=0.550 Spearman=0.772
+[2026-09-05 01:11:58]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target8129.png
+[2026-09-05 01:11:58]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target8129.pdf
+[2026-09-05 01:11:58]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_grid.png
+[2026-09-05 01:11:58]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_grid.pdf
+[2026-09-05 01:11:59]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_pooled.png
+[2026-09-05 01:11:59]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_pooled.pdf
+[2026-09-05 01:11:59]   target 2540: of the 1000 candidates selected by (R, M), 86.1% are also selected by (A, R, M)
+[2026-09-05 01:11:59]   target 8129: of the 1000 candidates selected by (R, M), 88.5% are also selected by (A, R, M)
+[2026-09-05 01:11:59]   mean over targets at N_p=1000: overlap 0.873 (chance 0.200)
+[2026-09-05 01:11:59]   mean overlap at the standard budgets: 0.001 -> 0.480, 0.002 -> 0.595, 0.005 -> 0.718, 0.01 -> 0.787, 0.02 -> 0.873, 0.04 -> 0.941
+[2026-09-05 01:12:00]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/topk_overlap.png
+[2026-09-05 01:12:00]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/topk_overlap.pdf
+[2026-09-05 01:12:00]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/conditional_a.png
+[2026-09-05 01:12:00]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/conditional_a.pdf
+[2026-09-05 01:12:01]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/rank_grid.png
+[2026-09-05 01:12:01]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/rank_grid.pdf
+[2026-09-05 01:12:01] ==== SCATTER done: CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 | pooled Pearson=0.549 Spearman=0.757 | overlap of the (R, M) and (A, R, M) selections at N_p = 0.873 (chance 0.200) | scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 ====
+[2026-09-05 01:14:15] === [scatter_mode] run start: CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 on cuda [0] (no selection, no crafting, no victim training) ===
+[2026-09-05 01:14:15] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.02, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 128, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 5, "out_dir": "scatter_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "scatter_bins": 20, "scatter_dpi": 200, "scatter_formats": "pdf", "scatter_mode": true, "scatter_points": 2500, "scatter_topk_max": 0, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/ConvNetBN_fc_dog-bird.json", "target_select": 50, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-05 01:14:15] Jacobian score: enabled in this config, weight=1 -> the real ranking is x - 1 * y
+[2026-09-05 01:14:27] N_total=50000 budget=0.02 -> N_p=1000 poisons (not selected here), y_adv=5(dog) target_class=2(bird)
+[2026-09-05 01:14:27] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-05 01:14:27] === clean victims (5 x ConvNetBN), only to rank targets ===
+[2026-09-05 01:14:27]   target pool 1000 -> eligible 962 (38 already predicted as y_adv or dropped)
+[2026-09-05 01:14:27]   chosen 10 targets (file), p_adv range 0.0000..0.0009
+[2026-09-05 01:14:27]   targets: [2540, 8129, 3725, 5705, 7663, 3875, 5169, 6335, 7488, 9831]
+[2026-09-05 01:14:27]   poison-class pool 5000 candidates -> plotting a seeded random subset of 2500
+[2026-09-05 01:14:28]   Jacobian score exact backend: torch.func JVP
+[2026-09-05 01:14:30]   target 2540 (1/10): 5000 candidates in 3 s | subset Pearson=0.550 Spearman=0.758 | full-pool Pearson=0.549 Spearman=0.753
+[2026-09-05 01:14:31]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target2540.pdf
+[2026-09-05 01:14:33]   target 8129 (2/10): 5000 candidates in 2 s | subset Pearson=0.549 Spearman=0.776 | full-pool Pearson=0.550 Spearman=0.772
+[2026-09-05 01:14:34]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target8129.pdf
+[2026-09-05 01:14:36]   target 3725 (3/10): 5000 candidates in 2 s | subset Pearson=0.509 Spearman=0.732 | full-pool Pearson=0.516 Spearman=0.727
+[2026-09-05 01:14:36]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target3725.pdf
+[2026-09-05 01:14:38]   target 5705 (4/10): 5000 candidates in 2 s | subset Pearson=0.515 Spearman=0.749 | full-pool Pearson=0.539 Spearman=0.746
+[2026-09-05 01:14:39]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target5705.pdf
+[2026-09-05 01:14:41]   target 7663 (5/10): 5000 candidates in 2 s | subset Pearson=0.536 Spearman=0.729 | full-pool Pearson=0.530 Spearman=0.726
+[2026-09-05 01:14:41]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target7663.pdf
+[2026-09-05 01:14:44]   target 3875 (6/10): 5000 candidates in 2 s | subset Pearson=0.524 Spearman=0.714 | full-pool Pearson=0.527 Spearman=0.707
+[2026-09-05 01:14:44]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target3875.pdf
+[2026-09-05 01:14:46]   target 5169 (7/10): 5000 candidates in 2 s | subset Pearson=0.515 Spearman=0.750 | full-pool Pearson=0.521 Spearman=0.743
+[2026-09-05 01:14:46]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target5169.pdf
+[2026-09-05 01:14:49]   target 6335 (8/10): 5000 candidates in 2 s | subset Pearson=0.517 Spearman=0.747 | full-pool Pearson=0.527 Spearman=0.744
+[2026-09-05 01:14:49]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target6335.pdf
+[2026-09-05 01:14:51]   target 7488 (9/10): 5000 candidates in 2 s | subset Pearson=0.536 Spearman=0.754 | full-pool Pearson=0.550 Spearman=0.749
+[2026-09-05 01:14:52]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target7488.pdf
+[2026-09-05 01:14:54]   target 9831 (10/10): 5000 candidates in 2 s | subset Pearson=0.514 Spearman=0.744 | full-pool Pearson=0.516 Spearman=0.741
+[2026-09-05 01:14:54]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target9831.pdf
+[2026-09-05 01:14:55]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_grid.pdf
+[2026-09-05 01:14:56]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_pooled.pdf
+[2026-09-05 01:14:56]   target 2540: of the 1000 candidates selected by (R, M), 86.1% are also selected by (A, R, M)
+[2026-09-05 01:14:56]   target 8129: of the 1000 candidates selected by (R, M), 88.5% are also selected by (A, R, M)
+[2026-09-05 01:14:57]   target 3725: of the 1000 candidates selected by (R, M), 87.3% are also selected by (A, R, M)
+[2026-09-05 01:14:57]   target 5705: of the 1000 candidates selected by (R, M), 88.8% are also selected by (A, R, M)
+[2026-09-05 01:14:57]   target 7663: of the 1000 candidates selected by (R, M), 88.7% are also selected by (A, R, M)
+[2026-09-05 01:14:58]   target 3875: of the 1000 candidates selected by (R, M), 85.3% are also selected by (A, R, M)
+[2026-09-05 01:14:58]   target 5169: of the 1000 candidates selected by (R, M), 88.8% are also selected by (A, R, M)
+[2026-09-05 01:14:58]   target 6335: of the 1000 candidates selected by (R, M), 87.0% are also selected by (A, R, M)
+[2026-09-05 01:14:58]   target 7488: of the 1000 candidates selected by (R, M), 87.6% are also selected by (A, R, M)
+[2026-09-05 01:14:59]   target 9831: of the 1000 candidates selected by (R, M), 85.7% are also selected by (A, R, M)
+[2026-09-05 01:14:59]   mean over targets at N_p=1000: overlap 0.874 (chance 0.200)
+[2026-09-05 01:14:59]   mean overlap at the standard budgets: 0.001 -> 0.500, 0.002 -> 0.594, 0.005 -> 0.718, 0.01 -> 0.791, 0.02 -> 0.874, 0.04 -> 0.942
+[2026-09-05 01:14:59]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/topk_overlap.pdf
+[2026-09-05 01:14:59]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/conditional_a.pdf
+[2026-09-05 01:15:00]   wrote scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/rank_grid.pdf
+[2026-09-05 01:15:00] ==== SCATTER done: CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 | pooled Pearson=0.526 Spearman=0.728 | overlap of the (R, M) and (A, R, M) selections at N_p = 0.874 (chance 0.200) | scatter_result/SCATTER_CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 ====

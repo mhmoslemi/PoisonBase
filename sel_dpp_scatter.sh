@@ -55,7 +55,7 @@
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
 
-MODEL="${MODEL:-ConvNetBN}"
+MODEL="${MODEL:-ConvNetBN VGG13BN ResNet20BN}"
 ATTACK="${ATTACK:-fc}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
@@ -91,16 +91,16 @@ SHARP_MODE="${SHARP_MODE:-worst}"    # ATTACK=sapa only: worst | avg
 SHARP_SIGMA="${SHARP_SIGMA:-0.05}"   # ATTACK=sapa only. worst: l2 radius (SAM rho).
                                      # avg: PER-ELEMENT std, use ~1e-3 there.
 
-DATASET="${DATASET:-CIFAR10}"
+DATASET="${DATASET:-CIFAR100}"
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
 OUT_DIR="${OUT_DIR:-scatter_result}"
 CACHE_DIR="${CACHE_DIR:-./cache}"
 SEED="${SEED:-42}"
 PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
-NUM_TARGETS="${NUM_TARGETS:-2}"
+NUM_TARGETS="${NUM_TARGETS:-10}"
 SCATTER_POINTS="${SCATTER_POINTS:-2500}"   # random candidates plotted per target
-SCATTER_FORMATS="${SCATTER_FORMATS:-png,pdf}"
+SCATTER_FORMATS="${SCATTER_FORMATS:-pdf}"
 NUM_VICTIMS="${NUM_VICTIMS:-5}"
 RECOMPUTE_DELTAS="${RECOMPUTE_DELTAS:-0}"
 case "$RECOMPUTE_DELTAS" in
