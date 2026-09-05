@@ -57,7 +57,10 @@
 
 MODEL="${MODEL:-ConvNetBN VGG13BN ResNet20BN}"
 ATTACK="${ATTACK:-fc}"
-CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
+# CLASS_PAIR: leave empty to get the per-DATASET default chosen below DATASET
+# (dog-bird / frog-airplane only exist on CIFAR10). Set it explicitly to
+# override, e.g. CLASS_PAIR="1-7 3-8" for SVHN or CLASS_PAIR="3-7" for CIFAR100.
+CLASS_PAIR="${CLASS_PAIR:-}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
 BUDGETS="${BUDGETS:-0.02}"
 SELECT="${SELECT:-dpp}"
