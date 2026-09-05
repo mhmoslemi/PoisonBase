@@ -2468,9 +2468,13 @@ def scatter_components(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
                 b = cand[i:i + bs]
                 fb = emb(b)
                 if base_dist == 'cosine':
-                    d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
+                    # d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
+                    d = F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
                 else:
-                    d = ((fb - f_t) ** 2).sum(dim=1)
+                    # pass
+                    d =  (((fb - f_t) ** 2).sum(dim=1))
+                d =  1 / (((fb - f_t) ** 2).sum(dim=1))
+                
                 z = net(b)
                 z_adv = z[:, y_adv].clone()
                 z_o = z.clone()
@@ -2483,7 +2487,8 @@ def scatter_components(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
             interaction, _ = _backbone_gradient_interactions(
                 net, cand, x_t_norm, y_adv, jacobian_batch_size)
             _log_interaction_diagnostics(surrogate_idx, interaction)
-            rm += standardize(d_s) +  lam * standardize(m_s) # this is ditance (1 - cose) + ( z_adv - max) so we need to minimize this whole
+            # rm += standardize(d_s) +  lam * standardize(m_s) # this is ditance (1 - cose) + ( z_adv - max) so we need to minimize this whole
+            rm += 1* standardize(d_s) -  standardize(m_s) # this is ditance (1 - cose) + ( z_adv - max) so we need to minimize this whole
             a += standardize(interaction)
             d_raw += d_s
             m_raw += m_s
@@ -2878,8 +2883,8 @@ def scatter_main(args):
         #     binned.append(_binned_quantiles(-g, a_np, args.scatter_bins))
         #     rank_x.append(_percentile_rank(-g)[subset_np])
         # For g = -rm this yields exactly the same numbers as the cost form.
-        full = rm_np - a_np                  # (A, R, M) ranking, lowest first
-        c_full = _topk_overlap_curve(rm_np, full, ks)   # (R, M) vs (A, R, M)
+        full = - rm_np - a_np                  # (A, R, M) ranking, lowest first
+        c_full = _topk_overlap_curve(- rm_np, full, ks)   # (R, M) vs (A, R, M)
         curves_full.append(c_full)
         binned.append(_binned_quantiles(rm_np, a_np, args.scatter_bins))
         rank_x.append(_percentile_rank(rm_np)[subset_np])

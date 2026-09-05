@@ -1,0 +1,31 @@
+[2026-09-03 19:07:53] === [time_mode] run start: SVHN_ConvNetBN_fc_ours_1-7_b0.01_eps8_seed42_lam1_cosine_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 19:07:53] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "SVHN", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ConvNetBN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 19:07:53]   1 class pair(s): 1-7
+[2026-09-03 19:08:14] N_total=73257 budget=0.01 -> N_p=733 poisons
+[2026-09-03 19:08:14] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-03 19:08:15]   target pool 2019 -> eligible 1942 (77 already predicted as y_adv or dropped)
+[2026-09-03 19:08:15]   chosen 2 targets (degree 50, rank 970-971 of 1942), p_adv range 0.0097..0.0097
+[2026-09-03 19:08:15]   warm-up call (untimed)...
+[2026-09-03 19:08:17]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 19:08:26] === class pair 1-7: y_adv=1(1) target_class=7(7) ===
+[2026-09-03 19:08:26]     no pinned set found -- selecting by difficulty degree tgt50
+[2026-09-03 19:08:26]   target pool 2019 -> eligible 1942 (77 already predicted as y_adv or dropped)
+[2026-09-03 19:08:26]   chosen 2 targets (degree 50, rank 970-971 of 1942), p_adv range 0.0097..0.0097
+[2026-09-03 19:08:26]     targets: [21584, 12020]
+[2026-09-03 19:08:37]     pair 1-7 target 21584 repeat 1/5: d=0.9425s M=0.9285s A=8.9315s sort=0.0004s end2end=10.8028s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:08:48]     pair 1-7 target 21584 repeat 2/5: d=0.9415s M=0.9307s A=8.9350s sort=0.0004s end2end=10.8076s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:08:59]     pair 1-7 target 21584 repeat 3/5: d=0.9381s M=0.9283s A=9.0371s sort=0.0004s end2end=10.9039s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:09:10]     pair 1-7 target 21584 repeat 4/5: d=0.9381s M=0.9258s A=8.9446s sort=0.0004s end2end=10.8089s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:09:20]     pair 1-7 target 21584 repeat 5/5: d=0.9421s M=0.9283s A=8.9397s sort=0.0004s end2end=10.8105s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:09:31]     pair 1-7 target 12020 repeat 1/5: d=0.9418s M=0.9304s A=8.9441s sort=0.0004s end2end=10.8166s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:09:42]     pair 1-7 target 12020 repeat 2/5: d=0.9422s M=0.9284s A=8.9365s sort=0.0004s end2end=10.8075s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:09:53]     pair 1-7 target 12020 repeat 3/5: d=0.9416s M=0.9306s A=8.9362s sort=0.0004s end2end=10.8088s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:10:04]     pair 1-7 target 12020 repeat 4/5: d=0.9418s M=0.9282s A=8.9517s sort=0.0004s end2end=10.8220s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:10:14]     pair 1-7 target 12020 repeat 5/5: d=0.9420s M=0.9304s A=8.9524s sort=0.0004s end2end=10.8252s peak_mem=1933.5MB (733 bases)
+[2026-09-03 19:10:14] ==== TIMING SUMMARY: SVHN_ConvNetBN_fc_ours_1-7_b0.01_eps8_seed42_lam1_cosine_jacw1 | SVHN / ConvNetBN | 1 class pair(s), 5 repeat(s)/target = 10 measured selections (pooled across pairs) ====
+[2026-09-03 19:10:14]   d       : time 0.9412s +/- 0.0015s | mem   1933.5MB +/-    0.0MB  (n=10)
+[2026-09-03 19:10:14]   M       : time 0.9289s +/- 0.0015s | mem   1933.5MB +/-    0.0MB  (n=10)
+[2026-09-03 19:10:14]   A       : time 8.9509s +/- 0.0295s | mem   1933.5MB +/-    0.0MB  (n=10)
+[2026-09-03 19:10:14]   sort    : time 0.0004s +/- 0.0000s | mem   1933.5MB +/-    0.0MB  (n=10)
+[2026-09-03 19:10:14]   combined: time 10.8214s +/- 0.0283s | mem   1933.5MB +/-    0.0MB  (n=10)
+[2026-09-03 19:10:14]   wrote ours_result/TIME_SVHN_ConvNetBN_fc_ours_1-7_b0.01_eps8_seed42_lam1_cosine_jacw1/timing.json

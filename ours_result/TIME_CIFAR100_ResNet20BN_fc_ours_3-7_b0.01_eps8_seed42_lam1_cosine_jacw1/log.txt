@@ -1,0 +1,51 @@
+[2026-09-03 19:46:57] === [time_mode] run start: CIFAR100_ResNet20BN_fc_ours_3-7_b0.01_eps8_seed42_lam1_cosine_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 19:46:57] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR100", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ResNet20BN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 19:46:57]   1 class pair(s): 3-7
+[2026-09-03 19:47:09] N_total=50000 budget=0.01 -> N_p=500 poisons
+[2026-09-03 19:47:09] === surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-03 19:48:44]   trained surrogate 0 (ResNet20BN): test acc = 0.5261 (95 s)
+[2026-09-03 19:50:19]   trained surrogate 1 (ResNet20BN): test acc = 0.5255 (95 s)
+[2026-09-03 19:51:54]   trained surrogate 2 (ResNet20BN): test acc = 0.5276 (95 s)
+[2026-09-03 19:53:28]   trained surrogate 3 (ResNet20BN): test acc = 0.5249 (95 s)
+[2026-09-03 19:55:03]   trained surrogate 4 (ResNet20BN): test acc = 0.5214 (95 s)
+[2026-09-03 19:56:38]   trained surrogate 5 (ResNet20BN): test acc = 0.5173 (95 s)
+[2026-09-03 19:58:13]   trained surrogate 6 (ResNet20BN): test acc = 0.5273 (95 s)
+[2026-09-03 19:59:48]   trained surrogate 7 (ResNet20BN): test acc = 0.5135 (95 s)
+[2026-09-03 20:01:22]   trained surrogate 8 (ResNet20BN): test acc = 0.5197 (95 s)
+[2026-09-03 20:02:57]   trained surrogate 9 (ResNet20BN): test acc = 0.5180 (95 s)
+[2026-09-03 20:04:32]   trained surrogate 10 (ResNet20BN): test acc = 0.5149 (95 s)
+[2026-09-03 20:06:07]   trained surrogate 11 (ResNet20BN): test acc = 0.5163 (95 s)
+[2026-09-03 20:07:41]   trained surrogate 12 (ResNet20BN): test acc = 0.5318 (95 s)
+[2026-09-03 20:09:16]   trained surrogate 13 (ResNet20BN): test acc = 0.5121 (95 s)
+[2026-09-03 20:10:51]   trained surrogate 14 (ResNet20BN): test acc = 0.5100 (95 s)
+[2026-09-03 20:12:26]   trained surrogate 15 (ResNet20BN): test acc = 0.5140 (95 s)
+[2026-09-03 20:14:00]   trained surrogate 16 (ResNet20BN): test acc = 0.5123 (95 s)
+[2026-09-03 20:15:35]   trained surrogate 17 (ResNet20BN): test acc = 0.5317 (95 s)
+[2026-09-03 20:17:10]   trained surrogate 18 (ResNet20BN): test acc = 0.5249 (95 s)
+[2026-09-03 20:18:45]   trained surrogate 19 (ResNet20BN): test acc = 0.5356 (95 s)
+[2026-09-03 20:18:45]   target pool 100 -> eligible 100 (0 already predicted as y_adv or dropped)
+[2026-09-03 20:18:45]   chosen 2 targets (degree 50, rank 49-50 of 100), p_adv range 0.0000..0.0000
+[2026-09-03 20:18:45]   warm-up call (untimed)...
+[2026-09-03 20:18:45]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 20:18:47] === class pair 3-7: y_adv=3(bear) target_class=7(beetle) ===
+[2026-09-03 20:18:47]     no pinned set found -- selecting by difficulty degree tgt50
+[2026-09-03 20:18:47]   target pool 100 -> eligible 100 (0 already predicted as y_adv or dropped)
+[2026-09-03 20:18:47]   chosen 2 targets (degree 50, rank 49-50 of 100), p_adv range 0.0000..0.0000
+[2026-09-03 20:18:47]     targets: [7684, 3896]
+[2026-09-03 20:18:48]     pair 3-7 target 7684 repeat 1/5: d=0.0573s M=0.0496s A=1.3663s sort=0.0004s end2end=1.4736s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:50]     pair 3-7 target 7684 repeat 2/5: d=0.0574s M=0.0496s A=1.3731s sort=0.0004s end2end=1.4804s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:51]     pair 3-7 target 7684 repeat 3/5: d=0.0573s M=0.0495s A=1.3795s sort=0.0004s end2end=1.4867s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:53]     pair 3-7 target 7684 repeat 4/5: d=0.0573s M=0.0496s A=1.3740s sort=0.0004s end2end=1.4812s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:54]     pair 3-7 target 7684 repeat 5/5: d=0.0573s M=0.0495s A=1.3741s sort=0.0004s end2end=1.4813s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:56]     pair 3-7 target 3896 repeat 1/5: d=0.0573s M=0.0497s A=1.3811s sort=0.0004s end2end=1.4885s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:57]     pair 3-7 target 3896 repeat 2/5: d=0.0573s M=0.0496s A=1.3720s sort=0.0004s end2end=1.4793s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:18:59]     pair 3-7 target 3896 repeat 3/5: d=0.0574s M=0.0496s A=1.3710s sort=0.0004s end2end=1.4784s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:19:00]     pair 3-7 target 3896 repeat 4/5: d=0.0573s M=0.0496s A=1.3840s sort=0.0004s end2end=1.4913s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:19:02]     pair 3-7 target 3896 repeat 5/5: d=0.0573s M=0.0495s A=1.3750s sort=0.0004s end2end=1.4822s peak_mem=1203.9MB (500 bases)
+[2026-09-03 20:19:02] ==== TIMING SUMMARY: CIFAR100_ResNet20BN_fc_ours_3-7_b0.01_eps8_seed42_lam1_cosine_jacw1 | CIFAR100 / ResNet20BN | 1 class pair(s), 5 repeat(s)/target = 10 measured selections (pooled across pairs) ====
+[2026-09-03 20:19:02]   d       : time 0.0573s +/- 0.0000s | mem   1006.6MB +/-    0.0MB  (n=10)
+[2026-09-03 20:19:02]   M       : time 0.0496s +/- 0.0001s | mem   1007.0MB +/-    0.0MB  (n=10)
+[2026-09-03 20:19:02]   A       : time 1.3750s +/- 0.0049s | mem   1203.9MB +/-    0.0MB  (n=10)
+[2026-09-03 20:19:02]   sort    : time 0.0004s +/- 0.0000s | mem   1203.9MB +/-    0.0MB  (n=10)
+[2026-09-03 20:19:02]   combined: time 1.4823s +/- 0.0049s | mem   1203.9MB +/-    0.0MB  (n=10)
+[2026-09-03 20:19:02]   wrote ours_result/TIME_CIFAR100_ResNet20BN_fc_ours_3-7_b0.01_eps8_seed42_lam1_cosine_jacw1/timing.json

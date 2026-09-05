@@ -1,0 +1,36 @@
+[2026-09-03 18:58:01] === [time_mode] run start: CIFAR100_ResNet18BN_fc_ours_3-7_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 18:58:01] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.001, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR100", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet18BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 3, "num_targets": 3, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ResNet18BN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 18:58:01]   1 class pair(s): 3-7
+[2026-09-03 18:58:13] N_total=50000 budget=0.001 -> N_p=50 poisons
+[2026-09-03 18:58:13] === surrogates (3 x ResNet18BN, trained on the full real set) ===
+[2026-09-03 18:58:14]   target pool 100 -> eligible 99 (1 already predicted as y_adv or dropped)
+[2026-09-03 18:58:14]   chosen 3 targets (degree 50, rank 48-50 of 99), p_adv range 0.0000..0.0000
+[2026-09-03 18:58:14]   warm-up call (untimed)...
+[2026-09-03 18:58:15]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 18:58:15] === class pair 3-7: y_adv=3(bear) target_class=7(beetle) ===
+[2026-09-03 18:58:15]     no pinned set found -- selecting by difficulty degree tgt50
+[2026-09-03 18:58:15]   target pool 100 -> eligible 99 (1 already predicted as y_adv or dropped)
+[2026-09-03 18:58:15]   chosen 3 targets (degree 50, rank 48-50 of 99), p_adv range 0.0000..0.0000
+[2026-09-03 18:58:15]     targets: [3103, 1480, 1080]
+[2026-09-03 18:58:15]     pair 3-7 target 3103 repeat 1/5: d=0.0253s M=0.0230s A=0.2035s sort=0.0075s end2end=0.2593s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:15]     pair 3-7 target 3103 repeat 2/5: d=0.0253s M=0.0230s A=0.2066s sort=0.0075s end2end=0.2624s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:16]     pair 3-7 target 3103 repeat 3/5: d=0.0253s M=0.0230s A=0.2052s sort=0.0076s end2end=0.2610s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:16]     pair 3-7 target 3103 repeat 4/5: d=0.0253s M=0.0230s A=0.2014s sort=0.0075s end2end=0.2571s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:16]     pair 3-7 target 3103 repeat 5/5: d=0.0253s M=0.0230s A=0.2010s sort=0.0075s end2end=0.2567s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:16]     pair 3-7 target 1480 repeat 1/5: d=0.0252s M=0.0230s A=0.2010s sort=0.0076s end2end=0.2567s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:17]     pair 3-7 target 1480 repeat 2/5: d=0.0252s M=0.0229s A=0.2048s sort=0.0076s end2end=0.2605s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:17]     pair 3-7 target 1480 repeat 3/5: d=0.0253s M=0.0230s A=0.2037s sort=0.0075s end2end=0.2595s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:17]     pair 3-7 target 1480 repeat 4/5: d=0.0253s M=0.0230s A=0.2037s sort=0.0075s end2end=0.2595s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:17]     pair 3-7 target 1480 repeat 5/5: d=0.0253s M=0.0230s A=0.2033s sort=0.0075s end2end=0.2591s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:18]     pair 3-7 target 1080 repeat 1/5: d=0.0253s M=0.0230s A=0.2036s sort=0.0076s end2end=0.2595s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:18]     pair 3-7 target 1080 repeat 2/5: d=0.0253s M=0.0230s A=0.2107s sort=0.0075s end2end=0.2665s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:18]     pair 3-7 target 1080 repeat 3/5: d=0.0252s M=0.0230s A=0.2016s sort=0.0074s end2end=0.2571s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:18]     pair 3-7 target 1080 repeat 4/5: d=0.0252s M=0.0230s A=0.2015s sort=0.0074s end2end=0.2571s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:19]     pair 3-7 target 1080 repeat 5/5: d=0.0252s M=0.0229s A=0.2010s sort=0.0075s end2end=0.2566s peak_mem=2110.7MB (50 bases)
+[2026-09-03 18:58:19] ==== TIMING SUMMARY: CIFAR100_ResNet18BN_fc_ours_3-7_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1 | CIFAR100 / ResNet18BN | 1 class pair(s), 5 repeat(s)/target = 15 measured selections (pooled across pairs) ====
+[2026-09-03 18:58:19]   d       : time 0.0253s +/- 0.0000s | mem   1661.6MB +/-    0.0MB  (n=15)
+[2026-09-03 18:58:19]   M       : time 0.0230s +/- 0.0000s | mem   1663.9MB +/-    0.0MB  (n=15)
+[2026-09-03 18:58:19]   A       : time 0.2035s +/- 0.0025s | mem   2110.7MB +/-    0.0MB  (n=15)
+[2026-09-03 18:58:19]   sort    : time 0.0075s +/- 0.0001s | mem   2110.7MB +/-    0.0MB  (n=15)
+[2026-09-03 18:58:19]   combined: time 0.2592s +/- 0.0026s | mem   2110.7MB +/-    0.0MB  (n=15)
+[2026-09-03 18:58:19]   wrote ours_result/TIME_CIFAR100_ResNet18BN_fc_ours_3-7_b0.001_eps8_seed42_lam1_cosine_seldpp2_jacw1/timing.json

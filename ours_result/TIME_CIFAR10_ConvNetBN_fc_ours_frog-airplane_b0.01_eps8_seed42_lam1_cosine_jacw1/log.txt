@@ -1,0 +1,78 @@
+[2026-09-03 19:03:04] === [time_mode] run start: CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 19:03:04] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 3, "num_targets": 2, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ConvNetBN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 19:03:04]   1 class pair(s): frog-airplane
+[2026-09-03 19:03:26] N_total=50000 budget=0.01 -> N_p=500 poisons
+[2026-09-03 19:03:26] === surrogates (3 x ConvNetBN, trained on the full real set) ===
+[2026-09-03 19:03:26]   target pool 1000 -> eligible 995 (5 already predicted as y_adv or dropped)
+[2026-09-03 19:03:26]   chosen 2 targets (file), p_adv range 0.0000..0.0006
+[2026-09-03 19:03:26]   warm-up call (untimed)...
+[2026-09-03 19:03:27]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 19:03:28] === class pair frog-airplane: y_adv=6(frog) target_class=0(airplane) ===
+[2026-09-03 19:03:28]     pinned from target_sets/ConvNetBN_fc_frog-airplane.json (same images sel_dpp.sh would attack)
+[2026-09-03 19:03:28]   target pool 1000 -> eligible 995 (5 already predicted as y_adv or dropped)
+[2026-09-03 19:03:28]   chosen 2 targets (file), p_adv range 0.0000..0.0006
+[2026-09-03 19:03:28]     targets: [7511, 857]
+[2026-09-03 19:03:29]     pair frog-airplane target 7511 repeat 1/5: d=0.1314s M=0.1300s A=0.7991s sort=0.0004s end2end=1.0609s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:30]     pair frog-airplane target 7511 repeat 2/5: d=0.1310s M=0.1300s A=0.7982s sort=0.0004s end2end=1.0595s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:31]     pair frog-airplane target 7511 repeat 3/5: d=0.1310s M=0.1301s A=0.7975s sort=0.0004s end2end=1.0589s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:32]     pair frog-airplane target 7511 repeat 4/5: d=0.1312s M=0.1299s A=0.7961s sort=0.0004s end2end=1.0576s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:33]     pair frog-airplane target 7511 repeat 5/5: d=0.1312s M=0.1299s A=0.8020s sort=0.0004s end2end=1.0635s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:34]     pair frog-airplane target 857 repeat 1/5: d=0.1312s M=0.1299s A=0.8016s sort=0.0004s end2end=1.0630s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:35]     pair frog-airplane target 857 repeat 2/5: d=0.1310s M=0.1300s A=0.7993s sort=0.0004s end2end=1.0608s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:36]     pair frog-airplane target 857 repeat 3/5: d=0.1311s M=0.1300s A=0.8056s sort=0.0004s end2end=1.0670s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:37]     pair frog-airplane target 857 repeat 4/5: d=0.1311s M=0.1300s A=0.7957s sort=0.0004s end2end=1.0573s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:38]     pair frog-airplane target 857 repeat 5/5: d=0.1311s M=0.1300s A=0.7993s sort=0.0004s end2end=1.0609s peak_mem=1300.1MB (500 bases)
+[2026-09-03 19:03:38] ==== TIMING SUMMARY: CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1 | CIFAR10 / ConvNetBN | 1 class pair(s), 5 repeat(s)/target = 10 measured selections (pooled across pairs) ====
+[2026-09-03 19:03:38]   d       : time 0.1311s +/- 0.0001s | mem   1300.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:03:38]   M       : time 0.1300s +/- 0.0001s | mem   1300.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:03:38]   A       : time 0.7994s +/- 0.0028s | mem   1300.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:03:38]   sort    : time 0.0004s +/- 0.0000s | mem   1300.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:03:38]   combined: time 1.0609s +/- 0.0028s | mem   1300.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:03:38]   wrote ours_result/TIME_CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1/timing.json
+[2026-09-03 19:04:43] === [time_mode] run start: CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 19:04:43] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ConvNetBN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 19:04:43]   1 class pair(s): frog-airplane
+[2026-09-03 19:05:05] N_total=50000 budget=0.01 -> N_p=500 poisons
+[2026-09-03 19:05:05] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-03 19:05:05]   target pool 1000 -> eligible 994 (6 already predicted as y_adv or dropped)
+[2026-09-03 19:05:05]   chosen 2 targets (file), p_adv range 0.0000..0.0006
+[2026-09-03 19:05:05]   warm-up call (untimed)...
+[2026-09-03 19:05:08]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 19:05:13] === class pair frog-airplane: y_adv=6(frog) target_class=0(airplane) ===
+[2026-09-03 19:05:13]     pinned from target_sets/ConvNetBN_fc_frog-airplane.json (same images sel_dpp.sh would attack)
+[2026-09-03 19:05:13]   target pool 1000 -> eligible 994 (6 already predicted as y_adv or dropped)
+[2026-09-03 19:05:13]   chosen 2 targets (file), p_adv range 0.0000..0.0006
+[2026-09-03 19:05:13]     targets: [7511, 857]
+[2026-09-03 19:05:20]     pair frog-airplane target 7511 repeat 1/5: d=0.8709s M=0.8649s A=5.3659s sort=0.0005s end2end=7.1022s peak_mem=1320.9MB (500 bases)
+[2026-09-03 19:05:27]     pair frog-airplane target 7511 repeat 2/5: d=0.8706s M=0.8646s A=5.3688s sort=0.0004s end2end=7.1045s peak_mem=1320.9MB (500 bases)
+[2026-09-03 19:06:13] === [time_mode] run start: CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 19:06:13] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR10", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_ConvNetBN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 19:06:13]   1 class pair(s): frog-airplane
+[2026-09-03 19:06:25] N_total=50000 budget=0.01 -> N_p=500 poisons
+[2026-09-03 19:06:25] === surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-03 19:06:25]   target pool 1000 -> eligible 994 (6 already predicted as y_adv or dropped)
+[2026-09-03 19:06:25]   chosen 2 targets (file), p_adv range 0.0000..0.0006
+[2026-09-03 19:06:25]   warm-up call (untimed)...
+[2026-09-03 19:06:26]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 19:06:29] === class pair frog-airplane: y_adv=6(frog) target_class=0(airplane) ===
+[2026-09-03 19:06:29]     pinned from target_sets/ConvNetBN_fc_frog-airplane.json (same images sel_dpp.sh would attack)
+[2026-09-03 19:06:29]   target pool 1000 -> eligible 994 (6 already predicted as y_adv or dropped)
+[2026-09-03 19:06:30]   chosen 2 targets (file), p_adv range 0.0000..0.0006
+[2026-09-03 19:06:30]     targets: [7511, 857]
+[2026-09-03 19:06:33]     pair frog-airplane target 7511 repeat 1/5: d=0.3404s M=0.3345s A=3.2976s sort=0.0003s end2end=3.9728s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:06:37]     pair frog-airplane target 7511 repeat 2/5: d=0.3405s M=0.3344s A=3.2905s sort=0.0003s end2end=3.9657s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:06:41]     pair frog-airplane target 7511 repeat 3/5: d=0.3406s M=0.3347s A=3.2913s sort=0.0003s end2end=3.9669s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:06:45]     pair frog-airplane target 7511 repeat 4/5: d=0.3408s M=0.3346s A=3.2921s sort=0.0003s end2end=3.9678s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:06:49]     pair frog-airplane target 7511 repeat 5/5: d=0.3406s M=0.3349s A=3.2919s sort=0.0003s end2end=3.9676s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:06:53]     pair frog-airplane target 857 repeat 1/5: d=0.3406s M=0.3347s A=3.2959s sort=0.0003s end2end=3.9716s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:06:57]     pair frog-airplane target 857 repeat 2/5: d=0.3407s M=0.3347s A=3.2974s sort=0.0003s end2end=3.9731s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:07:01]     pair frog-airplane target 857 repeat 3/5: d=0.3415s M=0.3358s A=3.2849s sort=0.0003s end2end=3.9625s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:07:05]     pair frog-airplane target 857 repeat 4/5: d=0.3406s M=0.3348s A=3.2995s sort=0.0003s end2end=3.9752s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:07:09]     pair frog-airplane target 857 repeat 5/5: d=0.3407s M=0.3346s A=3.2933s sort=0.0003s end2end=3.9689s peak_mem=1368.7MB (500 bases)
+[2026-09-03 19:07:09] ==== TIMING SUMMARY: CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1 | CIFAR10 / ConvNetBN | 1 class pair(s), 5 repeat(s)/target = 10 measured selections (pooled across pairs) ====
+[2026-09-03 19:07:09]   d       : time 0.3407s +/- 0.0003s | mem   1368.7MB +/-    0.0MB  (n=10)
+[2026-09-03 19:07:09]   M       : time 0.3348s +/- 0.0004s | mem   1368.7MB +/-    0.0MB  (n=10)
+[2026-09-03 19:07:09]   A       : time 3.2934s +/- 0.0041s | mem   1368.7MB +/-    0.0MB  (n=10)
+[2026-09-03 19:07:09]   sort    : time 0.0003s +/- 0.0000s | mem   1368.7MB +/-    0.0MB  (n=10)
+[2026-09-03 19:07:09]   combined: time 3.9692s +/- 0.0037s | mem   1368.7MB +/-    0.0MB  (n=10)
+[2026-09-03 19:07:09]   wrote ours_result/TIME_CIFAR10_ConvNetBN_fc_ours_frog-airplane_b0.01_eps8_seed42_lam1_cosine_jacw1/timing.json

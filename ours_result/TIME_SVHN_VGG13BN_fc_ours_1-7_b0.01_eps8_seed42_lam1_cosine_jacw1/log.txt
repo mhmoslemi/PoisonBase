@@ -1,0 +1,50 @@
+[2026-09-03 19:10:18] === [time_mode] run start: SVHN_VGG13BN_fc_ours_1-7_b0.01_eps8_seed42_lam1_cosine_jacw1 on cuda [0] (no crafting, no victim training) ===
+[2026-09-03 19:10:18] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.01, "cache_dir": "./cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.00392156862745098, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 0, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "SVHN", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.03137254901960784, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 6, "out_dir": "ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": "easiest", "time_mode": true, "time_pairs_file": "ours_result/.time_pairs_VGG13BN_fc.json", "time_repeats": 5, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 128, "victim_decay": [35, 45], "victim_epochs": 60, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-03 19:10:18]   1 class pair(s): 1-7
+[2026-09-03 19:10:39] N_total=73257 budget=0.01 -> N_p=733 poisons
+[2026-09-03 19:10:39] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-09-03 19:12:51]   trained surrogate 1 (VGG13BN): test acc = 0.1959 (132 s)
+[2026-09-03 19:15:04]   trained surrogate 2 (VGG13BN): test acc = 0.9481 (132 s)
+[2026-09-03 19:17:15]   trained surrogate 3 (VGG13BN): test acc = 0.9361 (132 s)
+[2026-09-03 19:19:26]   trained surrogate 4 (VGG13BN): test acc = 0.1966 (131 s)
+[2026-09-03 19:21:37]   trained surrogate 5 (VGG13BN): test acc = 0.9433 (131 s)
+[2026-09-03 19:23:49]   trained surrogate 6 (VGG13BN): test acc = 0.1958 (131 s)
+[2026-09-03 19:26:00]   trained surrogate 7 (VGG13BN): test acc = 0.1959 (132 s)
+[2026-09-03 19:28:11]   trained surrogate 8 (VGG13BN): test acc = 0.9474 (131 s)
+[2026-09-03 19:30:23]   trained surrogate 9 (VGG13BN): test acc = 0.9504 (131 s)
+[2026-09-03 19:32:34]   trained surrogate 10 (VGG13BN): test acc = 0.9462 (131 s)
+[2026-09-03 19:34:46]   trained surrogate 11 (VGG13BN): test acc = 0.9474 (131 s)
+[2026-09-03 19:36:58]   trained surrogate 12 (VGG13BN): test acc = 0.9274 (132 s)
+[2026-09-03 19:39:09]   trained surrogate 13 (VGG13BN): test acc = 0.9368 (131 s)
+[2026-09-03 19:41:21]   trained surrogate 14 (VGG13BN): test acc = 0.9463 (131 s)
+[2026-09-03 19:43:32]   trained surrogate 15 (VGG13BN): test acc = 0.9484 (131 s)
+[2026-09-03 19:45:43]   trained surrogate 16 (VGG13BN): test acc = 0.9415 (131 s)
+[2026-09-03 19:47:54]   trained surrogate 17 (VGG13BN): test acc = 0.1959 (131 s)
+[2026-09-03 19:50:06]   trained surrogate 18 (VGG13BN): test acc = 0.9516 (132 s)
+[2026-09-03 19:52:17]   trained surrogate 19 (VGG13BN): test acc = 0.9485 (131 s)
+[2026-09-03 19:52:18]   target pool 2019 -> eligible 1964 (55 already predicted as y_adv or dropped)
+[2026-09-03 19:52:18]   chosen 2 targets (degree 50, rank 981-982 of 1964), p_adv range 0.0568..0.0568
+[2026-09-03 19:52:18]   warm-up call (untimed)...
+[2026-09-03 19:52:24]   Jacobian score exact backend: torch.func JVP
+[2026-09-03 19:52:44] === class pair 1-7: y_adv=1(1) target_class=7(7) ===
+[2026-09-03 19:52:44]     no pinned set found -- selecting by difficulty degree tgt50
+[2026-09-03 19:52:44]   target pool 2019 -> eligible 1964 (55 already predicted as y_adv or dropped)
+[2026-09-03 19:52:44]   chosen 2 targets (degree 50, rank 981-982 of 1964), p_adv range 0.0568..0.0568
+[2026-09-03 19:52:44]     targets: [5166, 25028]
+[2026-09-03 19:53:10]     pair 1-7 target 5166 repeat 1/5: d=2.1149s M=2.1024s A=21.5658s sort=0.0004s end2end=25.7835s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:53:36]     pair 1-7 target 5166 repeat 2/5: d=2.1145s M=2.1025s A=21.4794s sort=0.0004s end2end=25.6969s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:54:02]     pair 1-7 target 5166 repeat 3/5: d=2.1149s M=2.1026s A=21.4694s sort=0.0004s end2end=25.6873s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:54:27]     pair 1-7 target 5166 repeat 4/5: d=2.1148s M=2.1025s A=21.4867s sort=0.0005s end2end=25.7044s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:54:53]     pair 1-7 target 5166 repeat 5/5: d=2.1144s M=2.1026s A=21.4736s sort=0.0004s end2end=25.6910s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:55:19]     pair 1-7 target 25028 repeat 1/5: d=2.1143s M=2.1028s A=21.4788s sort=0.0004s end2end=25.6964s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:55:44]     pair 1-7 target 25028 repeat 2/5: d=2.1143s M=2.1025s A=21.4954s sort=0.0005s end2end=25.7126s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:56:10]     pair 1-7 target 25028 repeat 3/5: d=2.1146s M=2.1029s A=21.4630s sort=0.0005s end2end=25.6810s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:56:36]     pair 1-7 target 25028 repeat 4/5: d=2.1149s M=2.1022s A=21.4796s sort=0.0005s end2end=25.6972s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:57:01]     pair 1-7 target 25028 repeat 5/5: d=2.1148s M=2.1026s A=21.5707s sort=0.0004s end2end=25.7886s peak_mem=3415.9MB (733 bases)
+[2026-09-03 19:57:02] ==== TIMING SUMMARY: SVHN_VGG13BN_fc_ours_1-7_b0.01_eps8_seed42_lam1_cosine_jacw1 | SVHN / VGG13BN | 1 class pair(s), 5 repeat(s)/target = 10 measured selections (pooled across pairs) ====
+[2026-09-03 19:57:02]   d       : time 2.1146s +/- 0.0002s | mem   3332.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:57:02]   M       : time 2.1026s +/- 0.0002s | mem   3332.1MB +/-    0.0MB  (n=10)
+[2026-09-03 19:57:02]   A       : time 21.4962s +/- 0.0370s | mem   3415.9MB +/-    0.0MB  (n=10)
+[2026-09-03 19:57:02]   sort    : time 0.0004s +/- 0.0000s | mem   3415.9MB +/-    0.0MB  (n=10)
+[2026-09-03 19:57:02]   combined: time 25.7139s +/- 0.0370s | mem   3415.9MB +/-    0.0MB  (n=10)
+[2026-09-03 19:57:02]   wrote ours_result/TIME_SVHN_VGG13BN_fc_ours_1-7_b0.01_eps8_seed42_lam1_cosine_jacw1/timing.json
