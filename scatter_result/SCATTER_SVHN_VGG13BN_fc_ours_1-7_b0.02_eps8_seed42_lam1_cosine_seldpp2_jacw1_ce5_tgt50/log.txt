@@ -1,0 +1,54 @@
+[2026-09-05 02:21:21] === [scatter_mode] run start: SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 on cuda [0] (no selection, no crafting, no victim training) ===
+[2026-09-05 02:21:21] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.02, "cache_dir": "./cache", "class_pair": "1-7", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "SVHN", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 128, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 5, "out_dir": "scatter_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "scatter_bins": 20, "scatter_dpi": 200, "scatter_formats": "pdf", "scatter_mode": true, "scatter_points": 2500, "scatter_topk_max": 0, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": 50, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-05 02:21:21] Jacobian score: enabled in this config, weight=1 -> the real ranking is x - 1 * y
+[2026-09-05 02:21:59] N_total=73257 budget=0.02 -> N_p=1465 poisons (not selected here), y_adv=1(1) target_class=7(7)
+[2026-09-05 02:21:59] === surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-09-05 02:22:02] === clean victims (5 x VGG13BN), only to rank targets ===
+[2026-09-05 02:24:30]   trained clean victim 0 (VGG13BN): test acc = 0.1959 (148 s)
+[2026-09-05 02:26:58]   trained clean victim 1 (VGG13BN): test acc = 0.9369 (148 s)
+[2026-09-05 02:29:27]   trained clean victim 2 (VGG13BN): test acc = 0.9458 (148 s)
+[2026-09-05 02:31:54]   trained clean victim 3 (VGG13BN): test acc = 0.9185 (147 s)
+[2026-09-05 02:34:23]   trained clean victim 4 (VGG13BN): test acc = 0.9441 (149 s)
+[2026-09-05 02:34:23]   target pool 2019 -> eligible 1945 (74 already predicted as y_adv or dropped)
+[2026-09-05 02:34:23]   chosen 10 targets (degree 50, rank 968-977 of 1945), p_adv range 0.0390..0.0391
+[2026-09-05 02:34:23]   targets: [714, 19911, 10479, 25206, 24350, 11813, 15166, 10463, 9438, 15796]
+[2026-09-05 02:34:23]   poison-class pool 13861 candidates -> plotting a seeded random subset of 2500
+[2026-09-05 02:34:25]   Jacobian score exact backend: torch.func JVP
+[2026-09-05 02:34:50]   target 714 (1/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:34:51]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target714.pdf
+[2026-09-05 02:35:18]   target 19911 (2/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:35:18]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target19911.pdf
+[2026-09-05 02:35:45]   target 10479 (3/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:35:45]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target10479.pdf
+[2026-09-05 02:36:12]   target 25206 (4/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:36:13]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target25206.pdf
+[2026-09-05 02:36:40]   target 24350 (5/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:36:40]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target24350.pdf
+[2026-09-05 02:37:07]   target 11813 (6/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:37:07]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target11813.pdf
+[2026-09-05 02:37:34]   target 15166 (7/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:37:34]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target15166.pdf
+[2026-09-05 02:38:01]   target 10463 (8/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:38:02]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target10463.pdf
+[2026-09-05 02:38:29]   target 9438 (9/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:38:29]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target9438.pdf
+[2026-09-05 02:38:56]   target 15796 (10/10): 13861 candidates in 27 s | subset Pearson=nan Spearman=nan | full-pool Pearson=nan Spearman=nan
+[2026-09-05 02:38:56]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target15796.pdf
+[2026-09-05 02:38:58]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_grid.pdf
+[2026-09-05 02:38:59]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_pooled.pdf
+[2026-09-05 02:39:01]   target 714: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:04]   target 19911: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:07]   target 10479: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:09]   target 25206: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:12]   target 24350: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:15]   target 11813: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:17]   target 15166: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:20]   target 10463: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:23]   target 9438: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:25]   target 15796: of the 1465 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 02:39:25]   mean over targets at N_p=1465: overlap 1.000 (chance 0.106)
+[2026-09-05 02:39:25]   mean overlap at the standard budgets: 0.001 -> 1.000, 0.002 -> 1.000, 0.005 -> 1.000, 0.01 -> 1.000, 0.02 -> 1.000, 0.04 -> 1.000
+[2026-09-05 02:39:25]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/topk_overlap.pdf
+[2026-09-05 02:39:26]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/conditional_a.pdf
+[2026-09-05 02:39:28]   wrote scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/rank_grid.pdf
+[2026-09-05 02:39:28] ==== SCATTER done: SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 | pooled Pearson=nan Spearman=nan | overlap of the (R, M) and (A, R, M) selections at N_p = 1.000 (chance 0.106) | scatter_result/SCATTER_SVHN_VGG13BN_fc_ours_1-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 ====

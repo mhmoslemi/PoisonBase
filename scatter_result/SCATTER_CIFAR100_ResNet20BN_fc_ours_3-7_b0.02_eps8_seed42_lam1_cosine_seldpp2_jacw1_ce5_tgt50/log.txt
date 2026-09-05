@@ -1,0 +1,54 @@
+[2026-09-05 01:46:46] === [scatter_mode] run start: CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 on cuda [0] (no selection, no crafting, no victim training) ===
+[2026-09-05 01:46:46] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.02, "cache_dir": "./cache", "class_pair": "3-7", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/mmoslem3/scratch/data", "dataset": "CIFAR100", "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 128, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 5, "out_dir": "scatter_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "scatter_bins": 20, "scatter_dpi": 200, "scatter_formats": "pdf", "scatter_mode": true, "scatter_points": 2500, "scatter_topk_max": 0, "seed": 42, "sel_K": null, "sel_alpha": 2.0, "sel_criterion": null, "sel_dpp": true, "sel_filter": false, "sel_mmr": false, "sel_mode": "dpp", "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": null, "target_select": 50, "use_jacobian_score": true, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
+[2026-09-05 01:46:46] Jacobian score: enabled in this config, weight=1 -> the real ranking is x - 1 * y
+[2026-09-05 01:47:08] N_total=50000 budget=0.02 -> N_p=1000 poisons (not selected here), y_adv=3(bear) target_class=7(beetle)
+[2026-09-05 01:47:08] === surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-05 01:47:09] === clean victims (5 x ResNet20BN), only to rank targets ===
+[2026-09-05 01:49:20]   trained clean victim 0 (ResNet20BN): test acc = 0.5140 (130 s)
+[2026-09-05 01:51:29]   trained clean victim 1 (ResNet20BN): test acc = 0.5190 (130 s)
+[2026-09-05 01:53:39]   trained clean victim 2 (ResNet20BN): test acc = 0.5194 (130 s)
+[2026-09-05 01:55:49]   trained clean victim 3 (ResNet20BN): test acc = 0.5038 (130 s)
+[2026-09-05 01:58:00]   trained clean victim 4 (ResNet20BN): test acc = 0.5080 (130 s)
+[2026-09-05 01:58:00]   target pool 100 -> eligible 100 (0 already predicted as y_adv or dropped)
+[2026-09-05 01:58:00]   chosen 10 targets (degree 50, rank 45-54 of 100), p_adv range 0.0000..0.0000
+[2026-09-05 01:58:00]   targets: [9874, 7740, 8044, 3061, 8597, 5841, 1707, 5559, 4616, 9116]
+[2026-09-05 01:58:00]   poison-class pool 500 candidates -> plotting a seeded random subset of 500
+[2026-09-05 01:58:01]   Jacobian score exact backend: torch.func JVP
+[2026-09-05 01:58:02]   target 9874 (1/10): 500 candidates in 2 s | subset Pearson=0.692 Spearman=0.748 | full-pool Pearson=0.692 Spearman=0.748
+[2026-09-05 01:58:03]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target9874.pdf
+[2026-09-05 01:58:04]   target 7740 (2/10): 500 candidates in 1 s | subset Pearson=0.715 Spearman=0.761 | full-pool Pearson=0.715 Spearman=0.761
+[2026-09-05 01:58:05]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target7740.pdf
+[2026-09-05 01:58:06]   target 8044 (3/10): 500 candidates in 1 s | subset Pearson=0.703 Spearman=0.750 | full-pool Pearson=0.703 Spearman=0.750
+[2026-09-05 01:58:07]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target8044.pdf
+[2026-09-05 01:58:08]   target 3061 (4/10): 500 candidates in 1 s | subset Pearson=0.685 Spearman=0.741 | full-pool Pearson=0.685 Spearman=0.741
+[2026-09-05 01:58:08]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target3061.pdf
+[2026-09-05 01:58:10]   target 8597 (5/10): 500 candidates in 1 s | subset Pearson=0.702 Spearman=0.765 | full-pool Pearson=0.702 Spearman=0.765
+[2026-09-05 01:58:10]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target8597.pdf
+[2026-09-05 01:58:12]   target 5841 (6/10): 500 candidates in 1 s | subset Pearson=0.709 Spearman=0.775 | full-pool Pearson=0.709 Spearman=0.775
+[2026-09-05 01:58:12]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target5841.pdf
+[2026-09-05 01:58:14]   target 1707 (7/10): 500 candidates in 1 s | subset Pearson=0.620 Spearman=0.675 | full-pool Pearson=0.620 Spearman=0.675
+[2026-09-05 01:58:14]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target1707.pdf
+[2026-09-05 01:58:16]   target 5559 (8/10): 500 candidates in 1 s | subset Pearson=0.695 Spearman=0.725 | full-pool Pearson=0.695 Spearman=0.725
+[2026-09-05 01:58:16]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target5559.pdf
+[2026-09-05 01:58:18]   target 4616 (9/10): 500 candidates in 1 s | subset Pearson=0.678 Spearman=0.723 | full-pool Pearson=0.678 Spearman=0.723
+[2026-09-05 01:58:18]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target4616.pdf
+[2026-09-05 01:58:19]   target 9116 (10/10): 500 candidates in 1 s | subset Pearson=0.660 Spearman=0.719 | full-pool Pearson=0.660 Spearman=0.719
+[2026-09-05 01:58:20]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_target9116.pdf
+[2026-09-05 01:58:21]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_grid.pdf
+[2026-09-05 01:58:22]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/scatter_pooled.pdf
+[2026-09-05 01:58:22]   target 9874: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 7740: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 8044: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 3061: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 8597: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 5841: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 1707: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 5559: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 4616: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   target 9116: of the 1000 candidates selected by (R, M), 100.0% are also selected by (A, R, M)
+[2026-09-05 01:58:22]   mean over targets at N_p=1000: overlap 1.000 (chance 2.000)
+[2026-09-05 01:58:22]   mean overlap at the standard budgets: 0.001 -> 0.780, 0.002 -> 0.837, 0.005 -> 0.944, 0.01 -> 1.000
+[2026-09-05 01:58:22]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/topk_overlap.pdf
+[2026-09-05 01:58:23]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/conditional_a.pdf
+[2026-09-05 01:58:24]   wrote scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50/rank_grid.pdf
+[2026-09-05 01:58:24] ==== SCATTER done: CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 | pooled Pearson=0.685 Spearman=0.738 | overlap of the (R, M) and (A, R, M) selections at N_p = 1.000 (chance 2.000) | scatter_result/SCATTER_CIFAR100_ResNet20BN_fc_ours_3-7_b0.02_eps8_seed42_lam1_cosine_seldpp2_jacw1_ce5_tgt50 ====

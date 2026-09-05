@@ -94,7 +94,7 @@ SHARP_MODE="${SHARP_MODE:-worst}"    # ATTACK=sapa only: worst | avg
 SHARP_SIGMA="${SHARP_SIGMA:-0.05}"   # ATTACK=sapa only. worst: l2 radius (SAM rho).
                                      # avg: PER-ELEMENT std, use ~1e-3 there.
 
-DATASET="${DATASET:-CIFAR100}"
+DATASET="${DATASET:-SVHN}"
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
 
 # CLASS_PAIR default depends on DATASET: CIFAR10's named pairs (dog-bird,
