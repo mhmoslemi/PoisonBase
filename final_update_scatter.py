@@ -2483,7 +2483,7 @@ def scatter_components(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
             interaction, _ = _backbone_gradient_interactions(
                 net, cand, x_t_norm, y_adv, jacobian_batch_size)
             _log_interaction_diagnostics(surrogate_idx, interaction)
-            rm += standardize(d_s) + lam * standardize(m_s)
+            rm += standardize(d_s) +  lam * standardize(m_s) # this is ditance (1 - cose) + ( z_adv - max) so we need to minimize this whole
             a += standardize(interaction)
             d_raw += d_s
             m_raw += m_s
@@ -2556,37 +2556,36 @@ def _percentile_rank(v):
     return r / max(len(v) - 1, 1)
 
 
-def _overlap_figure(plt, curves_full, curves_a, ks, n_pool, N_p, beta, targets,
-                    title):
-    """Two panels: cheap ranking (x alone) vs the full score x - beta*y, and vs A
-    alone. Thin lines are targets, the bold line is their mean, dotted is chance."""
-    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4), sharey=True,
-                             constrained_layout=True)
-    panels = [(axes[0], curves_full, 'top-k by x  vs  top-k by x - %g y' % beta),
-              (axes[1], curves_a, 'top-k by x  vs  top-k by A alone (highest A)')]
-    for ax, curves, sub in panels:
-        for c in curves:
-            ax.plot(ks, c, color=_SCATTER_COLOR, alpha=0.3, linewidth=1.0)
-        mean = np.mean(np.stack(curves), axis=0)
-        ax.plot(ks, mean, color=_SCATTER_INK, linewidth=2.0,
-                label='mean over %d targets' % len(targets))
-        ax.plot(ks, np.asarray(ks) / float(n_pool), color='#9a9a9a', linewidth=1.0,
-                linestyle=':', label='chance (k / pool)')
-        ax.axvline(N_p, color='#b0b0b0', linewidth=0.8, linestyle='--')
-        j = int(np.searchsorted(ks, N_p))
-        if j < len(ks):
-            ax.annotate('N_p = %d\nmean overlap %.2f' % (N_p, mean[j]),
-                        xy=(N_p, mean[j]), xytext=(8, -28),
-                        textcoords='offset points', fontsize=8,
-                        arrowprops={'arrowstyle': '-', 'color': '#9a9a9a'})
-        ax.set_ylim(0.0, 1.02)
-        ax.set_xlim(ks[0], ks[-1])
-        ax.set_xlabel('k  (candidates kept by the cheap score)')
-        ax.set_title(sub, fontsize=10)
-        ax.grid(color='#e2e2e2', linewidth=0.6)
-        ax.legend(frameon=False, fontsize=8, loc='lower right')
-    axes[0].set_ylabel('fraction of the cheap top-k also in the other top-k')
-    fig.suptitle(title)
+def _overlap_figure(plt, curves, ks, n_pool, N_p, budget_marks, targets, title):
+    """One panel. x = fraction of the poison-class pool selected, y = fraction
+    of the candidates selected by (R, M) that (A, R, M) also selects at the same
+    size. Thin lines are targets, bold is their mean, dotted is chance, dashed
+    marks are the standard budgets (each as its N_p over the pool size)."""
+    frac = np.asarray(ks, dtype=np.float64) / float(n_pool)
+    fig, ax = plt.subplots(figsize=(7.0, 4.6), constrained_layout=True)
+    for c in curves:
+        ax.plot(frac, c, color=_SCATTER_COLOR, alpha=0.3, linewidth=1.0)
+    mean = np.mean(np.stack(curves), axis=0)
+    ax.plot(frac, mean, color=_SCATTER_INK, linewidth=2.0,
+            label='mean over %d targets' % len(targets))
+    ax.plot(frac, frac, color='#9a9a9a', linewidth=1.0, linestyle=':',
+            label='chance (random selection)')
+    for budget, k in budget_marks:
+        if k < ks[0] or k > ks[-1]:
+            continue
+        j = int(np.searchsorted(ks, k))
+        ax.axvline(k / float(n_pool), color='#c8c8c8', linewidth=0.8,
+                   linestyle='--', zorder=0)
+        ax.annotate('%g\n%.2f' % (budget, mean[j]), xy=(k / float(n_pool), 0.02),
+                    ha='center', va='bottom', fontsize=7, color='#555555')
+    ax.set_ylim(0.0, 1.02)
+    ax.set_xlim(frac[0], frac[-1])
+    ax.set_xlabel('fraction of the poison-class pool selected  '
+                  '(dashed: budgets, with the mean overlap there)')
+    ax.set_ylabel('fraction of the (R, M) selection also selected by (A, R, M)')
+    ax.set_title(title)
+    ax.grid(color='#e2e2e2', linewidth=0.6)
+    ax.legend(frameon=False, fontsize=8, loc='lower right')
     return fig
 
 
@@ -2673,9 +2672,9 @@ def scatter_main(args):
       scatter_target<t>.{png,pdf}   one panel per target
       scatter_grid.{png,pdf}        every target side by side
       scatter_pooled.{png,pdf}      the subsets of all targets in one panel
-      topk_overlap.{png,pdf}        fraction of the k lowest-x candidates that the
-                                    full score x - beta*y (left) / A alone (right)
-                                    would also keep, k = 1..max(5 N_p, 200), full pool
+      topk_overlap.{png,pdf}        x = fraction of the pool selected, y = share of
+                                    the (R, M) selection that (A, R, M) also selects;
+                                    standard budgets marked; full pool
       conditional_a.{png,pdf}       median A (with IQR) in equal-count bins of x
       rank_grid.{png,pdf}           the plotted subset as full-pool percentile ranks
       points_target<t>.csv          the plotted subset (train_idx, rm, a, raw d/M/A)
@@ -2857,34 +2856,54 @@ def scatter_main(args):
     # candidates? All three figures use the FULL pool, not the plotted subset,
     # because at real budgets the selected set is ~1% of the pool and a random
     # 1000-sample subset contains only a handful of it.
-    k_max = args.scatter_topk_max or min(n_pool, max(5 * N_p, 200))
+    k_max = args.scatter_topk_max or n_pool
     k_max = max(1, min(k_max, n_pool))
     ks = np.arange(1, k_max + 1)
-    curves_full, curves_a, binned, rank_x, rank_a = [], [], [], [], []
+    curves_full, binned, rank_x, rank_a = [], [], [], []
     for tidx in targets:
         rm_np, a_np = npz['rm_target%d' % tidx], npz['a_target%d' % tidx]
-        full = rm_np - beta * a_np                 # the real ranking, lowest first
-        c_full = _topk_overlap_curve(rm_np, full, ks)
-        c_a = _topk_overlap_curve(rm_np, -a_np, ks)   # A alone: highest A first
+        # Convention here: rm = std(d) + lam*std(M) is a COST (similar + not
+        # confident = small), A is a GAIN (large is good), so the (A, R, M)
+        # ranking is rm - A with the LOWEST kept. _topk_overlap_curve always
+        # keeps the lowest of whatever it is given.
+        #
+        # ALTERNATIVE, if you redefine the cheap term as a GAIN to be MAXIMIZED
+        # (e.g. g = -rm, or your own "high M is good" margin), the (A, R, M)
+        # score is g + A with the HIGHEST kept. Because the helper keeps the
+        # lowest, hand it the negatives of both:
+        #     g = -rm_np                                   # or your gain
+        #     full = g + a_np                              # highest first
+        #     c_full = _topk_overlap_curve(-g, -full, ks)
+        # and flip the two "0 = best" views below the same way:
+        #     binned.append(_binned_quantiles(-g, a_np, args.scatter_bins))
+        #     rank_x.append(_percentile_rank(-g)[subset_np])
+        # For g = -rm this yields exactly the same numbers as the cost form.
+        full = rm_np - a_np                  # (A, R, M) ranking, lowest first
+        c_full = _topk_overlap_curve(rm_np, full, ks)   # (R, M) vs (A, R, M)
         curves_full.append(c_full)
-        curves_a.append(c_a)
         binned.append(_binned_quantiles(rm_np, a_np, args.scatter_bins))
         rank_x.append(_percentile_rank(rm_np)[subset_np])
         rank_a.append(_percentile_rank(a_np)[subset_np])
         j = min(N_p, k_max) - 1
         per_target[int(tidx)]['topk_overlap_at_Np_vs_full_score'] = float(c_full[j])
-        per_target[int(tidx)]['topk_overlap_at_Np_vs_A_alone'] = float(c_a[j])
-        log('  target %d: of the %d lowest-x candidates, %.1f%% are also in the '
-            'lowest-%d by x - %g y, %.1f%% in the highest-%d by A alone'
-            % (tidx, N_p, 100.0 * c_full[j], N_p, beta, 100.0 * c_a[j], N_p))
+        log('  target %d: of the %d candidates selected by (R, M), %.1f%% are also '
+            'selected by (A, R, M)' % (tidx, N_p, 100.0 * c_full[j]))
     mean_full = np.mean(np.stack(curves_full), axis=0)
-    mean_a = np.mean(np.stack(curves_a), axis=0)
     j = min(N_p, k_max) - 1
-    log('  mean over targets at k=N_p=%d: overlap %.3f vs full score, %.3f vs A alone '
-        '(chance %.3f)' % (N_p, mean_full[j], mean_a[j], N_p / float(n_pool)))
+    log('  mean over targets at N_p=%d: overlap %.3f (chance %.3f)'
+        % (N_p, mean_full[j], N_p / float(n_pool)))
+    # the standard budget grid, each as its N_p on this training set
+    budget_marks = [(b, rho_to_m(b, N_total))
+                    for b in (0.001, 0.002, 0.005, 0.01, 0.02, 0.04)]
+    budget_overlap = {}
+    for b, k in budget_marks:
+        if 1 <= k <= k_max:
+            budget_overlap['%g' % b] = float(mean_full[k - 1])
+    log('  mean overlap at the standard budgets: %s'
+        % ', '.join('%s -> %.3f' % kv for kv in budget_overlap.items()))
 
-    fig = _overlap_figure(plt, curves_full, curves_a, ks, n_pool, N_p, beta, targets,
-                          '%s / %s / %s  top-k agreement with the cheap score '
+    fig = _overlap_figure(plt, curves_full, ks, n_pool, N_p, budget_marks, targets,
+                          '%s / %s / %s  selection agreement of (R, M) with (A, R, M) '
                           '(full pool, %d candidates)'
                           % (args.model, args.attack, args.class_pair, n_pool))
     for p in _save_fig(fig, os.path.join(run_dir, 'topk_overlap'), formats,
@@ -2929,7 +2948,6 @@ def scatter_main(args):
 
     npz['topk_ks'] = ks
     npz['topk_overlap_vs_full_score'] = np.stack(curves_full)
-    npz['topk_overlap_vs_A_alone'] = np.stack(curves_a)
     np.savez_compressed(os.path.join(run_dir, 'components.npz'), **npz)
     summary = {
         'run_name': build_run_name(args), 'dataset': args.dataset,
@@ -2948,17 +2966,16 @@ def scatter_main(args):
         'pooled_pearson': _pearson(px, py), 'pooled_spearman': _spearman(px, py),
         'topk_max': int(k_max), 'topk_bins': args.scatter_bins,
         'mean_topk_overlap_at_Np_vs_full_score': float(mean_full[j]),
-        'mean_topk_overlap_at_Np_vs_A_alone': float(mean_a[j]),
+        'mean_topk_overlap_at_budgets': budget_overlap,
         'chance_overlap_at_Np': N_p / float(n_pool),
         'per_target': per_target,
     }
     with open(os.path.join(run_dir, 'summary.json'), 'w') as f:
         json.dump(summary, f, indent=2)
-    log('==== SCATTER done: %s | pooled Pearson=%.3f Spearman=%.3f | top-N_p overlap '
-        'x vs x-%gy = %.3f, x vs A = %.3f (chance %.3f) | %s ===='
+    log('==== SCATTER done: %s | pooled Pearson=%.3f Spearman=%.3f | overlap of the '
+        '(R, M) and (A, R, M) selections at N_p = %.3f (chance %.3f) | %s ===='
         % (build_run_name(args), summary['pooled_pearson'],
-           summary['pooled_spearman'], beta, mean_full[j], mean_a[j],
-           N_p / float(n_pool), run_dir))
+           summary['pooled_spearman'], mean_full[j], N_p / float(n_pool), run_dir))
 
 
 def main(args):
@@ -3426,15 +3443,15 @@ def parse_args(argv=None):
                    help='compute the (d+lam*M, A) score components of --base ours '
                         '/ --sel_dpp for every target, plot a random subset, and '
                         'stop: no selection, no crafting, no victim training')
-    p.add_argument('--scatter_points', type=int, default=1000,
+    p.add_argument('--scatter_points', type=int, default=2500,
                    help='--scatter_mode: how many random poison-class candidates '
                         'to plot (same seeded subset for every target)')
     p.add_argument('--scatter_formats', type=str, default='png,pdf',
                    help='--scatter_mode: comma-separated figure formats')
     p.add_argument('--scatter_dpi', type=int, default=200)
     p.add_argument('--scatter_topk_max', type=int, default=0,
-                   help='--scatter_mode: largest k of the top-k overlap curve '
-                        '(0 = auto: max(5*N_p, 200), capped at the pool size)')
+                   help='--scatter_mode: largest selection size of the overlap '
+                        'curve (0 = the whole poison-class pool)')
     p.add_argument('--scatter_bins', type=int, default=20,
                    help='--scatter_mode: equal-count x bins of the conditional-A plot')
     args = p.parse_args(argv)

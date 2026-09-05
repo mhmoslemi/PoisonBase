@@ -55,11 +55,11 @@
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
 
-MODEL="${MODEL:-VGG13BN}"
+MODEL="${MODEL:-ConvNetBN}"
 ATTACK="${ATTACK:-fc}"
-CLASS_PAIR="${CLASS_PAIR:-frog-airplane}"
+CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
-BUDGETS="${BUDGETS:-0.001}"
+BUDGETS="${BUDGETS:-0.02}"
 SELECT="${SELECT:-dpp}"
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
@@ -67,7 +67,7 @@ SELECT="${SELECT:-dpp}"
 SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
 USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-1}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
-JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
+JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-128}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
@@ -96,10 +96,10 @@ DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
 OUT_DIR="${OUT_DIR:-scatter_result}"
 CACHE_DIR="${CACHE_DIR:-./cache}"
 SEED="${SEED:-42}"
-PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
+PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/PoisonBase}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
-NUM_TARGETS="${NUM_TARGETS:-8}"
-SCATTER_POINTS="${SCATTER_POINTS:-1000}"   # random candidates plotted per target
+NUM_TARGETS="${NUM_TARGETS:-2}"
+SCATTER_POINTS="${SCATTER_POINTS:-2500}"   # random candidates plotted per target
 SCATTER_FORMATS="${SCATTER_FORMATS:-png,pdf}"
 NUM_VICTIMS="${NUM_VICTIMS:-5}"
 RECOMPUTE_DELTAS="${RECOMPUTE_DELTAS:-0}"
