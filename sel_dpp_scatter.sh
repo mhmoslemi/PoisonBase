@@ -93,6 +93,25 @@ SHARP_SIGMA="${SHARP_SIGMA:-0.05}"   # ATTACK=sapa only. worst: l2 radius (SAM r
 
 DATASET="${DATASET:-CIFAR100}"
 DATA_PATH="${DATA_PATH:-/home/mmoslem3/scratch/data}"
+
+# CLASS_PAIR default depends on DATASET: CIFAR10's named pairs (dog-bird,
+# frog-airplane) exist nowhere else. SVHN class names are the digit strings
+# '0'..'9', so '1-7' works by name; CIFAR100 uses plain class INDICES
+# ('3-7'), which final_update_scatter.py's parse_pair accepts whenever a token
+# is not a literal class name. Which two classes does not matter for the
+# component scatter, only that they exist.
+if [ -z "$CLASS_PAIR" ]; then
+    case "$DATASET" in
+        CIFAR10) CLASS_PAIR="frog-airplane" ;;
+        SVHN) CLASS_PAIR="1-7" ;;
+        CIFAR100) CLASS_PAIR="3-7" ;;
+        TinyImageNet) CLASS_PAIR="3-7" ;;
+        *) CLASS_PAIR="0-1" ;;
+    esac
+fi
+# Difficulty degree used when sweep_config.json has no entry for the combo
+# (every non-CIFAR10 dataset). TARGET_SELECT, when set, still wins over this.
+DEFAULT_TGT_DEG="${DEFAULT_TGT_DEG:-50}"
 OUT_DIR="${OUT_DIR:-scatter_result}"
 CACHE_DIR="${CACHE_DIR:-./cache}"
 SEED="${SEED:-42}"
@@ -158,17 +177,25 @@ for attack in $ATTACK; do
 for pair in $CLASS_PAIR; do
 
     # --- difficulty label + craft-memory flags, straight from sweep_config.json -
-    CFG="$(python - "$model" "$attack" "$pair" <<'PY'
+    # sweep_config.json is CIFAR10-only in practice. A dataset / model / attack /
+    # pair combo it has never seen (SVHN, CIFAR100, or any pair besides the
+    # CIFAR10 ones) still plots fine, it just has no paired-difficulty label, so
+    # it falls back to degree DEFAULT_TGT_DEG instead of skipping the combo.
+    CFG="$(python - "$model" "$attack" "$pair" "$DATASET" "$DEFAULT_TGT_DEG" <<'PY'
 import json, sys
-model, attack, pair = sys.argv[1:4]
+model, attack, pair, dataset, default_tgt = sys.argv[1:6]
 cfg = json.load(open('sweep_config.json'))
 # sapa is gradmatch + a sharpness-aware target gradient: same crafting cost, same
 # difficulty, so it reads the gradmatch entry rather than needing its own.
 key = 'gradmatch' if attack == 'sapa' else attack
 try:
+    if dataset != 'CIFAR10':
+        raise KeyError(dataset)
     tgt = cfg['difficulty'][model][key][pair]
 except KeyError:
-    sys.exit('sweep_config.json has no difficulty for %s / %s / %s' % (model, key, pair))
+    tgt = default_tgt
+    sys.stderr.write('   note: sweep_config.json has no difficulty for %s / %s / %s / %s'
+                     ' -- defaulting to degree %s\n' % (dataset, model, key, pair, tgt))
 mem = cfg['memory'].get(model, {}).get(key, cfg['memory_default'])
 print('CFG_TGT=%s' % tgt)
 print('CFG_KEY=%s' % key)
@@ -180,10 +207,13 @@ PY
 
     # --- targets: pinned if the file is there, difficulty degree otherwise -----
     # sapa falls back to the gradmatch target set, so the two attacks are compared
-    # on the identical 10 images
-    IDX="target_sets/${model}_${attack}_${pair}.json"
+    # on the identical 10 images. CIFAR10 keeps the historical file names; every
+    # other dataset gets its own prefix so '1-7' on SVHN and '1-7' on CIFAR100 can
+    # never share a pinned set.
+    if [ "$DATASET" = "CIFAR10" ]; then IDX_PREFIX=""; else IDX_PREFIX="${DATASET}_"; fi
+    IDX="target_sets/${IDX_PREFIX}${model}_${attack}_${pair}.json"
     if [ ! -s "$IDX" ] && [ "$attack" != "$CFG_KEY" ]; then
-        IDX="target_sets/${model}_${CFG_KEY}_${pair}.json"
+        IDX="target_sets/${IDX_PREFIX}${model}_${CFG_KEY}_${pair}.json"
     fi
     # TGT_DEG is what --target_select gets. With a pinned file the selector never
     # runs, but the degree still names the run dir (_tgt<N>), so keep the combo's

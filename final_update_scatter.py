@@ -207,18 +207,34 @@ def stack_dataset(dst, device):
     return imgs, labs
 
 
+def _resolve_class_token(token, class_names):
+    """A literal class name resolves by name, same as always. A token that is
+    not a class name but parses as an integer resolves as a plain class index,
+    so --class_pair can be e.g. '1-7' on SVHN or '3-7' on CIFAR100 without
+    knowing that dataset's exact class-name spellings."""
+    if token in class_names:
+        return class_names.index(token)
+    try:
+        idx = int(token)
+    except ValueError:
+        raise SystemExit(
+            '--class_pair: %r is not a class name or index of this dataset. Known '
+            'names: %s' % (token, ', '.join(map(str, class_names[:12]))
+                          + (' ...' if len(class_names) > 12 else '')))
+    if not 0 <= idx < len(class_names):
+        raise SystemExit('--class_pair: index %d out of range for %d classes'
+                         % (idx, len(class_names)))
+    return idx
+
+
 def parse_pair(pair, class_names, order='poison-target'):
     if pair.count('-') != 1:
         raise SystemExit("--class_pair must be '<adversarial>-<target>', got %r" % pair)
     a, b = pair.split('-')
-    for n in (a, b):
-        if n not in class_names:
-            raise SystemExit('--class_pair: %r is not a class of this dataset. Known: %s'
-                             % (n, ', '.join(map(str, class_names[:12]))
-                                + (' ...' if len(class_names) > 12 else '')))
+    ia, ib = _resolve_class_token(a, class_names), _resolve_class_token(b, class_names)
     if order == 'poison-target':
-        return class_names.index(a), class_names.index(b)   # y_adv, target_class
-    return class_names.index(b), class_names.index(a)
+        return ia, ib   # y_adv, target_class
+    return ib, ia
 
 
 def set_seed(seed):
