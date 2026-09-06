@@ -86,15 +86,15 @@
 
 MODEL="${MODEL:-VGG13BN}"
 ATTACK="${ATTACK:-fc}"
-CLASS_PAIR="${CLASS_PAIR:-frog-airplane}"
+CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
-BUDGETS="${BUDGETS:-0.001}"
-SELECT="${SELECT:-dpp}"
+BUDGETS="${BUDGETS:-0.0004}"
+SELECT="${SELECT:-ours}"
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
 
 SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
-USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-1}"
+USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
@@ -299,7 +299,7 @@ for sig in $SIGMAS; do
             --budget "$bug" --epsilon 0.0313725 \
             --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
             --restarts 8 --fc_restarts "$FC_RESTARTS" --craft_ensemble 5 $CFG_MEM \
-            --base_dist cosine --lambda_margin 1.0 \
+            --base_dist cosine --lambda_margin 10.0 \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
