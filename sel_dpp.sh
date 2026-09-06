@@ -100,7 +100,7 @@ JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
-CRAFT_STEPS="${CRAFT_STEPS:-250}"
+CRAFT_STEPS="${CRAFT_STEPS:-750}"
 CRAFT_ALPHA="${CRAFT_ALPHA:-0.0039216}"
 FC_RESTARTS="${FC_RESTARTS:-1}"
 case "$USE_JACOBIAN_SCORE" in
