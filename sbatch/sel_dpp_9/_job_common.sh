@@ -19,11 +19,11 @@ esac
 export PROJECT_ROOT=/home/mmoslem3/scratch/attack_if
 export DATA_PATH=/home/mmoslem3/scratch/attack_if/data
 export PYTHON_ENV=/home/mmoslem3/ENV
-export CLASS_PAIR=frog-airplane
+export CLASS_PAIR="${CLASS_PAIR:-frog-airplane}"
 
 source "$PYTHON_ENV/bin/activate"
 cd "$PROJECT_ROOT"
 
-# MODEL and ATTACK are the only experiment knobs changed here. All remaining
-# values come directly from the current defaults in sel_dpp.sh.
+# The wrappers choose MODEL, ATTACK, and (when needed) CLASS_PAIR. All remaining
+# experiment values come directly from the current defaults in sel_dpp.sh.
 exec bash ./sel_dpp.sh

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=aip-yiweilu
+#SBATCH --account=aip-boyuwang
 #SBATCH --job-name=seldpp9_resnet20_fc
 #SBATCH --time=03:00:00
 #SBATCH --nodes=1
@@ -12,4 +12,5 @@
 
 export MODEL=ResNet20BN
 export ATTACK=fc
+export CLASS_PAIR=dog-bird
 source /home/mmoslem3/scratch/attack_if/sbatch/sel_dpp_9/_job_common.sh
