@@ -19,6 +19,7 @@ esac
 export PROJECT_ROOT=/home/mmoslem3/scratch/attack_if
 export DATA_PATH=/home/mmoslem3/scratch/attack_if/data
 export PYTHON_ENV=/home/mmoslem3/ENV
+export CLASS_PAIR=frog-airplane
 
 source "$PYTHON_ENV/bin/activate"
 cd "$PROJECT_ROOT"

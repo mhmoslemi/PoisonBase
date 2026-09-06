@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=aip-boyuwang
+#SBATCH --account=aip-yiweilu
 #SBATCH --job-name=seldpp9_resnet20_gradmatch
 #SBATCH --time=03:00:00
 #SBATCH --nodes=1
