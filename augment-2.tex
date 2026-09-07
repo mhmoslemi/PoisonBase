@@ -4,7 +4,7 @@
 \caption{Victim-side augmentation robustness on dog$\rightarrow$bird.
 Each entry reports ASR\,(\%) with CTA\,(\%) in parentheses.
 \textbf{Bold} denotes \textsc{Graft}; normal weight denotes \textsc{Rand}.
-``--'' denotes an incomplete evaluation.}
+$^\dagger$ denotes a partial evaluation using 14 of the planned 20 trials.}
 \label{tab:augmentation-robustness}
 
 \begingroup
@@ -17,6 +17,16 @@ Each entry reports ASR\,(\%) with CTA\,(\%) in parentheses.
 #1\,{\tiny(#2)}
 \,/\,%
 \textbf{#3}\,{\tiny(#4)}%
+}
+\newcommand{\rgrand}[4]{%
+\textbf{#1}\,{\tiny(#2)}
+\,/\,%
+#3\,{\tiny(#4)}%
+}
+\newcommand{\rgtieaug}[4]{%
+#1\,{\tiny(#2)}
+\,/\,%
+#3\,{\tiny(#4)}%
 }
 \newcommand{\rgna}{--\,/\,\textbf{--}}
 
@@ -51,13 +61,13 @@ c c c c
 &
 No aug.
 &
-\rg{5.0}{79.86}{60.0}{79.94}
+\rg{1.7}{80.13}{65.0}{80.12}
 &
-\rg{50.0}{79.97}{95.0}{79.91}
+\rg{35.0}{80.10}{96.7}{80.14}
 &
-\rg{85.0}{80.12}{100}{80.02}
+\rg{73.3}{80.09}{98.3}{80.11}
 &
-\rg{90.0}{80.63}{95.0}{80.40}
+\rg{43.3}{80.38}{95.0}{80.40}
 \\
 
 &
@@ -75,7 +85,7 @@ Crop+Flip
 &
 RandAug.
 &
-\rg{0.0}{84.19}{0.0}{84.20}
+\rgtieaug{0.0}{84.19}{0.0}{84.20}
 &
 \rg{0.0}{84.27}{20.0}{83.81}
 &
@@ -87,7 +97,7 @@ RandAug.
 &
 Cutout
 &
-\rg{5.0}{85.43}{5.0}{85.47}
+\rgtieaug{5.0}{85.43}{5.0}{85.47}
 &
 \rg{0.0}{85.42}{20.0}{85.23}
 &
@@ -118,13 +128,13 @@ Cutout
 &
 No aug.
 &
-\rg{25.0}{83.90}{60.0}{83.83}
+\rg{31.7}{83.88}{56.7}{83.79}
 &
-\rg{70.0}{83.76}{90.0}{83.83}
+\rg{56.7}{83.73}{91.7}{83.70}
 &
-\rg{75.0}{83.55}{85.0}{83.62}
+\rg{75.0}{83.67}{95.0}{83.72}
 &
-\rg{65.0}{83.68}{90.0}{83.82}
+\rg{65.0}{83.74}{85.0}{83.76}
 \\
 
 &
@@ -185,13 +195,13 @@ Cutout
 &
 No aug.
 &
-\rg{25.0}{85.17}{25.0}{85.16}
+\rgrand{41.7}{85.25}{36.7}{85.30}
 &
-\rg{40.0}{85.24}{95.0}{85.30}
+\rg{55.0}{85.49}{95.0}{85.46}
 &
-\rg{75.0}{85.44}{100}{85.46}
+\rg{76.7}{85.45}{96.7}{85.52}
 &
-\rg{90.0}{85.22}{100}{85.30}
+\rg{88.3}{85.36}{100}{85.29}
 \\
 
 &
@@ -209,7 +219,7 @@ Crop+Flip
 &
 RandAug.
 &
-\rgna
+\rgtieaug{7.1$^\dagger$}{91.05}{7.1$^\dagger$}{91.21}
 &
 \rg{10.0}{91.23}{50.0}{91.23}
 &
@@ -233,5 +243,306 @@ Cutout
 \bottomrule
 \end{tabular*}
 
+\endgroup
+\end{table*}
+
+
+
+
+\begin{table*}[t]
+\centering
+\caption{Cross-architecture transfer on dog$\rightarrow$bird. Rows show
+surrogate architecture $S$; columns show victim architecture and $K$.
+Cells report ASR (\textsc{Rand}/\textsc{Graft}); shading marks $S=V$.}
+\vspace{-0.8em}
+\label{tab:cross-architecture-k}
+
+\begingroup
+\newcommand{\rgwin}[2]{#1\,/\,\textbf{#2}}
+\newcommand{\rgloss}[2]{\textbf{#1}\,/\,#2}
+\newcommand{\rgtie}[1]{#1\,/\,#1}
+\newcommand{\matchcell}[1]{\cellcolor{black!7}#1}
+
+\normalsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{
+  @{} c c l
+  @{\hspace{4mm}} c c c
+  @{\hspace{4mm}} c c c
+  @{\hspace{4mm}} c c c @{}
+}
+\toprule
+
+\multirow{2}{*}{\textbf{Attack}} &
+\multirow{2}{*}{
+  \begin{tabular}{@{}c@{}}
+    $\boldsymbol{\rho}$ \\[-2pt]
+    \footnotesize{$(\times 10^{-3})$}
+  \end{tabular}
+} &
+\multirow{2}{*}{\textbf{Selector $S$}} &
+\multicolumn{3}{c}{\textbf{ConvNet}} &
+\multicolumn{3}{c}{\textbf{ResNet20}} &
+\multicolumn{3}{c}{\textbf{VGG13}} \\
+\cmidrule(lr){4-6}
+\cmidrule(lr){7-9}
+\cmidrule(l){10-12}
+
+& & &
+$K=1$ & $K=3$ & $K=20$ &
+$K=1$ & $K=3$ & $K=20$ &
+$K=1$ & $K=3$ & $K=20$ \\
+\midrule
+
+\multirow{6}{*}{\textbf{BP}}
+& \multirow{3}{*}{2}
+& ConvNet
+& \matchcell{\rgwin{0.0}{55.0}}
+& \matchcell{\rgwin{0.0}{75.0}}
+& \matchcell{\rgwin{1.7}{65.0}}
+& \rgtie{20.0}
+& \rgwin{10.0}{25.0}
+& \rgwin{5.0}{35.0}
+& \rgwin{10.0}{55.0}
+& \rgwin{25.0}{55.0}
+& \rgwin{10.0}{70.0} \\
+
+&
+& ResNet20
+& \rgwin{0.0}{20.0}
+& \rgwin{0.0}{30.0}
+& \rgwin{0.0}{45.0}
+& \matchcell{\rgwin{15.0}{35.0}}
+& \matchcell{\rgwin{5.0}{30.0}}
+& \matchcell{\rgwin{16.7}{25.0}}
+& \rgwin{15.0}{40.0}
+& \rgwin{10.0}{30.0}
+& \rgwin{10.0}{50.0} \\
+
+&
+& VGG13
+& \rgtie{5.0}
+& \rgwin{0.0}{25.0}
+& \rgwin{5.0}{25.0}
+& \rgwin{5.0}{20.0}
+& \rgwin{25.0}{30.0}
+& \rgwin{15.0}{40.0}
+& \matchcell{\rgwin{10.0}{55.0}}
+& \matchcell{\rgwin{20.0}{45.0}}
+& \matchcell{\rgloss{41.7}{36.7}} \\
+
+\cmidrule(lr){2-12}
+
+&
+\multirow{3}{*}{5}
+& ConvNet
+& \matchcell{\rgwin{10.0}{85.0}}
+& \matchcell{\rgwin{20.0}{90.0}}
+& \matchcell{\rgwin{13.3}{88.3}}
+& \rgwin{15.0}{40.0}
+& \rgwin{15.0}{55.0}
+& \rgwin{15.0}{65.0}
+& \rgwin{25.0}{70.0}
+& \rgwin{30.0}{75.0}
+& \rgwin{40.0}{90.0} \\
+
+&
+& ResNet20
+& \rgwin{20.0}{50.0}
+& \rgwin{15.0}{50.0}
+& \rgwin{5.0}{70.0}
+& \matchcell{\rgwin{10.0}{40.0}}
+& \matchcell{\rgwin{25.0}{40.0}}
+& \matchcell{\rgwin{30.0}{46.7}}
+& \rgwin{30.0}{60.0}
+& \rgwin{25.0}{75.0}
+& \rgwin{50.0}{65.0} \\
+
+&
+& VGG13
+& \rgwin{15.0}{45.0}
+& \rgwin{20.0}{60.0}
+& \rgwin{15.0}{55.0}
+& \rgwin{25.0}{40.0}
+& \rgwin{10.0}{45.0}
+& \rgloss{35.0}{30.0}
+& \matchcell{\rgloss{40.0}{35.0}}
+& \matchcell{\rgwin{25.0}{30.0}}
+& \matchcell{\rgwin{45.0}{51.7}} \\
+
+\midrule
+
+\multirow{6}{*}{\textbf{GM}}
+& \multirow{3}{*}{2}
+& ConvNet
+& \matchcell{\rgwin{0.0}{30.0}}
+& \matchcell{\rgwin{0.0}{30.0}}
+& \matchcell{\rgwin{0.0}{28.3}}
+& \rgwin{5.0}{55.0}
+& \rgwin{25.0}{65.0}
+& \rgwin{30.0}{55.0}
+& \rgwin{10.0}{85.0}
+& \rgwin{5.0}{95.0}
+& \rgwin{20.0}{90.0} \\
+
+&
+& ResNet20
+& \rgwin{0.0}{5.0}
+& \rgwin{0.0}{15.0}
+& \rgwin{0.0}{15.0}
+& \matchcell{\rgwin{30.0}{55.0}}
+& \matchcell{\rgwin{25.0}{70.0}}
+& \matchcell{\rgwin{31.7}{56.7}}
+& \rgwin{15.0}{65.0}
+& \rgwin{10.0}{80.0}
+& \rgwin{15.0}{75.0} \\
+
+&
+& VGG13
+& \rgtie{5.0}
+& \rgwin{0.0}{5.0}
+& \rgwin{0.0}{10.0}
+& \rgwin{20.0}{50.0}
+& \rgwin{25.0}{35.0}
+& \rgwin{15.0}{35.0}
+& \matchcell{\rgwin{10.0}{30.0}}
+& \matchcell{\rgwin{15.0}{55.0}}
+& \matchcell{\rgwin{21.7}{56.7}} \\
+
+\cmidrule(lr){2-12}
+
+&
+\multirow{3}{*}{5}
+& ConvNet
+& \matchcell{\rgwin{0.0}{45.0}}
+& \matchcell{\rgwin{0.0}{35.0}}
+& \matchcell{\rgwin{1.7}{73.3}}
+& \rgwin{45.0}{60.0}
+& \rgwin{35.0}{55.0}
+& \rgwin{45.0}{85.0}
+& \rgwin{50.0}{100}
+& \rgwin{65.0}{85.0}
+& \rgwin{65.0}{100} \\
+
+&
+& ResNet20
+& \rgtie{0.0}
+& \rgwin{5.0}{25.0}
+& \rgwin{0.0}{30.0}
+& \matchcell{\rgwin{40.0}{80.0}}
+& \matchcell{\rgwin{30.0}{75.0}}
+& \matchcell{\rgwin{43.3}{76.7}}
+& \rgwin{50.0}{85.0}
+& \rgwin{55.0}{100}
+& \rgwin{60.0}{100} \\
+
+&
+& VGG13
+& \rgwin{5.0}{20.0}
+& \rgwin{10.0}{30.0}
+& \rgwin{0.0}{25.0}
+& \rgwin{35.0}{60.0}
+& \rgwin{25.0}{75.0}
+& \rgwin{55.0}{95.0}
+& \matchcell{\rgwin{65.0}{80.0}}
+& \matchcell{\rgwin{50.0}{95.0}}
+& \matchcell{\rgwin{55.0}{95.0}} \\
+
+\midrule
+
+\multirow{6}{*}{\textbf{SAPA}}
+& \multirow{3}{*}{2}
+& ConvNet
+& \matchcell{\rgwin{0.0}{25.0}}
+& \matchcell{\rgwin{0.0}{25.0}}
+& \matchcell{\rgwin{0.0}{26.7}}
+& \rgwin{25.0}{60.0}
+& \rgwin{15.0}{50.0}
+& \rgwin{15.0}{65.0}
+& \rgwin{10.0}{85.0}
+& \rgwin{15.0}{90.0}
+& \rgwin{30.0}{100} \\
+
+&
+& ResNet-20
+& \rgwin{0.0}{5.0}
+& \rgtie{0.0}
+& \rgwin{5.0}{25.0}
+& \matchcell{\rgwin{35.0}{50.0}}
+& \matchcell{\rgwin{5.0}{35.0}}
+& \matchcell{\rgwin{21.7}{53.3}}
+& \rgwin{0.0}{80.0}
+& \rgwin{5.0}{60.0}
+& \rgwin{10.0}{75.0} \\
+
+&
+& VGG-13
+& \rgtie{0.0}
+& \rgtie{0.0}
+& \rgwin{0.0}{10.0}
+& \rgwin{20.0}{35.0}
+& \rgwin{15.0}{55.0}
+& \rgwin{20.0}{65.0}
+& \matchcell{\rgwin{10.0}{40.0}}
+& \matchcell{\rgwin{10.0}{50.0}}
+& \matchcell{\rgwin{26.7}{83.3}} \\
+
+\cmidrule(lr){2-12}
+
+&
+\multirow{3}{*}{5}
+& ConvNet
+& \matchcell{\rgwin{0.0}{40.0}}
+& \matchcell{\rgwin{0.0}{40.0}}
+& \matchcell{\rgwin{6.7}{48.3}}
+& \rgwin{25.0}{70.0}
+& \rgwin{35.0}{60.0}
+& \rgwin{20.0}{70.0}
+& \rgwin{70.0}{100}
+& \rgwin{80.0}{100}
+& \rgwin{35.0}{95.0} \\
+
+&
+& ResNet-20
+& \rgwin{5.0}{10.0}
+& \rgwin{5.0}{20.0}
+& \rgwin{0.0}{30.0}
+& \matchcell{\rgwin{40.0}{65.0}}
+& \matchcell{\rgwin{45.0}{80.0}}
+& \matchcell{\rgwin{55.0}{78.3}}
+& \rgwin{80.0}{90.0}
+& \rgwin{65.0}{90.0}
+& \rgwin{65.0}{100} \\
+
+&
+& VGG-13
+& \rgwin{5.0}{30.0}
+& \rgwin{5.0}{35.0}
+& \rgwin{5.0}{30.0}
+& \rgwin{35.0}{65.0}
+& \rgwin{50.0}{75.0}
+& \rgwin{30.0}{90.0}
+& \matchcell{\rgwin{75.0}{80.0}}
+& \matchcell{\rgwin{40.0}{80.0}}
+& \matchcell{\rgwin{60.0}{95.0}} \\
+
+\midrule
+
+\multicolumn{3}{l}{\textbf{Average for $S=V$:}} &
+\multicolumn{3}{c}{$K=1$\quad 21.7 / 51.4 \small({+29.7})} &
+\multicolumn{3}{c}{$K=3$\quad 17.5 / 54.4 \small({+36.9})} &
+\multicolumn{3}{c}{$K=20$\quad 26.2 / 60.3 \small({+34.1})} \\
+
+\multicolumn{3}{l}{\textbf{Average for $S\neq V$:}} &
+\multicolumn{3}{c}{$K=1$\quad 19.4 / 46.8 \small({+27.4})} &
+\multicolumn{3}{c}{$K=3$\quad 20.4 / 51.5 \small({+31.1})} &
+\multicolumn{3}{c}{$K=20$\quad 20.7 / 58.6 \small({+37.9})} \\
+
+\bottomrule
+\end{tabular}%
+}
 \endgroup
 \end{table*}
