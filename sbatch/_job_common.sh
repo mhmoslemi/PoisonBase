@@ -8,6 +8,7 @@ SOURCE_ROOT="${SOURCE_ROOT:-/home/mmoslem3/scratch/attack_if}"
 LEGACY_SOURCE_ROOT="${LEGACY_SOURCE_ROOT:-}"
 PERSIST_DATA_ROOT="${PERSIST_DATA_ROOT:-/home/mmoslem3/scratch/data}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
+ENV_ACTIVATE="${ENV_ACTIVATE:-$PYTHON_ENV/bin/activate}"
 RUN_ROOT="$SLURM_TMPDIR/attack_if"
 LOCAL_DATA_ROOT="$SLURM_TMPDIR/data"
 
@@ -295,7 +296,7 @@ main() {
     else
         say "environment modules unavailable; using $PYTHON_ENV directly"
     fi
-    source "$PYTHON_ENV/bin/activate"
+    source "$ENV_ACTIVATE"
 
     trap 'handle_signal USR1' USR1
     trap 'handle_signal TERM' TERM
