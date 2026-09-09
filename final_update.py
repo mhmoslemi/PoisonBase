@@ -38,7 +38,9 @@ Base selection (--base):
   random     uniform over the poison class.
   ours       standardized d(x) + lambda * M(x), lowest first, ensemble averaged.
              d = feature distance to the target (l2 or cosine), M = logit margin
-             toward y_adv. Low score means close to the target in feature space
+             toward y_adv. ``--distance_margin_coef c`` instead uses the convex
+             combination c*z(d) + (1-c)*z(M), so c=0 is margin-only and c=1 is
+             distance-only. Low score means close to the target in feature space
              AND sitting near the y_adv decision boundary. With
              --use_jacobian_score, subtract beta times the standardized exact
              candidate/target backbone-gradient interaction per surrogate.
@@ -172,6 +174,22 @@ def embed_of(net):
 
 def standardize(v, eps=1e-8):
     return (v - v.mean()) / (v.std() + eps)
+
+
+def combine_distance_margin(distance, margin, lam, coef=None):
+    """Combine standardized selector terms while preserving the legacy rule.
+
+    ``coef=None`` is the historical ``z(distance) + lam*z(margin)`` objective.
+    Supplying a coefficient selects the explicit convex-combination ablation
+    ``coef*z(distance) + (1-coef)*z(margin)``; in that mode ``lam`` is ignored.
+    Both terms are standardized before weighting, as they are in the legacy
+    selector, so the coefficient has the same meaning across architectures.
+    """
+    distance_z = standardize(distance)
+    margin_z = standardize(margin)
+    if coef is None:
+        return distance_z + lam * margin_z
+    return coef * distance_z + (1.0 - coef) * margin_z
 
 
 def rho_to_m(rho, training_set_size):
@@ -793,7 +811,7 @@ def _log_interaction_diagnostics(surrogate_idx, interaction):
 def _ours_pointwise_score(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
                           base_dist='l2', bs=512, collect_feats=False,
                           use_jacobian_score=False, jacobian_weight=1.0,
-                          jacobian_batch_size=64):
+                          jacobian_batch_size=64, distance_margin_coef=None):
     """Shared per-surrogate proposed score, optionally with exact Jacobian A."""
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     cand = images_norm[cls_idx]
@@ -822,7 +840,8 @@ def _ours_pointwise_score(nets, images_norm, labels, x_t_norm, y_adv, lam, devic
                 ms.append(m)
                 if collect_feats:
                     fs.append(F.normalize(fb.detach().flatten(1), dim=1))
-            component = standardize(torch.cat(ds)) + lam * standardize(torch.cat(ms))
+            component = combine_distance_margin(
+                torch.cat(ds), torch.cat(ms), lam, distance_margin_coef)
             if use_jacobian_score:
                 interaction, _ = _backbone_gradient_interactions(
                     net, cand, x_t_norm, y_adv, jacobian_batch_size)
@@ -846,14 +865,16 @@ def _ours_pointwise_score(nets, images_norm, labels, x_t_norm, y_adv, lam, devic
 @torch.no_grad()
 def select_base_ours(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam, device,
                      base_dist='l2', bs=512, use_jacobian_score=False,
-                     jacobian_weight=1.0, jacobian_batch_size=64):
+                     jacobian_weight=1.0, jacobian_batch_size=64,
+                     distance_margin_coef=None):
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
     cls_idx, score, _ = _ours_pointwise_score(
         nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
         use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
-        jacobian_batch_size=jacobian_batch_size)
+        jacobian_batch_size=jacobian_batch_size,
+        distance_margin_coef=distance_margin_coef)
     sel = torch.topk(score, k=N_p, largest=False).indices
     return cls_idx[sel]
 
@@ -1054,7 +1075,8 @@ def select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
                           # over 5000 candidates x 5 surrogates exhausts the GPU
 def _ours_score_and_feats(nets, images_norm, labels, x_t_norm, y_adv, lam, device,
                           base_dist='l2', bs=512, use_jacobian_score=False,
-                          jacobian_weight=1.0, jacobian_batch_size=64):
+                          jacobian_weight=1.0, jacobian_batch_size=64,
+                          distance_margin_coef=None):
     """score_i identical to select_base_ours, plus the candidate features needed
     for a pairwise similarity. Per-surrogate features are L2-normalised and
     concatenated, so a single cosine on the result equals the MEAN of the
@@ -1063,13 +1085,15 @@ def _ours_score_and_feats(nets, images_norm, labels, x_t_norm, y_adv, lam, devic
         nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
         collect_feats=True, use_jacobian_score=use_jacobian_score,
         jacobian_weight=jacobian_weight,
-        jacobian_batch_size=jacobian_batch_size)
+        jacobian_batch_size=jacobian_batch_size,
+        distance_margin_coef=distance_margin_coef)
 
 
 @torch.no_grad()
 def select_base_topr(nets, images_norm, labels, x_t_norm, y_adv, N_p, r, lam, device,
                      base_dist='l2', use_jacobian_score=False,
-                     jacobian_weight=1.0, jacobian_batch_size=64):
+                     jacobian_weight=1.0, jacobian_batch_size=64,
+                     distance_margin_coef=None):
     """Concentrate the poison budget into r feature-space neighbourhoods.
 
     Same budget, fewer distinct regions: take the r best-scoring candidates as
@@ -1088,7 +1112,8 @@ def select_base_topr(nets, images_norm, labels, x_t_norm, y_adv, N_p, r, lam, de
     cls_idx, score, feats = _ours_score_and_feats(nets, images_norm, labels, x_t_norm,
         y_adv, lam, device, base_dist=base_dist,
         use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
-        jacobian_batch_size=jacobian_batch_size)
+        jacobian_batch_size=jacobian_batch_size,
+        distance_margin_coef=distance_margin_coef)
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d candidates < N_p=%d' % (y_adv, len(cls_idx), N_p))
     if r >= N_p:
@@ -1123,14 +1148,16 @@ def _sim_to(feats, j):
 def select_base_ours_div(nets, images_norm, labels, x_t_norm, y_adv, N_p, lam, device,
                          base_dist='l2', bs=512, mode='filter', pool=3.0, mu=0.5,
                          alpha=1.0, use_jacobian_score=False,
-                         jacobian_weight=1.0, jacobian_batch_size=64):
+                         jacobian_weight=1.0, jacobian_batch_size=64,
+                         distance_margin_coef=None):
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
         raise ValueError('class %d has %d images < N_p=%d' % (y_adv, len(cls_idx), N_p))
     cls_idx, score, feats = _ours_score_and_feats(
         nets, images_norm, labels, x_t_norm, y_adv, lam, device, base_dist, bs,
         use_jacobian_score=use_jacobian_score, jacobian_weight=jacobian_weight,
-        jacobian_batch_size=jacobian_batch_size)
+        jacobian_batch_size=jacobian_batch_size,
+        distance_margin_coef=distance_margin_coef)
     N = len(cls_idx)
     score = standardize(score)          # monotone: does not change plain ranking
 
@@ -1874,10 +1901,11 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
 
     x_t_norm = ctx['test_imgs'][tidx]
     cached_delta, cached_base = load_poison_cache(run_dir, tidx, legacy, recompute)
-    jacobian_kwargs = {
+    pointwise_kwargs = {
         'use_jacobian_score': getattr(args, 'use_jacobian_score', False),
         'jacobian_weight': getattr(args, 'jacobian_weight', 1.0),
         'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
+        'distance_margin_coef': getattr(args, 'distance_margin_coef', None),
     }
 
     # ---- base selection ----------------------------------------------------
@@ -1911,7 +1939,7 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         base_idx = select_base_topr(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
                                     train_imgs, train_labs, x_t_norm, y_adv, N_p,
                                     args.base_topr, args.lambda_margin, device,
-                                    base_dist=args.base_dist, **jacobian_kwargs)
+                                    base_dist=args.base_dist, **pointwise_kwargs)
         log('  target %d: budget concentrated in %d neighbourhood(s), %d distinct bases'
             % (tidx, args.base_topr, len(base_idx)))
     elif args.sel_mode:
@@ -1921,12 +1949,12 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
                                         device, base_dist=args.base_dist,
                                         mode=args.sel_mode, pool=args.sel_pool,
                                         mu=args.sel_mu, alpha=args.sel_alpha,
-                                        **jacobian_kwargs)
+                                        **pointwise_kwargs)
     else:
         base_idx = select_base_ours(sel_nets[:args.sel_K] if args.sel_K else sel_nets,
                                     train_imgs, train_labs, x_t_norm,
                                     y_adv, N_p, args.lambda_margin, device,
-                                    base_dist=args.base_dist, **jacobian_kwargs)
+                                    base_dist=args.base_dist, **pointwise_kwargs)
 
     # ---- crafting ----------------------------------------------------------
     base01 = denorm(train_imgs[base_idx]).clamp(0.0, 1.0).detach()
@@ -2347,7 +2375,11 @@ def build_run_name(args):
             % (args.dataset, args.model, args.attack, args.base, args.class_pair,
                args.budget, eps_tag, args.seed))
     if args.base == 'ours':
-        name += '_lam%g_%s' % (args.lambda_margin, args.base_dist)
+        distance_margin_coef = getattr(args, 'distance_margin_coef', None)
+        if distance_margin_coef is None:
+            name += '_lam%g_%s' % (args.lambda_margin, args.base_dist)
+        else:
+            name += '_dmcoef%g_%s' % (distance_margin_coef, args.base_dist)
         # a diversity mode is a DIFFERENT selection, so it must not share a run
         # directory with the plain --base ours runs
         if args.sel_filter:
@@ -2463,6 +2495,9 @@ def main(args):
                getattr(args, 'jacobian_batch_size', 64)))
     else:
         log('Jacobian score: disabled')
+    if getattr(args, 'distance_margin_coef', None) is not None:
+        log('Base score: %g*z(distance) + %g*z(margin); lambda_margin ignored'
+            % (args.distance_margin_coef, 1.0 - args.distance_margin_coef))
     if getattr(args, 'sel_exact_alignment', False):
         log('Exact full-parameter gi^T gt selector: enabled, batch_size=%d; '
             'per-surrogate alignment standardization enabled'
@@ -2618,6 +2653,7 @@ def main(args):
         'seed': args.seed, 'budget': args.budget, 'num_poisons': N_p,
         'epsilon': args.epsilon, 'fc_mode': args.fc_mode,
         'lambda_margin': args.lambda_margin, 'base_dist': args.base_dist,
+        'distance_margin_coef': getattr(args, 'distance_margin_coef', None),
         'use_jacobian_score': getattr(args, 'use_jacobian_score', False),
         'jacobian_weight': getattr(args, 'jacobian_weight', 1.0),
         'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
@@ -2779,6 +2815,10 @@ def parse_args(argv=None):
     # base selection
     p.add_argument('--lambda_margin', type=float, default=1.0)
     p.add_argument('--base_dist', type=str, default='l2', choices=['l2', 'cosine'])
+    p.add_argument('--distance_margin_coef', type=float, default=None,
+                   help='optional convex-combination ablation for the proposed '
+                        'score: c*z(distance) + (1-c)*z(margin), with c in [0,1]. '
+                        'When supplied, --lambda_margin is ignored')
     p.add_argument('--use_jacobian_score', action='store_true', default=False,
                    help='augment the proposed pointwise score with the exact '
                         'backbone-gradient interaction')
@@ -2886,6 +2926,12 @@ def parse_args(argv=None):
         p.error('%s are mutually exclusive -- pick one' % ' / '.join(on))
     if on and args.base != 'ours':
         p.error('%s only affects --base ours (got --base %s)' % (on[0], args.base))
+    if args.distance_margin_coef is not None:
+        if (not math.isfinite(args.distance_margin_coef) or
+                not 0.0 <= args.distance_margin_coef <= 1.0):
+            p.error('--distance_margin_coef must be a finite value in [0, 1]')
+        if args.base != 'ours':
+            p.error('--distance_margin_coef only affects --base ours')
     if not math.isfinite(args.jacobian_weight) or args.jacobian_weight < 0:
         p.error('--jacobian_weight must be a finite nonnegative value')
     if args.jacobian_batch_size <= 0:
@@ -2898,6 +2944,13 @@ def parse_args(argv=None):
     exact_alignment = getattr(args, 'sel_exact_alignment', False)
     a_minus_mr = getattr(args, 'sel_a_minus_mr', False)
     sel_component = getattr(args, 'sel_component', None)
+    if args.distance_margin_coef is not None and args.sel_criterion:
+        p.error('--distance_margin_coef cannot be combined with --sel_criterion, '
+                'which replaces the proposed pointwise score')
+    if args.distance_margin_coef is not None and (exact_alignment or a_minus_mr or
+                                                  sel_component):
+        p.error('--distance_margin_coef only applies to the proposed pointwise '
+                'score, not exact/A-MR/component selectors')
     if exact_alignment and args.base != 'ours':
         p.error('--sel_exact_alignment only affects --base ours')
     if exact_alignment and on:

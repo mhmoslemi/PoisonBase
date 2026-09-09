@@ -1,0 +1,10 @@
+\subsection{Ablation on Cross-Architecture \textbf{Base Selection} and Surrogate Ensemble Size}
+\label{sec:cross-architecture-transfer}
+
+
+
+\textbf{Increasing the selection ensemble size improves average ASR under both matched and mismatched selection.} Under the matched condition ($S=V$), the average ASR of \textsc{Basis} increases from 51.4\% with one surrogate to 54.4\% with three and 60.3\% with twenty. Under \textbf{mismatched selection} ($S\neq V$), the corresponding averages are 46.8\%, 51.5\%, and 58.6\%. \textbf{The gains vary across configurations, with the $K=20$ ensemble matching or exceeding $K=1$ in 46 of the 54 comparisons. Smaller ensembles also improve average ASR over \textsc{Rand}, showing that useful selections can be obtained with fewer surrogates.}
+
+\textbf{Surrogate ensembles are also used in prior poisoning methods, including Witches' Brew~\cite{geiping2020witches} and MetaPoison, which uses an ensemble of 24 models~\cite{huang2020metapoison}. For \textsc{Basis}, the additional computational cost depends on whether the required models are already available. Checkpoints used for perturbation optimization can also serve as selection surrogates when their architecture and training setup are compatible and enough checkpoints are available for the chosen $K$. A different selection architecture requires a separate ensemble, while a larger selection ensemble requires additional checkpoints. The selection ensemble can also be reused across multiple targets for the same training dataset, spreading its training cost across attacks.}
+
+\textbf{Our reported timings cover feature comparison, margin computation, and sorting, excluding surrogate training and loading. Accordingly, the claim of little additional computation applies when the required trained surrogates are already available, with any additional training and loading costs accounted for separately. Table~\ref{tab:cross-architecture-k} reports the ASR gains obtained with different ensemble sizes, but a complete comparison of ASR against computational cost would also require measuring these additional costs.}

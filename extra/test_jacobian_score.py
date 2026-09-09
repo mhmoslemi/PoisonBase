@@ -277,6 +277,22 @@ class SelectorRegressionTests(unittest.TestCase):
             bs=2, mode='dpp', alpha=1.3, use_jacobian_score=False)
         self.assertTrue(torch.equal(dpp_new, dpp_old))
 
+    def test_distance_margin_coefficient_endpoints_and_midpoint(self):
+        distance = torch.tensor([1.0, 2.0, 4.0, 8.0])
+        margin = torch.tensor([8.0, 5.0, 2.0, 1.0])
+        distance_z = FU.standardize(distance)
+        margin_z = FU.standardize(margin)
+        torch.testing.assert_close(
+            FU.combine_distance_margin(distance, margin, 7.0),
+            distance_z + 7.0 * margin_z)
+        torch.testing.assert_close(
+            FU.combine_distance_margin(distance, margin, 99.0, 0.0), margin_z)
+        torch.testing.assert_close(
+            FU.combine_distance_margin(distance, margin, 99.0, 0.25),
+            0.25 * distance_z + 0.75 * margin_z)
+        torch.testing.assert_close(
+            FU.combine_distance_margin(distance, margin, 99.0, 1.0), distance_z)
+
     def test_zero_weight_matches_baseline_and_features_are_unchanged(self):
         cls0, score0, feats0 = FU._ours_score_and_feats(
             self.nets, self.images, self.labels, self.target, 0, 0.6, 'cpu', bs=2)
@@ -337,6 +353,16 @@ class InterfaceTests(unittest.TestCase):
         args = FU.parse_args(['--use_jacobian_score', '--jacobian_weight', '0',
                               '--jacobian_batch_size', '1'])
         self.assertTrue(args.use_jacobian_score)
+        for value in ('0', '0.25', '0.5', '0.75', '1'):
+            args = FU.parse_args(['--distance_margin_coef', value])
+            self.assertEqual(args.distance_margin_coef, float(value))
+        self.assert_parser_error(['--distance_margin_coef', '-0.01'])
+        self.assert_parser_error(['--distance_margin_coef', '1.01'])
+        self.assert_parser_error(['--distance_margin_coef', 'nan'])
+        self.assert_parser_error(['--distance_margin_coef', '0.5',
+                                  '--base', 'random'])
+        self.assert_parser_error(['--distance_margin_coef', '0.5',
+                                  '--sel_exact_alignment'])
 
     def test_cache_name_isolation_and_historical_name(self):
         args = FU.parse_args([])
@@ -346,8 +372,13 @@ class InterfaceTests(unittest.TestCase):
         old_namespace = argparse.Namespace(**{
             key: value for key, value in vars(args).items()
             if key not in ('use_jacobian_score', 'jacobian_weight',
-                           'jacobian_batch_size')})
+                           'jacobian_batch_size', 'distance_margin_coef')})
         self.assertEqual(FU.build_run_name(old_namespace), historical)
+        args.distance_margin_coef = 0.25
+        coefficient_name = ('CIFAR10_ConvNetBN_fc_ours_dog-bird_b0.01_'
+                            'eps8_seed0_dmcoef0.25_l2')
+        self.assertEqual(FU.build_run_name(args), coefficient_name)
+        args.distance_margin_coef = None
         args.use_jacobian_score = True
         args.jacobian_weight = 1.0
         self.assertEqual(FU.build_run_name(args), historical + '_jacw1')
@@ -359,6 +390,8 @@ class InterfaceTests(unittest.TestCase):
         with open(path) as handle:
             text = handle.read()
         self.assertIn('USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"', text)
+        self.assertIn('DISTANCE_MARGIN_COEF="${DISTANCE_MARGIN_COEF:-}"', text)
+        self.assertIn('--distance_margin_coef $DISTANCE_MARGIN_COEF', text)
         self.assertIn('0|1)', text)
         all_flags = ('--use_jacobian_score --jacobian_weight $JACOBIAN_WEIGHT '
                      '--jacobian_batch_size $JACOBIAN_BATCH_SIZE')

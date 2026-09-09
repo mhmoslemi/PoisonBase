@@ -7,7 +7,8 @@
 #
 #   random   uniform over the poison class          -> --base random
 #   ours     lowest standardized d(x) + lam*M(x),   -> --base ours   (no --sel_*)
-#            the plain greedy top-N_p by score
+#            the plain greedy top-N_p by score. Set DISTANCE_MARGIN_COEF=c for
+#            c*z(d) + (1-c)*z(M): c=0 is margin-only and c=1 is distance-only.
 #   dpp      greedy log-det (DPP MAP) with quality  -> --base ours --sel_dpp
 #            q_i = exp(-SEL_ALPHA * score_i). Small alpha = more diversity,
 #            large alpha reproduces plain 'ours'.
@@ -33,6 +34,7 @@
 # beta and JACOBIAN_BATCH_SIZE controls memory without changing run identity:
 #
 #     USE_JACOBIAN_SCORE=1 JACOBIAN_WEIGHT=1.0 SELECT=dpp sh sel_dpp.sh
+#     DISTANCE_MARGIN_COEF=0.5 USE_JACOBIAN_SCORE=0 SELECT=ours sh sel_dpp.sh
 #
 # SELECT is the authority: SEL_ALPHA is read ONLY when SELECT=dpp. Under
 # every non-dpp selector it is ignored and does not appear in the run name, so
@@ -97,6 +99,7 @@ SEL_ALPHA="${SEL_ALPHA:-2.0}"        # SELECT=dpp only
 USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
+DISTANCE_MARGIN_COEF="${DISTANCE_MARGIN_COEF:-}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
@@ -107,6 +110,19 @@ case "$USE_JACOBIAN_SCORE" in
     0|1) ;;
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
 esac
+COEF_FLAGS=""
+COEF_NOTE="legacy score: z(distance) + 10*z(margin)"
+if [ -n "$DISTANCE_MARGIN_COEF" ]; then
+    if ! awk -v coef="$DISTANCE_MARGIN_COEF" 'BEGIN {
+        number = "^([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?$"
+        exit !(coef ~ number && coef >= 0 && coef <= 1)
+    }'; then
+        echo "DISTANCE_MARGIN_COEF=$DISTANCE_MARGIN_COEF (expected a number in [0, 1])"
+        exit 1
+    fi
+    COEF_FLAGS="--distance_margin_coef $DISTANCE_MARGIN_COEF"
+    COEF_NOTE="coefficient score: $DISTANCE_MARGIN_COEF*z(distance) + (1-$DISTANCE_MARGIN_COEF)*z(margin); lambda ignored"
+fi
 
 # Difficulty degree to select targets with the FIRST time a combo is run, i.e.
 # when target_sets/<MODEL>_<ATTACK>_<PAIR>.json does not exist yet. 0..100
@@ -286,6 +302,7 @@ for sig in $SIGMAS; do
     echo "    targets: $TGT_NOTE"
     echo "    difficulty label tgt$TGT_DEG   craft flags: ${CFG_MEM:-none}"
     echo "    $JACOBIAN_NOTE"
+    echo "    $COEF_NOTE"
     echo "    budgets: $BUDGETS"
     echo
 
@@ -299,7 +316,7 @@ for sig in $SIGMAS; do
             --budget "$bug" --epsilon 0.0313725 \
             --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
             --restarts 8 --fc_restarts "$FC_RESTARTS" --craft_ensemble 5 $CFG_MEM \
-            --base_dist cosine --lambda_margin 10.0 \
+            --base_dist cosine --lambda_margin 10.0 $COEF_FLAGS \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
