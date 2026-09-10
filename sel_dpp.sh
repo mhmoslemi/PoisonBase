@@ -100,6 +100,7 @@ USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
 DISTANCE_MARGIN_COEF="${DISTANCE_MARGIN_COEF:-}"
+LAMBDA_MARGIN="${LAMBDA_MARGIN:-10.0}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
@@ -111,7 +112,7 @@ case "$USE_JACOBIAN_SCORE" in
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
 esac
 COEF_FLAGS=""
-COEF_NOTE="legacy score: z(distance) + 10*z(margin)"
+COEF_NOTE="legacy score: z(distance) + $LAMBDA_MARGIN*z(margin)"
 if [ -n "$DISTANCE_MARGIN_COEF" ]; then
     if ! awk -v coef="$DISTANCE_MARGIN_COEF" 'BEGIN {
         number = "^([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?$"
@@ -316,7 +317,7 @@ for sig in $SIGMAS; do
             --budget "$bug" --epsilon 0.0313725 \
             --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
             --restarts 8 --fc_restarts "$FC_RESTARTS" --craft_ensemble 5 $CFG_MEM \
-            --base_dist cosine --lambda_margin 10.0 $COEF_FLAGS \
+            --base_dist cosine --lambda_margin "$LAMBDA_MARGIN" $COEF_FLAGS \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
