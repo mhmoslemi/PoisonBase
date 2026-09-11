@@ -263,10 +263,12 @@ def set_requires_grad(nets, flag):
 
 def train_from_scratch(net, images, labels, epochs, lr, bs, decay_at, device,
                        weight_decay=0.0, aug=False, dsa_strategy=None, dsa_param=None,
-                       augmenter=None):
+                       augmenter=None, progress_callback=None):
     """`augmenter`, when given, replaces the DiffAugment path: it is called on
     every minibatch (already normalized, poisons already written in) and returns
-    the augmented batch. See victim_aug.py."""
+    the augmented batch. See victim_aug.py. ``progress_callback``, when given,
+    is called as ``progress_callback(completed_epochs, total_epochs)`` after each
+    epoch; normal attack runs leave it unset and remain silent."""
     net.train()
     opt = torch.optim.SGD(net.parameters(), lr=lr, momentum=0.9,
                           weight_decay=weight_decay)
@@ -292,6 +294,8 @@ def train_from_scratch(net, images, labels, epochs, lr, bs, decay_at, device,
             loss = crit(net(img), lab)
             loss.backward()
             opt.step()
+        if progress_callback is not None:
+            progress_callback(ep + 1, epochs)
     net.eval()
     return net
 

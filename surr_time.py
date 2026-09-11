@@ -54,11 +54,25 @@ def main():
         elapsed_times = []
         peak_memories = []
         for repeat in range(REPEATS):
+            run_number = repeat + 1
+            prefix = '[%s %d/%d]' % (model_name, run_number, REPEATS)
+            print('%s starting' % prefix, flush=True)
             gc.collect()
             torch.cuda.empty_cache()
             net = poison.build_network(
                 model_name, channel, num_classes, image_size, device,
                 seed=SEED + 1000 + repeat)
+
+            next_progress = [10]
+
+            def show_progress(completed_epochs, total_epochs):
+                completed_percent = 100.0 * completed_epochs / total_epochs
+                while (next_progress[0] <= 100 and
+                       completed_percent >= next_progress[0]):
+                    print('%s %d%% (epoch %d/%d)' % (
+                        prefix, next_progress[0], completed_epochs, total_epochs),
+                        flush=True)
+                    next_progress[0] += 10
 
             torch.cuda.synchronize()
             torch.cuda.reset_peak_memory_stats(0)
@@ -72,10 +86,15 @@ def main():
                 device=device,
                 weight_decay=SURROGATE_WEIGHT_DECAY,
                 aug=False,
+                progress_callback=show_progress,
             )
             torch.cuda.synchronize()
-            elapsed_times.append(time.perf_counter() - started)
-            peak_memories.append(torch.cuda.max_memory_allocated(0))
+            elapsed = time.perf_counter() - started
+            peak_memory = torch.cuda.max_memory_allocated(0)
+            elapsed_times.append(elapsed)
+            peak_memories.append(peak_memory)
+            print('%s done: %.2f seconds, peak %.3f GiB' % (
+                prefix, elapsed, peak_memory / (1024 ** 3)), flush=True)
 
             del net
             gc.collect()
