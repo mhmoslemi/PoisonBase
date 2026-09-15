@@ -1,0 +1,134 @@
+\begin{table*}[t]
+\centering
+% \caption{Cross-architecture transfer on dog$\rightarrow$bird. Rows show
+% surrogate architecture $S$; columns show victim architecture and $K$.
+% Cells report ASR (\textsc{Basis}); shading marks $S=V$.}
+% \caption{Base selection across surrogate architectures and ensemble sizes on dog$\rightarrow$bird. Rows show the selection-surrogate architecture $S$, and columns show the victim architecture $V$ and selection ensemble size $K$. Poison construction uses victim-matched surrogates throughout. Cells report ASR (\textsc{Basis}). Shading marks $S=V$.}
+\caption{
+% Base selection across surrogate architectures and ensemble sizes on dog$\rightarrow$bird. 
+Base selection on dog$\rightarrow$bird across architectures and ensemble sizes. 
+Rows show selection architecture $S$, and columns show victim architecture $V$ and ensemble size $K$. Poison construction uses victim-matched surrogates. Cells report ASR (\textsc{Basis}). Shading marks $S=V$.}
+
+\label{tab:cross-architecture-k}
+\vspace{-0.6em}
+\begingroup
+\fontsize{8}{9.5}\selectfont
+\setlength{\tabcolsep}{0.75pt}
+\renewcommand{\arraystretch}{1.08}
+\setlength{\belowrulesep}{2pt}
+\setlength{\aboverulesep}{2pt}
+
+\newcommand{\matchcell}[1]{\cellcolor{black!7}#1}
+
+\begin{tabular*}{\linewidth}{
+  @{\hspace{1pt}\extracolsep{\fill}}
+  ccl
+  @{\hspace{3pt}}ccc
+  @{\hspace{3pt}}ccc
+  @{\hspace{3pt}}ccc
+  @{\hspace{1pt}}
+}
+\toprule
+\multirow{2}{*}{\textbf{Attack}} &
+\multirow{2}{*}{
+  \begin{tabular}{@{}c@{}}
+    $\boldsymbol{\rho}$ \\
+    \fontsize{7}{8}\selectfont{$(\times 10^{-3})$}
+  \end{tabular}
+} &
+\multirow{2}{*}{\textbf{Selector $S$}} &
+\multicolumn{3}{c}{\textbf{ConvNet}} &
+\multicolumn{3}{c}{\textbf{ResNet20}} &
+\multicolumn{3}{c}{\textbf{VGG13}} \\
+\cmidrule(lr){4-6}
+\cmidrule(lr){7-9}
+\cmidrule(l){10-12}
+& & &
+$K=1$ & $K=3$ & $K=20$ &
+$K=1$ & $K=3$ & $K=20$ &
+$K=1$ & $K=3$ & $K=20$ \\
+\midrule
+
+\multirow{6}{*}{\textbf{BP}} & \multirow{3}{*}{2} & ConvNet
+& \matchcell{55.0} & \matchcell{75.0} & \matchcell{65.0}
+& 20.0 & 25.0 & 35.0
+& 55.0 & 55.0 & 70.0 \\
+& & ResNet20
+& 20.0 & 30.0 & 45.0
+& \matchcell{35.0} & \matchcell{30.0} & \matchcell{25.0}
+& 40.0 & 30.0 & 50.0 \\
+& & VGG13
+& 5.0 & 25.0 & 25.0
+& 20.0 & 30.0 & 40.0
+& \matchcell{55.0} & \matchcell{45.0} & \matchcell{36.7} \\
+\cmidrule(lr){2-12}
+& \multirow{3}{*}{5} & ConvNet
+& \matchcell{85.0} & \matchcell{90.0} & \matchcell{88.3}
+& 40.0 & 55.0 & 65.0
+& 70.0 & 75.0 & 90.0 \\
+& & ResNet20
+& 50.0 & 50.0 & 70.0
+& \matchcell{40.0} & \matchcell{40.0} & \matchcell{46.7}
+& 60.0 & 75.0 & 65.0 \\
+& & VGG13
+& 45.0 & 60.0 & 55.0
+& 40.0 & 45.0 & 30.0
+& \matchcell{35.0} & \matchcell{30.0} & \matchcell{51.7} \\
+\midrule
+
+\multirow{6}{*}{\textbf{GM}} & \multirow{3}{*}{2} & ConvNet
+& \matchcell{30.0} & \matchcell{30.0} & \matchcell{28.3}
+& 55.0 & 65.0 & 55.0
+& 85.0 & 95.0 & 90.0 \\
+& & ResNet20
+& 5.0 & 15.0 & 15.0
+& \matchcell{55.0} & \matchcell{70.0} & \matchcell{56.7}
+& 65.0 & 80.0 & 75.0 \\
+& & VGG13
+& 5.0 & 5.0 & 10.0
+& 50.0 & 35.0 & 35.0
+& \matchcell{30.0} & \matchcell{55.0} & \matchcell{56.7} \\
+\cmidrule(lr){2-12}
+& \multirow{3}{*}{5} & ConvNet
+& \matchcell{45.0} & \matchcell{35.0} & \matchcell{73.3}
+& 60.0 & 55.0 & 85.0
+& 100 & 85.0 & 100 \\
+& & ResNet20
+& 0.0 & 25.0 & 30.0
+& \matchcell{80.0} & \matchcell{75.0} & \matchcell{76.7}
+& 85.0 & 100 & 100 \\
+& & VGG13
+& 20.0 & 30.0 & 25.0
+& 60.0 & 75.0 & 95.0
+& \matchcell{80.0} & \matchcell{95.0} & \matchcell{95.0} \\
+\midrule
+
+\multirow{6}{*}{\textbf{SAPA}} & \multirow{3}{*}{2} & ConvNet
+& \matchcell{25.0} & \matchcell{25.0} & \matchcell{26.7}
+& 60.0 & 50.0 & 65.0
+& 85.0 & 90.0 & 100 \\
+& & ResNet-20
+& 5.0 & 0.0 & 25.0
+& \matchcell{50.0} & \matchcell{35.0} & \matchcell{53.3}
+& 80.0 & 60.0 & 75.0 \\
+& & VGG-13
+& 0.0 & 0.0 & 10.0
+& 35.0 & 55.0 & 65.0
+& \matchcell{40.0} & \matchcell{50.0} & \matchcell{83.3} \\
+\cmidrule(lr){2-12}
+& \multirow{3}{*}{5} & ConvNet
+& \matchcell{40.0} & \matchcell{40.0} & \matchcell{48.3}
+& 70.0 & 60.0 & 70.0
+& 100 & 100 & 95.0 \\
+& & ResNet-20
+& 10.0 & 20.0 & 30.0
+& \matchcell{65.0} & \matchcell{80.0} & \matchcell{78.3}
+& 90.0 & 90.0 & 100 \\
+& & VGG-13
+& 30.0 & 35.0 & 30.0
+& 65.0 & 75.0 & 90.0
+& \matchcell{80.0} & \matchcell{80.0} & \matchcell{95.0} \\
+\bottomrule
+\end{tabular*}
+\endgroup
+\end{table*}
