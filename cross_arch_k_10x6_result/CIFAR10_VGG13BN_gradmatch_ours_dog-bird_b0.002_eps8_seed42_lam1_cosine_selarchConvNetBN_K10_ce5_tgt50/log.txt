@@ -1,15 +1,3 @@
-gpu: NVIDIA L40S
-cache: waiting for shared VGG13BN checkpoint lock
-cache: VGG13BN checkpoints ready
-cache: waiting for shared ConvNetBN checkpoint lock
-cache: ConvNetBN checkpoints ready
-run: waiting for duplicate-submission lock
-targets: 10 unique pinned indices: 630 409 2270 9870 1656 5022 9090 6033 7940 9731
-job: 932737 xb099_gm_b0002_vvgg_sconv_k10 on rack14-09
-config: attack=gradmatch budget=0.002 A=V=VGG13BN S=ConvNetBN K=10 base=ours jacobian=off craft_steps=250 targets=10 victims=6 replacement_for=927187
-protocol: method=ours Jacobian=off targets=10 victims=6 selector_K=10
-protocol: 30 shared surrogates available; crafting always uses V checkpoints 0..4
-output: /home/mmoslem3/scratch/PoisonBase/cross_arch_k_10x6_result/CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchConvNetBN_K10_ce5_tgt50
 [2026-09-15 10:09:12] === run start: CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchConvNetBN_K10_ce5_tgt50 on cuda [0] ===
 [2026-09-15 10:09:12] args: {"FORCE": false, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/PoisonBase_cross_arch_k_10x6/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": true, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/PoisonBase_cross_arch_k_10x6/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": true, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "lambda_margin": 1.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 30, "num_targets": 10, "num_victims": 6, "out_dir": "/tmp/PoisonBase_cross_arch_k_10x6/cross_arch_k_10x6_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": 10, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": "ConvNetBN", "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/PoisonBase_cross_arch_k_10x6/target_sets/VGG13BN_gradmatch_dog-bird.json", "target_select": 50, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_wd": 0.0}
 [2026-09-15 10:09:12] Jacobian score: disabled
@@ -124,6 +112,3 @@ output: /home/mmoslem3/scratch/PoisonBase/cross_arch_k_10x6_result/CIFAR10_VGG13
 [2026-09-15 12:22:41]   target 9731, 6 victims on this gpu: ASR=66.7% CTA=0.8531 +/- 0.0058
 [2026-09-15 12:22:41] ==== CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchConvNetBN_K10_ce5_tgt50 : ASR = 90.0% +/- 13.3% | CTA = 0.8540 (baseline 0.8476) ====
 [2026-09-15 12:22:41]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 6, 0, 0, 54, 0, 0, 0, 0]
-verified: 10 targets x 6 victims = 60 unique evaluations
-sync: CIFAR10_VGG13BN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selarchConvNetBN_K10_ce5_tgt50 -> /home/mmoslem3/scratch/PoisonBase/cross_arch_k_10x6_result
-sync: complete
