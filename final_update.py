@@ -98,6 +98,8 @@ import json
 import math
 import os
 import queue as _queue
+import resource
+import sys
 import time
 import traceback
 import warnings
@@ -167,6 +169,144 @@ def log(msg):
 # --------------------------------------------------------------------------- #
 # small helpers
 # --------------------------------------------------------------------------- #
+
+def process_max_rss_kb():
+    """Peak resident memory for this process, normalized to KiB.
+
+    Linux reports ``ru_maxrss`` in KiB while macOS reports bytes. The jobs run
+    on Linux, but normalizing here also keeps local validation unambiguous.
+    """
+    value = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    return value / 1024.0 if sys.platform == 'darwin' else value
+
+
+def begin_resource_phase(device):
+    """Start a wall-time/CUDA-allocator measurement without clearing caches."""
+    is_cuda = str(device).startswith('cuda') and torch.cuda.is_available()
+    sample = {
+        'started': time.perf_counter(),
+        'cuda': is_cuda,
+        'device': device,
+        'baseline_allocated_bytes': 0,
+        'baseline_reserved_bytes': 0,
+    }
+    if is_cuda:
+        torch.cuda.synchronize(device)
+        sample['baseline_allocated_bytes'] = int(torch.cuda.memory_allocated(device))
+        sample['baseline_reserved_bytes'] = int(torch.cuda.memory_reserved(device))
+        torch.cuda.reset_peak_memory_stats(device)
+    return sample
+
+
+def end_resource_phase(sample):
+    """Finish a phase measurement and return JSON-serializable values."""
+    if sample['cuda']:
+        torch.cuda.synchronize(sample['device'])
+        peak_allocated = int(torch.cuda.max_memory_allocated(sample['device']))
+        peak_reserved = int(torch.cuda.max_memory_reserved(sample['device']))
+    else:
+        peak_allocated = peak_reserved = 0
+    baseline_allocated = int(sample['baseline_allocated_bytes'])
+    baseline_reserved = int(sample['baseline_reserved_bytes'])
+    return {
+        'wall_seconds': float(time.perf_counter() - sample['started']),
+        'cuda_baseline_allocated_bytes': baseline_allocated,
+        'cuda_baseline_reserved_bytes': baseline_reserved,
+        'cuda_peak_allocated_bytes': peak_allocated,
+        'cuda_peak_reserved_bytes': peak_reserved,
+        'cuda_incremental_peak_allocated_bytes': max(
+            0, peak_allocated - baseline_allocated),
+        'cuda_incremental_peak_reserved_bytes': max(
+            0, peak_reserved - baseline_reserved),
+        'process_max_rss_kb': float(process_max_rss_kb()),
+    }
+
+
+def update_target_overhead(run_dir, tidx, values):
+    """Atomically merge resource measurements for one target.
+
+    A file per target avoids write contention between the multi-GPU workers and
+    lets the Slurm wrapper preserve completed measurements after interruption.
+    """
+    directory = os.path.join(run_dir, 'overhead')
+    os.makedirs(directory, exist_ok=True)
+    path = os.path.join(directory, 'target_%d.json' % tidx)
+    record = {}
+    if os.path.exists(path):
+        try:
+            with open(path) as handle:
+                record = json.load(handle)
+        except (OSError, ValueError):
+            record = {}
+    if ('process_max_rss_kb' in record and 'process_max_rss_kb' in values):
+        values = dict(values)
+        values['process_max_rss_kb'] = max(
+            float(record['process_max_rss_kb']),
+            float(values['process_max_rss_kb']))
+    record.update(values)
+    temporary = '%s.tmp.%d' % (path, os.getpid())
+    with open(temporary, 'w') as handle:
+        json.dump(record, handle, indent=2, sort_keys=True)
+    os.replace(temporary, path)
+
+
+def summarize_target_overhead(run_dir):
+    """Aggregate available per-target selector/crafting measurements."""
+    records = []
+    for path in sorted(glob.glob(os.path.join(run_dir, 'overhead', 'target_*.json'))):
+        try:
+            with open(path) as handle:
+                records.append(json.load(handle))
+        except (OSError, ValueError):
+            log('  warning: could not read overhead record %s' % path)
+
+    def values(key):
+        return [float(record[key]) for record in records
+                if record.get(key) is not None]
+
+    def total(key):
+        found = values(key)
+        return float(sum(found)) if found else None
+
+    def mean(key):
+        found = values(key)
+        return float(np.mean(found)) if found else None
+
+    def maximum(key):
+        found = values(key)
+        return float(max(found)) if found else None
+
+    summary = {
+        'target_records': len(records),
+        'selection_measurements': len(values('selection_wall_seconds')),
+        'final_craft_measurements': len(values('final_craft_wall_seconds')),
+        'selection_wall_seconds_total': total('selection_wall_seconds'),
+        'selection_wall_seconds_mean_per_target': mean('selection_wall_seconds'),
+        'selection_cuda_peak_allocated_bytes_max': maximum(
+            'selection_cuda_peak_allocated_bytes'),
+        'selection_cuda_incremental_peak_allocated_bytes_max': maximum(
+            'selection_cuda_incremental_peak_allocated_bytes'),
+        'selection_cuda_peak_reserved_bytes_max': maximum(
+            'selection_cuda_peak_reserved_bytes'),
+        'final_craft_wall_seconds_total': total('final_craft_wall_seconds'),
+        'final_craft_wall_seconds_mean_per_target': mean('final_craft_wall_seconds'),
+        'final_craft_cuda_peak_allocated_bytes_max': maximum(
+            'final_craft_cuda_peak_allocated_bytes'),
+        'final_craft_cuda_incremental_peak_allocated_bytes_max': maximum(
+            'final_craft_cuda_incremental_peak_allocated_bytes'),
+        'final_craft_cuda_peak_reserved_bytes_max': maximum(
+            'final_craft_cuda_peak_reserved_bytes'),
+        'process_max_rss_kb_max': maximum('process_max_rss_kb'),
+        'records': records,
+    }
+    directory = os.path.join(run_dir, 'overhead')
+    os.makedirs(directory, exist_ok=True)
+    path = os.path.join(directory, 'summary.json')
+    temporary = '%s.tmp.%d' % (path, os.getpid())
+    with open(temporary, 'w') as handle:
+        json.dump(summary, handle, indent=2, sort_keys=True)
+    os.replace(temporary, path)
+    return summary
 
 def embed_of(net):
     return net.module.embed if isinstance(net, nn.DataParallel) else net.embed
@@ -1323,7 +1463,7 @@ def select_base_random(labels, y_adv, N_p, device, gen):
 # scoring rule. They fall into three groups:
 #
 #   uninformed            first, bottom
-#   target-independent    grand, el2n, boundary
+#   target-independent    grand, el2n, boundary, Gao loss/gradnorm/forgetting
 #   target-conditioned    pixel, featsim, relevance
 #
 # 'bottom' is the diagnostic reference: it is select_base_ours run backwards,
@@ -1342,8 +1482,83 @@ def select_base_random(labels, y_adv, N_p, device, gen):
 # takes the SMALLEST (closest to the target).
 # --------------------------------------------------------------------------- #
 
+GAO_CRITERIA = {
+    'gao-loss': 'loss',
+    'gao-gradnorm': 'gradnorm',
+    'gao-forgetting': 'forgetting',
+}
+
 SEL_CRITERIA = ['first', 'bottom', 'grand', 'el2n', 'boundary',
-                'pixel', 'featsim', 'relevance']
+                'pixel', 'featsim', 'relevance'] + list(GAO_CRITERIA) + ['fus']
+
+
+def selector_metric_shard_dir(args, y_adv):
+    """Persistent Gao-statistics directory shared by every target/attack/budget.
+
+    Each ``net_i.npz`` is produced by retraining surrogate seed ``i`` while
+    recording the official epoch-10 loss/full-gradient-norm and the complete
+    training forgetting trace.  The directory encodes every training knob that
+    changes those statistics, so incompatible shards cannot be mixed silently.
+    """
+    root = (getattr(args, 'selector_metric_dir', None)
+            or os.path.join(args.cache_dir, 'selector_metrics'))
+    decay = '-'.join(map(str, args.surrogate_decay or [])) or 'none'
+    tag = ('%s_%s_%dep_select%d_lr%g_bs%d_decay%s_wd%g_seed%d'
+           % (args.dataset, args.model, args.surrogate_epochs,
+              getattr(args, 'sel_metric_epoch', 10), args.surrogate_lr,
+              args.surrogate_bs, decay, args.surrogate_wd, args.seed))
+    return os.path.join(root, tag, 'class%d' % int(y_adv))
+
+
+def load_gao_selector_scores(args, labels, y_adv, device):
+    """Load and ensemble the requested Gao metric over exactly selector K nets."""
+    criterion = getattr(args, 'sel_criterion', None)
+    metric = GAO_CRITERIA.get(criterion)
+    if metric is None:
+        raise ValueError('%r is not a Gao selector' % criterion)
+    k = args.sel_K if args.sel_K else args.num_surrogates
+    if k <= 0:
+        raise ValueError('Gao selectors require a positive --sel_K/--num_surrogates')
+    directory = selector_metric_shard_dir(args, y_adv)
+    expected = (labels == y_adv).nonzero(as_tuple=True)[0].detach().cpu().numpy()
+    total = np.zeros(len(expected), dtype=np.float64)
+    missing = []
+    for surrogate_id in range(k):
+        path = os.path.join(directory, 'net_%d.npz' % surrogate_id)
+        if not os.path.exists(path):
+            missing.append(path)
+            continue
+        with np.load(path, allow_pickle=False) as blob:
+            got = np.asarray(blob['candidate_indices'], dtype=np.int64)
+            if not np.array_equal(got, expected):
+                raise RuntimeError('candidate indices in %s do not match this dataset/class'
+                                   % path)
+            values = np.asarray(blob[metric], dtype=np.float64)
+            if values.shape != (len(expected),) or not np.all(np.isfinite(values)):
+                raise RuntimeError('%s in %s is incomplete or non-finite'
+                                   % (metric, path))
+            total += values
+    if missing:
+        preview = '\n  '.join(missing[:3])
+        raise RuntimeError(
+            'missing %d/%d Gao metric shards under %s; run '
+            'precompute_selector_metrics.py first. First missing:\n  %s'
+            % (len(missing), k, directory, preview))
+    score = torch.as_tensor(total / k, device=device, dtype=torch.float64)
+    return torch.as_tensor(expected, device=device, dtype=torch.long), score
+
+
+def select_base_gao(args, labels, y_adv, N_p, device):
+    """Select the largest official Gao difficulty score within the poison class."""
+    cls_idx, score = load_gao_selector_scores(args, labels, y_adv, device)
+    if len(cls_idx) < N_p:
+        raise ValueError('class %d has %d images < N_p=%d'
+                         % (y_adv, len(cls_idx), N_p))
+    selected = torch.topk(score, k=N_p, largest=True, sorted=True).indices
+    log('  Gao selector %s: K=%d, score range selected %.6g..%.6g'
+        % (args.sel_criterion, args.sel_K or args.num_surrogates,
+           float(score[selected].min()), float(score[selected].max())))
+    return cls_idx[selected]
 
 
 @torch.no_grad()
@@ -1712,6 +1927,30 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
     return torch.clamp(base01 + best_delta, 0.0, 1.0), best_obj
 
 
+def craft_selected_bases(args, ctx, craft_nets, base_idx, x_t_norm, y_adv,
+                         steps=None, restarts=None):
+    """Run the configured poison optimizer on an explicit set of base indices."""
+    steps = args.craft_steps if steps is None else int(steps)
+    restarts = args.restarts if restarts is None else int(restarts)
+    base01 = ctx['denorm'](ctx['train_imgs'][base_idx]).clamp(0.0, 1.0).detach()
+    if args.attack in ('gradmatch', 'sapa'):
+        x_adv01, objective = craft_gradmatch(
+            craft_nets, base01, x_t_norm, y_adv, ctx['norm'], args.epsilon,
+            args.craft_alpha, steps, restarts, ctx['device'],
+            dsa_strategy=(args.dsa_strategy if args.craft_aug else None),
+            dsa_param=ctx['dsa_param'], fast=args.fast_gradmatch,
+            schedule=args.craft_schedule, lowmem=args.craft_lowmem,
+            chunk=args.craft_batch,
+            sharp_mode=(args.sharp_mode if args.attack == 'sapa' else None),
+            sharp_sigma=args.sharp_sigma, sharp_samples=args.sharp_samples)
+    else:
+        x_adv01, objective = craft_fc(
+            craft_nets, base01, x_t_norm, ctx['norm'], args.epsilon, steps,
+            args.craft_alpha, ctx['device'], restarts=args.fc_restarts,
+            mode=args.fc_mode)
+    return base01, x_adv01, objective
+
+
 # --------------------------------------------------------------------------- #
 # per-run context, on-disk caches, csv shards
 # --------------------------------------------------------------------------- #
@@ -1910,6 +2149,127 @@ def merge_result_shards(run_dir, results_path):
 
 
 # --------------------------------------------------------------------------- #
+# adapted Filtering-and-Updating Strategy (Xia et al.)
+# --------------------------------------------------------------------------- #
+
+def _fus_poison_forgetting(args, ctx, base_idx, x_adv01, tidx, iteration):
+    """Train one FUS search model and count poison correctness 1->0 events.
+
+    Xia et al. record forgetting events for the current poisoned examples, keep
+    the examples with the largest counts, and randomly refill the set.  Here the
+    current poisoned examples are the GM/SAPA poisons produced by this pipeline;
+    they replace their clean bases exactly as in the downstream evaluation.  The
+    adaptation therefore changes only the poison construction mechanism, not the
+    filter/update rule.
+    """
+    device = ctx['device']
+    train_imgs, train_labs = ctx['train_imgs'], ctx['train_labs']
+    clean_rows = train_imgs[base_idx].clone()
+    train_imgs[base_idx] = ctx['norm'](x_adv01)
+    epochs = args.fus_search_epochs
+    trace = torch.zeros((len(base_idx), epochs), dtype=torch.bool, device='cpu')
+    positions = torch.full((len(train_imgs),), -1, dtype=torch.long, device=device)
+    positions[base_idx] = torch.arange(len(base_idx), device=device)
+    proxy_seed = args.seed * 10000019 + int(tidx) * 101 + int(iteration)
+    net = None
+    try:
+        net = build_network(args.model, ctx['channel'], ctx['num_classes'],
+                            ctx['im_size'], device, seed=proxy_seed)
+        optimizer = torch.optim.SGD(
+            net.parameters(), lr=args.victim_lr, momentum=0.9,
+            weight_decay=args.victim_wd)
+        criterion = nn.CrossEntropyLoss().to(device)
+        current_lr = args.victim_lr
+        decay = set(args.fus_search_decay)
+        for epoch in range(epochs):
+            if epoch in decay:
+                current_lr *= 0.1
+                for group in optimizer.param_groups:
+                    group['lr'] = current_lr
+            net.train()
+            permutation = torch.randperm(len(train_imgs), device=device)
+            for start in range(0, len(permutation), args.victim_bs):
+                indices = permutation[start:start + args.victim_bs]
+                images = train_imgs[indices]
+                labels = train_labs[indices]
+                optimizer.zero_grad(set_to_none=True)
+                logits = net(images)
+                tracked_positions = positions[indices]
+                tracked = tracked_positions >= 0
+                if bool(tracked.any()):
+                    trace[tracked_positions[tracked].cpu(), epoch] = (
+                        logits.detach().argmax(1)[tracked] == labels[tracked]).cpu()
+                loss = criterion(logits, labels)
+                loss.backward()
+                optimizer.step()
+    finally:
+        train_imgs[base_idx] = clean_rows
+        if net is not None:
+            del net
+        if str(device).startswith('cuda'):
+            torch.cuda.empty_cache()
+
+    transitions = trace[:, 1:].to(torch.int8) - trace[:, :-1].to(torch.int8)
+    return (transitions == -1).sum(1).numpy().astype(np.int64)
+
+
+def select_base_fus(args, ctx, craft_nets, x_t_norm, y_adv, N_p, tidx, gen):
+    """Adapt Xia et al.'s FUS loop to GM/SAPA clean-label poisons.
+
+    Start from random poison-class bases. At every iteration, craft the current
+    bases, train one search model while tracing correctness of those poisons,
+    retain the alpha fraction with the most forgetting events, and fill the rest
+    uniformly from the eligible class pool. The final updated bases are then
+    crafted normally and evaluated on the six shared victim seeds.
+    """
+    device = ctx['device']
+    candidates = (ctx['train_labs'] == y_adv).nonzero(as_tuple=True)[0].cpu()
+    if len(candidates) < N_p:
+        raise ValueError('class %d has %d images < N_p=%d'
+                         % (y_adv, len(candidates), N_p))
+    selected = candidates[torch.randperm(len(candidates), generator=gen)[:N_p]].clone()
+    retain_count = max(1, int(N_p * args.fus_alpha))
+    proxy_steps = args.fus_proxy_steps or args.craft_steps
+    proxy_restarts = args.fus_proxy_restarts or args.restarts
+    log('  adapted FUS: iterations=%d alpha=%g keep=%d/%d search_epochs=%d '
+        'proxy_steps=%d proxy_restarts=%d'
+        % (args.fus_iters, args.fus_alpha, retain_count, N_p,
+           args.fus_search_epochs, proxy_steps, proxy_restarts))
+
+    for iteration in range(args.fus_iters):
+        iteration_seed = (args.seed * 100003 + int(tidx)
+                          + 1000003 * (iteration + 1))
+        set_seed(iteration_seed)
+        selected_device = selected.to(device)
+        _, proxy_poisons, proxy_objective = craft_selected_bases(
+            args, ctx, craft_nets, selected_device, x_t_norm, y_adv,
+            steps=proxy_steps, restarts=proxy_restarts)
+        forgetting = _fus_poison_forgetting(
+            args, ctx, selected_device, proxy_poisons, tidx, iteration)
+
+        # Primary key: descending forgetting count. Secondary key: stable dataset
+        # index, which makes ties reproducible across numpy/PyTorch versions.
+        order = np.lexsort((selected.numpy(), -forgetting))
+        keep = selected[torch.as_tensor(order[:retain_count], dtype=torch.long)]
+        keep_set = set(map(int, keep.tolist()))
+        available = torch.as_tensor(
+            [int(index) for index in candidates.tolist() if int(index) not in keep_set],
+            dtype=torch.long)
+        needed = N_p - len(keep)
+        refill = available[torch.randperm(len(available), generator=gen)[:needed]]
+        selected = torch.cat((keep, refill))
+        log('  adapted FUS target %d iteration %d/%d: objective=%.6g, '
+            'forgetting min/mean/max=%d/%.3f/%d, retained=%d, refreshed=%d'
+            % (tidx, iteration + 1, args.fus_iters, proxy_objective,
+               int(forgetting.min()), float(forgetting.mean()),
+               int(forgetting.max()), len(keep), len(refill)))
+        del proxy_poisons
+        if str(device).startswith('cuda'):
+            torch.cuda.empty_cache()
+    return selected.to(device)
+
+
+# --------------------------------------------------------------------------- #
 # one target = one unit of work (base selection -> crafting -> victim training)
 # --------------------------------------------------------------------------- #
 
@@ -1927,7 +2287,7 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
     """
     device = ctx['device']
     train_imgs, train_labs = ctx['train_imgs'], ctx['train_labs']
-    norm, denorm = ctx['norm'], ctx['denorm']
+    denorm = ctx['denorm']
     if recompute is None:
         recompute = args.recompute_deltas
 
@@ -1945,8 +2305,22 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
         'distance_margin_coef': getattr(args, 'distance_margin_coef', None),
     }
+    overhead_identity = {
+        'target_idx': int(tidx),
+        'selector': getattr(args, 'sel_criterion', None) or args.base,
+        'model': args.model,
+        'victim_model': victim_model_name(args),
+        'attack': args.attack,
+        'budget': float(args.budget) if args.budget is not None else None,
+        'num_poisons': int(N_p),
+        'device': str(device),
+        'worker_pid': int(os.getpid()),
+        'slurm_job_id': os.environ.get('SLURM_JOB_ID'),
+    }
 
     # ---- base selection ----------------------------------------------------
+    selection_phase = (begin_resource_phase(device)
+                       if cached_base is None else None)
     if cached_base is not None:
         base_idx = torch.tensor(cached_base, dtype=torch.long, device=device)
     elif args.base == 'random':
@@ -1967,6 +2341,14 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
             train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
             formula=args.sel_component,
             batch_size=getattr(args, 'jacobian_batch_size', 64))
+    elif getattr(args, 'sel_criterion', None) in GAO_CRITERIA:
+        base_idx = select_base_gao(args, train_labs, y_adv, N_p, device)
+    elif getattr(args, 'sel_criterion', None) == 'fus':
+        base_idx = select_base_fus(
+            args, ctx, craft_nets, x_t_norm, y_adv, N_p, tidx, gen)
+        # The FUS search trains proxy models and consumes RNG. Reset to the same
+        # target-specific state used by every other selector before final craft.
+        set_seed(tseed)
     elif getattr(args, 'sel_criterion', None):
         base_idx = select_base_criterion(
             args.sel_criterion,
@@ -1993,6 +2375,23 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
                                     train_imgs, train_labs, x_t_norm,
                                     y_adv, N_p, args.lambda_margin, device,
                                     base_dist=args.base_dist, **pointwise_kwargs)
+    if selection_phase is not None:
+        selection_resources = end_resource_phase(selection_phase)
+        selection_payload = dict(overhead_identity)
+        selection_payload.update({
+            'selection_' + key: value
+            for key, value in selection_resources.items()
+        })
+        selection_payload['selection_cached'] = False
+        selection_payload['process_max_rss_kb'] = selection_resources[
+            'process_max_rss_kb']
+        update_target_overhead(run_dir, tidx, selection_payload)
+        log('  target %d: selector overhead %.3f s, CUDA peak %.1f MiB '
+            '(incremental %.1f MiB)'
+            % (tidx, selection_resources['wall_seconds'],
+               selection_resources['cuda_peak_allocated_bytes'] / 2.0 ** 20,
+               selection_resources['cuda_incremental_peak_allocated_bytes'] /
+               2.0 ** 20))
 
     # ---- crafting ----------------------------------------------------------
     base01 = denorm(train_imgs[base_idx]).clamp(0.0, 1.0).detach()
@@ -2000,28 +2399,26 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         x_adv01 = torch.clamp(base01 + cached_delta.to(device), 0.0, 1.0)
         obj = float('nan')
     else:
-        t0 = time.time()
-        if args.attack in ('gradmatch', 'sapa'):
-            # sharp_mode is None for gradmatch, so this is the exact same call the
-            # gradmatch runs have always made
-            x_adv01, obj = craft_gradmatch(
-                craft_nets, base01, x_t_norm, y_adv, norm, args.epsilon,
-                args.craft_alpha, args.craft_steps, args.restarts, device,
-                dsa_strategy=(args.dsa_strategy if args.craft_aug else None),
-                dsa_param=ctx['dsa_param'], fast=args.fast_gradmatch,
-                schedule=args.craft_schedule, lowmem=args.craft_lowmem,
-                chunk=args.craft_batch,
-                sharp_mode=(args.sharp_mode if args.attack == 'sapa' else None),
-                sharp_sigma=args.sharp_sigma, sharp_samples=args.sharp_samples)
-        else:
-            x_adv01, obj = craft_fc(
-                craft_nets, base01, x_t_norm, norm, args.epsilon, args.craft_steps,
-                args.craft_alpha, device, restarts=args.fc_restarts,
-                mode=args.fc_mode)
+        craft_phase = begin_resource_phase(device)
+        base01, x_adv01, obj = craft_selected_bases(
+            args, ctx, craft_nets, base_idx, x_t_norm, y_adv)
+        craft_resources = end_resource_phase(craft_phase)
+        craft_payload = dict(overhead_identity)
+        craft_payload.update({
+            'final_craft_' + key: value
+            for key, value in craft_resources.items()
+        })
+        craft_payload['final_craft_cached'] = False
+        craft_payload['process_max_rss_kb'] = craft_resources['process_max_rss_kb']
+        update_target_overhead(run_dir, tidx, craft_payload)
         save_poison_cache(run_dir, tidx, (x_adv01 - base01).detach().cpu(),
                           base_idx.cpu().tolist())
-        log('  target %d: crafted %d poisons in %.0f s, obj=%.5f'
-            % (tidx, N_p, time.time() - t0, obj))
+        log('  target %d: crafted %d poisons in %.0f s, obj=%.5f, '
+            'CUDA peak=%.1f MiB (incremental %.1f MiB)'
+            % (tidx, N_p, craft_resources['wall_seconds'], obj,
+               craft_resources['cuda_peak_allocated_bytes'] / 2.0 ** 20,
+               craft_resources['cuda_incremental_peak_allocated_bytes'] /
+               2.0 ** 20))
 
     linf = (x_adv01 - base01).abs().max().item()
     log('  target %d: realized linf = %.5f (%.2f/255), budget = %.2f/255'
@@ -2462,6 +2859,15 @@ def build_run_name(args):
     crit = getattr(args, 'sel_criterion', None)
     if crit:
         name += '_sel%s' % crit
+        if crit in GAO_CRITERIA:
+            name += '_ep%d' % getattr(args, 'sel_metric_epoch', 10)
+        elif crit == 'fus':
+            name += '_i%d_a%g_e%d_ps%d_pr%d' % (
+                getattr(args, 'fus_iters', 10),
+                getattr(args, 'fus_alpha', 0.5),
+                getattr(args, 'fus_search_epochs', 50),
+                getattr(args, 'fus_proxy_steps', 0),
+                getattr(args, 'fus_proxy_restarts', 0))
     sel_K = getattr(args, 'sel_K', None)
     if sel_K:
         name += '_K%d' % sel_K
@@ -2540,6 +2946,18 @@ def main(args):
                getattr(args, 'jacobian_batch_size', 64)))
     else:
         log('Jacobian score: disabled')
+    if getattr(args, 'sel_criterion', None) in GAO_CRITERIA:
+        log('Gao selector: %s, epoch=%d, K=%d, shards=%s'
+            % (args.sel_criterion, args.sel_metric_epoch,
+               args.sel_K or args.num_surrogates,
+               selector_metric_shard_dir(args, parse_pair(
+                   args.class_pair, class_names, args.pair_order)[0])))
+    if getattr(args, 'sel_criterion', None) == 'fus':
+        log('Adapted FUS selector: iterations=%d alpha=%g search_epochs=%d '
+            'proxy_steps=%s proxy_restarts=%s'
+            % (args.fus_iters, args.fus_alpha, args.fus_search_epochs,
+               args.fus_proxy_steps or args.craft_steps,
+               args.fus_proxy_restarts or args.restarts))
     if getattr(args, 'distance_margin_coef', None) is not None:
         log('Base score: %g*z(distance) + %g*z(margin); lambda_margin ignored'
             % (args.distance_margin_coef, 1.0 - args.distance_margin_coef))
@@ -2692,6 +3110,15 @@ def main(args):
                 per_target[int(row['target_idx'])].append(int(row['success']))
                 all_cta.append(float(row['clean_test_acc']))
     per_target_asr = [float(np.mean(v)) for v in per_target.values()]
+    overhead = summarize_target_overhead(run_dir)
+    if overhead['selection_measurements']:
+        log('  selector resources: %d target(s), %.1f total target-seconds, '
+            'max CUDA allocated %.1f MiB (incremental %.1f MiB)'
+            % (overhead['selection_measurements'],
+               overhead['selection_wall_seconds_total'],
+               overhead['selection_cuda_peak_allocated_bytes_max'] / 2.0 ** 20,
+               overhead['selection_cuda_incremental_peak_allocated_bytes_max'] /
+               2.0 ** 20))
 
     stats = {
         'model': args.model, 'victim_model': victim_model_name(args),
@@ -2706,6 +3133,14 @@ def main(args):
         'jacobian_batch_size': getattr(args, 'jacobian_batch_size', 64),
         'jacobian_backend': (_jacobian_backend_metadata()
                              if getattr(args, 'use_jacobian_score', False) else None),
+        'sel_criterion': getattr(args, 'sel_criterion', None),
+        'sel_K': getattr(args, 'sel_K', None),
+        'sel_metric_epoch': getattr(args, 'sel_metric_epoch', None),
+        'fus_iters': getattr(args, 'fus_iters', None),
+        'fus_alpha': getattr(args, 'fus_alpha', None),
+        'fus_search_epochs': getattr(args, 'fus_search_epochs', None),
+        'fus_proxy_steps': getattr(args, 'fus_proxy_steps', None),
+        'fus_proxy_restarts': getattr(args, 'fus_proxy_restarts', None),
         'num_surrogates': args.num_surrogates,
         'craft_ensemble': args.craft_ensemble or args.num_surrogates,
         'restarts': args.restarts, 'craft_steps': args.craft_steps,
@@ -2716,6 +3151,24 @@ def main(args):
         'cta_post_mean': float(np.mean(all_cta)) if all_cta else None,
         'cta_post_std': float(np.std(all_cta)) if all_cta else None,
         'cta_baseline_mean': cta_baseline_mean, 'cta_baseline_std': cta_baseline_std,
+        'overhead_target_records': overhead['target_records'],
+        'selection_overhead_measurements': overhead['selection_measurements'],
+        'final_craft_overhead_measurements': overhead['final_craft_measurements'],
+        'selection_wall_seconds_total': overhead['selection_wall_seconds_total'],
+        'selection_wall_seconds_mean_per_target': overhead[
+            'selection_wall_seconds_mean_per_target'],
+        'selection_cuda_peak_allocated_bytes_max': overhead[
+            'selection_cuda_peak_allocated_bytes_max'],
+        'selection_cuda_incremental_peak_allocated_bytes_max': overhead[
+            'selection_cuda_incremental_peak_allocated_bytes_max'],
+        'final_craft_wall_seconds_total': overhead['final_craft_wall_seconds_total'],
+        'final_craft_wall_seconds_mean_per_target': overhead[
+            'final_craft_wall_seconds_mean_per_target'],
+        'final_craft_cuda_peak_allocated_bytes_max': overhead[
+            'final_craft_cuda_peak_allocated_bytes_max'],
+        'final_craft_cuda_incremental_peak_allocated_bytes_max': overhead[
+            'final_craft_cuda_incremental_peak_allocated_bytes_max'],
+        'process_max_rss_kb_max': overhead['process_max_rss_kb_max'],
         'tally': tally.tolist(),
     }
     stats['cta_drop_mean'] = (None if (stats['cta_post_mean'] is None or
@@ -2808,6 +3261,23 @@ def parse_args(argv=None):
     p.add_argument('--base', type=str, default='ours', choices=['random', 'ours'])
     p.add_argument('--sel_criterion', type=str, default=None, choices=SEL_CRITERIA,
                    help='alternative base-selection rule for the selection ladder of app-base.tex. Only meaningful with --base ours; it replaces the pointwise score entirely, so --sel_dpp / --sel_mmr / --sel_filter do not apply.')
+    p.add_argument('--selector_metric_dir', type=str, default=None,
+                   help='root containing precomputed Gao selector shards; default '
+                        'is <cache_dir>/selector_metrics')
+    p.add_argument('--sel_metric_epoch', type=int, default=10,
+                   help='training epoch used by Gao loss/gradient-norm shards')
+    p.add_argument('--fus_iters', type=int, default=10,
+                   help='adapted Xia FUS filter/update iterations')
+    p.add_argument('--fus_alpha', type=float, default=0.5,
+                   help='fraction of current poisons retained at each FUS update')
+    p.add_argument('--fus_search_epochs', type=int, default=50,
+                   help='epochs for each FUS poison-contribution search model')
+    p.add_argument('--fus_search_decay', nargs='*', type=int, default=[40],
+                   help='learning-rate decay epochs for each FUS search model')
+    p.add_argument('--fus_proxy_steps', type=int, default=0,
+                   help='GM/SAPA steps used inside FUS; 0 reuses --craft_steps')
+    p.add_argument('--fus_proxy_restarts', type=int, default=0,
+                   help='GM/SAPA restarts used inside FUS; 0 reuses --restarts')
     p.add_argument('--class_pair', type=str, default='dog-bird',
                    help="'<adversarial>-<target>' class names, e.g. dog-bird. Any pair "
                         'the dataset defines is accepted; the names are validated '
@@ -2976,6 +3446,20 @@ def parse_args(argv=None):
     if args.FORCE:
         args.no_resume = True
         args.recompute_deltas = True
+    if not 1 <= args.sel_metric_epoch <= args.surrogate_epochs:
+        p.error('--sel_metric_epoch must lie in 1..--surrogate_epochs')
+    if args.fus_iters <= 0:
+        p.error('--fus_iters must be positive')
+    if not 0.0 < args.fus_alpha <= 1.0:
+        p.error('--fus_alpha must lie in (0, 1]')
+    if args.fus_search_epochs < 2:
+        p.error('--fus_search_epochs must be at least 2')
+    if any(epoch < 0 or epoch >= args.fus_search_epochs
+           for epoch in args.fus_search_decay):
+        p.error('--fus_search_decay epochs must lie in '
+                '0..--fus_search_epochs-1')
+    if args.fus_proxy_steps < 0 or args.fus_proxy_restarts < 0:
+        p.error('--fus_proxy_steps/--fus_proxy_restarts cannot be negative')
 
     on = [n for n, v in [('--sel_filter', args.sel_filter), ('--sel_mmr', args.sel_mmr),
                          ('--sel_dpp', args.sel_dpp), ('--sel_pca', args.sel_pca)] if v]
