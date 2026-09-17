@@ -10,7 +10,8 @@
 #SBATCH --signal=B:USR1@300
 #SBATCH --output=/home/mmoslem3/scratch/PoisonBase/sbatch/logs/ifb05_loss_sapa_b0002_conv-%j.out
 
-# One file = one selector/attack/budget/model configuration.
+# One file = one selector/attack/budget/model configuration. FUS uses four
+# target-partitioned array tasks; static Gao selectors use one task.
 export ROOT="${ROOT:-/home/mmoslem3/scratch/PoisonBase}"
 export ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 export DATA_ROOT="${DATA_ROOT:-$ROOT/data}"
@@ -22,5 +23,5 @@ export IFB_MODEL=ConvNetBN
 export IFB_K=20
 export IFB_TARGET_DEGREE=70
 export IFB_RUN_NAME=CIFAR10_ConvNetBN_sapa_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selgao-loss_ep10_K20_worst0.05_ce5_tgt70
-export ORIGINAL_COMMAND="selector=gao-loss attack=sapa budget=0.002 model=ConvNetBN K=20 dog-bird targets=10 victims=6 craft_steps=250"
+export ORIGINAL_COMMAND="selector=gao-loss attack=sapa budget=0.002 model=ConvNetBN K=20 dog-bird targets=10 victims=6 craft_steps=250 parts=1"
 source "$ROOT/sbatch/influence_fus_baselines_20260917/_job_common.sh"

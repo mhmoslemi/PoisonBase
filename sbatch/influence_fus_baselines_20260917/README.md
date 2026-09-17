@@ -1,6 +1,6 @@
 # Gao difficulty selectors and adapted Xia FUS
 
-The directory contains 32 matched-architecture experiment jobs:
+The directory contains 32 matched-architecture configurations:
 
 - selectors: Gao loss, exact full gradient norm, forgetting events, and adapted FUS;
 - attacks: GM and SAPA;
@@ -18,8 +18,11 @@ and the corresponding experiment jobs depend on successful completion.
 FUS is explicitly an adaptation to targeted clean-label poisoning. At every
 update it crafts the current GM/SAPA poisons, trains a search model, keeps the
 half with the most forgetting events, and randomly replenishes the rest. It uses
-10 update rounds, alpha=0.5, and 50-epoch search models. Because this is far more
-work than static selection, FUS jobs request 12 hours; the other jobs request
+10 update rounds, alpha=0.5, and 50-epoch search models. Each of the eight FUS
+configurations is a four-task Slurm array: the pinned targets are split 3/3/2/2,
+and every target still runs all six victim seeds. Each part requests four hours.
+A small dependent CPU job validates and merges the four parts into the canonical
+10-target, 60-evaluation result directory. The 24 static Gao jobs each request
 2 hours 30 minutes.
 
 Nothing is submitted by the generator. To submit preprocessing and all results:
@@ -27,6 +30,10 @@ Nothing is submitted by the generator. To submit preprocessing and all results:
 ```bash
 bash sbatch/influence_fus_baselines_20260917/submit_all.sh
 ```
+
+This submits 24 single Gao experiment jobs and eight four-element FUS arrays,
+for 56 experiment GPU tasks total. It also submits eight merge jobs that start
+only after all four parts of their respective FUS array succeed.
 
 Results are written under:
 
@@ -45,9 +52,9 @@ with victim training:
 - `overhead/summary.json` aggregates the available target records (totals,
   per-target means, and maximum memory); the main `summary.json` repeats the
   scalar aggregate fields;
-- `job_gnu_time_<jobid>.txt` is `/usr/bin/time -v` output for the complete
-  Python experiment, including victim evaluation. A new file is retained for
-  every resumed Slurm attempt.
+- `job_gnu_time_<jobid>_<task>.txt` is `/usr/bin/time -v` output for the complete
+  Python experiment, including victim evaluation. For FUS these files remain in
+  `parts/part_<n>_of_4/`, and a new file is retained for every resumed attempt.
 
 For Gao selectors, the one-time preprocessing cost is stored separately under
 `cache/selector_metrics/.../class5/`: every `net_<id>.resources.json` records
