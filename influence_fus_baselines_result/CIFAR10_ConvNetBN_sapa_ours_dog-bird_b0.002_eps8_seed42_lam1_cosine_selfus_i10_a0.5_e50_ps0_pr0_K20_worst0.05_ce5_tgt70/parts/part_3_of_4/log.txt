@@ -1,0 +1,58 @@
+[2026-09-17 11:38:52] === run start: CIFAR10_ConvNetBN_sapa_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selfus_i10_a0.5_e50_ps0_pr0_K20_worst0.05_ce5_tgt70 on cuda [0] ===
+[2026-09-17 11:38:52] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/PoisonBase_influence_fus/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/PoisonBase_influence_fus/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": true, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 2, "num_victims": 6, "out_dir": "/tmp/PoisonBase_influence_fus/influence_fus_baselines_result/part_3_of_4", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": 20, "sel_alpha": 1.0, "sel_criterion": "fus", "sel_dpp": false, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": "/tmp/PoisonBase_influence_fus/cache/selector_metrics", "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/PoisonBase_influence_fus/target_sets/ConvNetBN_gradmatch_dog-bird_part_3_of_4.json", "target_select": 70, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-17 11:38:52] Jacobian score: disabled
+[2026-09-17 11:38:52] Adapted FUS selector: iterations=10 alpha=0.5 search_epochs=50 proxy_steps=250 proxy_restarts=8
+[2026-09-17 11:38:52] N_total=50000 budget=0.002 -> N_p=100 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-17 11:38:52] === selection/crafting surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-17 11:38:52]   crafting on 5/20 surrogates
+[2026-09-17 11:38:52] === clean victims (6 x ConvNetBN) ===
+[2026-09-17 11:38:53]   clean baseline CTA = 0.8127 +/- 0.0074
+[2026-09-17 11:38:53]   chosen 2 targets (file, fixed across victim architectures), p_adv range 0.0000..0.0000
+[2026-09-17 11:38:53]   targets: [8954, 821]
+[2026-09-17 11:38:53] === target 8954 (1/2) ===
+[2026-09-17 11:38:53]   adapted FUS: iterations=10 alpha=0.5 keep=50/100 search_epochs=50 proxy_steps=250 proxy_restarts=8
+[2026-09-17 11:41:09]   adapted FUS target 8954 iteration 1/10: objective=0.408527, forgetting min/mean/max=0/0.590/6, retained=50, refreshed=50
+[2026-09-17 11:43:25]   adapted FUS target 8954 iteration 2/10: objective=0.351206, forgetting min/mean/max=0/0.770/5, retained=50, refreshed=50
+[2026-09-17 11:45:41]   adapted FUS target 8954 iteration 3/10: objective=0.340885, forgetting min/mean/max=0/0.990/6, retained=50, refreshed=50
+[2026-09-17 11:47:56]   adapted FUS target 8954 iteration 4/10: objective=0.351981, forgetting min/mean/max=0/1.190/8, retained=50, refreshed=50
+[2026-09-17 11:50:12]   adapted FUS target 8954 iteration 5/10: objective=0.341577, forgetting min/mean/max=0/1.680/11, retained=50, refreshed=50
+[2026-09-17 11:52:28]   adapted FUS target 8954 iteration 6/10: objective=0.34241, forgetting min/mean/max=0/1.280/6, retained=50, refreshed=50
+[2026-09-17 11:54:43]   adapted FUS target 8954 iteration 7/10: objective=0.34783, forgetting min/mean/max=0/2.130/9, retained=50, refreshed=50
+[2026-09-17 11:56:59]   adapted FUS target 8954 iteration 8/10: objective=0.366088, forgetting min/mean/max=0/1.920/10, retained=50, refreshed=50
+[2026-09-17 11:59:15]   adapted FUS target 8954 iteration 9/10: objective=0.376769, forgetting min/mean/max=0/0.920/6, retained=50, refreshed=50
+[2026-09-17 12:01:31]   adapted FUS target 8954 iteration 10/10: objective=0.375433, forgetting min/mean/max=0/1.540/8, retained=50, refreshed=50
+[2026-09-17 12:01:31]   target 8954: selector overhead 1357.315 s, CUDA peak 2488.9 MiB (incremental 1743.4 MiB)
+[2026-09-17 12:02:48]   target 8954: crafted 100 poisons in 78 s, obj=0.37180, CUDA peak=2487.5 MiB (incremental 1732.7 MiB)
+[2026-09-17 12:02:48]   target 8954: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 12:03:40]   [t8954 v1/6] fail (pred=bird) CTA=0.8038
+[2026-09-17 12:04:30]   [t8954 v2/6] fail (pred=deer) CTA=0.8048
+[2026-09-17 12:05:19]   [t8954 v3/6] fail (pred=bird) CTA=0.8085
+[2026-09-17 12:06:09]   [t8954 v4/6] fail (pred=bird) CTA=0.7946
+[2026-09-17 12:06:59]   [t8954 v5/6] fail (pred=bird) CTA=0.8081
+[2026-09-17 12:07:48]   [t8954 v6/6] fail (pred=deer) CTA=0.7993
+[2026-09-17 12:07:48]   target 8954, 6 victims on this gpu: ASR=0.0% CTA=0.8032 +/- 0.0049
+[2026-09-17 12:07:48] === target 821 (2/2) ===
+[2026-09-17 12:07:48]   adapted FUS: iterations=10 alpha=0.5 keep=50/100 search_epochs=50 proxy_steps=250 proxy_restarts=8
+[2026-09-17 12:10:04]   adapted FUS target 821 iteration 1/10: objective=0.339588, forgetting min/mean/max=0/1.430/7, retained=50, refreshed=50
+[2026-09-17 12:12:19]   adapted FUS target 821 iteration 2/10: objective=0.332534, forgetting min/mean/max=0/2.530/9, retained=50, refreshed=50
+[2026-09-17 12:14:35]   adapted FUS target 821 iteration 3/10: objective=0.330056, forgetting min/mean/max=0/3.490/11, retained=50, refreshed=50
+[2026-09-17 12:16:51]   adapted FUS target 821 iteration 4/10: objective=0.330535, forgetting min/mean/max=0/3.030/9, retained=50, refreshed=50
+[2026-09-17 12:19:06]   adapted FUS target 821 iteration 5/10: objective=0.330632, forgetting min/mean/max=0/2.260/9, retained=50, refreshed=50
+[2026-09-17 12:21:22]   adapted FUS target 821 iteration 6/10: objective=0.329699, forgetting min/mean/max=0/2.640/10, retained=50, refreshed=50
+[2026-09-17 12:23:38]   adapted FUS target 821 iteration 7/10: objective=0.334578, forgetting min/mean/max=0/2.470/9, retained=50, refreshed=50
+[2026-09-17 12:25:53]   adapted FUS target 821 iteration 8/10: objective=0.327553, forgetting min/mean/max=0/1.990/7, retained=50, refreshed=50
+[2026-09-17 12:28:09]   adapted FUS target 821 iteration 9/10: objective=0.32124, forgetting min/mean/max=0/2.410/9, retained=50, refreshed=50
+[2026-09-17 12:30:25]   adapted FUS target 821 iteration 10/10: objective=0.324315, forgetting min/mean/max=0/1.880/9, retained=50, refreshed=50
+[2026-09-17 12:30:25]   target 821: selector overhead 1356.277 s, CUDA peak 2487.9 MiB (incremental 1734.3 MiB)
+[2026-09-17 12:31:42]   target 821: crafted 100 poisons in 78 s, obj=0.31950, CUDA peak=2487.2 MiB (incremental 1732.4 MiB)
+[2026-09-17 12:31:42]   target 821: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 12:32:34]   [t821 v1/6] SUCCESS (pred=dog) CTA=0.8080
+[2026-09-17 12:33:24]   [t821 v2/6] fail (pred=bird) CTA=0.8086
+[2026-09-17 12:34:13]   [t821 v3/6] fail (pred=horse) CTA=0.8020
+[2026-09-17 12:35:03]   [t821 v4/6] fail (pred=bird) CTA=0.8049
+[2026-09-17 12:35:52]   [t821 v5/6] SUCCESS (pred=dog) CTA=0.8054
+[2026-09-17 12:36:42]   [t821 v6/6] fail (pred=bird) CTA=0.8078
+[2026-09-17 12:36:42]   target 821, 6 victims on this gpu: ASR=33.3% CTA=0.8061 +/- 0.0023
+[2026-09-17 12:36:42]   selector resources: 2 target(s), 2713.6 total target-seconds, max CUDA allocated 2488.9 MiB (incremental 1743.4 MiB)
+[2026-09-17 12:36:42] ==== CIFAR10_ConvNetBN_sapa_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selfus_i10_a0.5_e50_ps0_pr0_K20_worst0.05_ce5_tgt70 : ASR = 16.7% +/- 16.7% | CTA = 0.8047 (baseline 0.8127) ====
+[2026-09-17 12:36:42]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 7, 0, 2, 2, 0, 1, 0, 0]
