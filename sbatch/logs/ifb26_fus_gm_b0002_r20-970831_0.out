@@ -1,0 +1,29 @@
+gpu: NVIDIA L40S
+targets: 5118 8740 5324 4630 833 2065 7056 9059 6707 9874
+targets: 5118 8740 5324
+job: 971041 ifb26_fus_gm_b0002_r20 on rack08-11
+config: selector=fus attack=gradmatch budget=0.002 model=ResNet20BN K=20 dog-bird targets=10 victims=6 craft_steps=250 parts=4
+partition: part_1_of_4 (3 target(s), 6 victims each)
+output: /home/mmoslem3/scratch/PoisonBase/influence_fus_baselines_result/CIFAR10_ResNet20BN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selfus_i10_a0.5_e50_ps0_pr0_K20_ce5_tgt14/parts/part_1_of_4
+warning: /usr/bin/time is unavailable; Python phase metrics remain enabled
+[2026-09-17 11:19:47] === run start: CIFAR10_ResNet20BN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_selfus_i10_a0.5_e50_ps0_pr0_K20_ce5_tgt14 on cuda [0] ===
+[2026-09-17 11:19:47] args: {"FORCE": false, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/PoisonBase_influence_fus/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/PoisonBase_influence_fus/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": true, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 3, "num_victims": 6, "out_dir": "/tmp/PoisonBase_influence_fus/influence_fus_baselines_result/part_1_of_4", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": 20, "sel_alpha": 1.0, "sel_criterion": "fus", "sel_dpp": false, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": "/tmp/PoisonBase_influence_fus/cache/selector_metrics", "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/PoisonBase_influence_fus/target_sets/ResNet20BN_gradmatch_dog-bird_part_1_of_4.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-17 11:19:47] Jacobian score: disabled
+[2026-09-17 11:19:47] Adapted FUS selector: iterations=10 alpha=0.5 search_epochs=50 proxy_steps=250 proxy_restarts=8
+[2026-09-17 11:19:47] N_total=50000 budget=0.002 -> N_p=100 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-17 11:19:47] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-17 11:19:47]   crafting on 5/20 surrogates
+[2026-09-17 11:19:47] === clean victims (6 x ResNet20BN) ===
+[2026-09-17 11:19:48]   clean baseline CTA = 0.8354 +/- 0.0043
+[2026-09-17 11:19:48]   chosen 3 targets (file, fixed across victim architectures), p_adv range 0.0001..0.3539
+[2026-09-17 11:19:48]   targets: [5118, 8740, 5324]
+[2026-09-17 11:19:48] === target 5118 (1/3) ===
+[2026-09-17 11:19:48]   adapted FUS: iterations=10 alpha=0.5 keep=50/100 search_epochs=50 proxy_steps=250 proxy_restarts=8
+[2026-09-17 11:25:30]   adapted FUS target 5118 iteration 1/10: objective=0.222993, forgetting min/mean/max=0/1.190/6, retained=50, refreshed=50
+[2026-09-17 11:31:11]   adapted FUS target 5118 iteration 2/10: objective=0.222149, forgetting min/mean/max=0/1.200/7, retained=50, refreshed=50
+[2026-09-17 11:36:52]   adapted FUS target 5118 iteration 3/10: objective=0.212922, forgetting min/mean/max=0/1.270/6, retained=50, refreshed=50
+[2026-09-17 11:42:33]   adapted FUS target 5118 iteration 4/10: objective=0.21914, forgetting min/mean/max=0/1.100/6, retained=50, refreshed=50
+[2026-09-17 11:48:14]   adapted FUS target 5118 iteration 5/10: objective=0.219142, forgetting min/mean/max=0/1.450/9, retained=50, refreshed=50
+[2026-09-17 11:53:55]   adapted FUS target 5118 iteration 6/10: objective=0.214991, forgetting min/mean/max=0/1.430/8, retained=50, refreshed=50
+[2026-09-17 11:59:36]   adapted FUS target 5118 iteration 7/10: objective=0.215039, forgetting min/mean/max=0/1.470/6, retained=50, refreshed=50
+[2026-09-17 12:05:14]   adapted FUS target 5118 iteration 8/10: objective=0.205524, forgetting min/mean/max=0/1.560/8, retained=50, refreshed=50
