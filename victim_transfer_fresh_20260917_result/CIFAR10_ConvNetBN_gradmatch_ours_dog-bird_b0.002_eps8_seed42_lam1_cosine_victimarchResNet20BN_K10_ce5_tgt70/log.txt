@@ -1,0 +1,112 @@
+[2026-09-17 08:34:47] === run start: CIFAR10_ConvNetBN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_victimarchResNet20BN_K10_ce5_tgt70 on cuda [0] ===
+[2026-09-17 08:34:47] args: {"FORCE": true, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.002, "cache_dir": "/tmp/PoisonBase_victim_transfer_fresh/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/PoisonBase_victim_transfer_fresh/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": true, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": true, "num_poisons": 500, "num_surrogates": 20, "num_targets": 10, "num_victims": 6, "out_dir": "/tmp/PoisonBase_victim_transfer_fresh/victim_transfer_fresh_20260917_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": true, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": 10, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/PoisonBase_victim_transfer_fresh/target_sets/ConvNetBN_gradmatch_dog-bird.json", "target_select": 70, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": "ResNet20BN", "victim_wd": 0.0}
+[2026-09-17 08:34:47] Jacobian score: disabled
+[2026-09-17 08:34:47] N_total=50000 budget=0.002 -> N_p=100 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-17 08:34:47] === selection/crafting surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-09-17 08:34:47]   crafting on 5/20 surrogates
+[2026-09-17 08:34:47] === clean victims (6 x ResNet20BN) ===
+[2026-09-17 08:34:48]   clean baseline CTA = 0.8354 +/- 0.0043
+[2026-09-17 08:34:48]   chosen 10 targets (file, fixed across victim architectures), p_adv range 0.0000..0.0786
+[2026-09-17 08:34:48]   targets: [843, 1257, 8252, 8730, 8055, 5859, 8954, 821, 1547, 4427]
+[2026-09-17 08:34:48] === target 843 (1/10) ===
+[2026-09-17 08:36:07]   target 843: crafted 100 poisons in 78 s, obj=0.28356
+[2026-09-17 08:36:07]   target 843: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 08:37:42]   [t843 v1/6] fail (pred=bird) CTA=0.8356
+[2026-09-17 08:39:17]   [t843 v2/6] fail (pred=bird) CTA=0.8388
+[2026-09-17 08:40:53]   [t843 v3/6] fail (pred=bird) CTA=0.8430
+[2026-09-17 08:42:28]   [t843 v4/6] fail (pred=bird) CTA=0.8400
+[2026-09-17 08:44:03]   [t843 v5/6] fail (pred=bird) CTA=0.8412
+[2026-09-17 08:45:38]   [t843 v6/6] fail (pred=bird) CTA=0.8368
+[2026-09-17 08:45:38]   target 843, 6 victims on this gpu: ASR=0.0% CTA=0.8392 +/- 0.0025
+[2026-09-17 08:45:38] === target 1257 (2/10) ===
+[2026-09-17 08:46:57]   target 1257: crafted 100 poisons in 78 s, obj=0.23793
+[2026-09-17 08:46:57]   target 1257: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 08:48:32]   [t1257 v1/6] fail (pred=bird) CTA=0.8334
+[2026-09-17 08:50:07]   [t1257 v2/6] fail (pred=bird) CTA=0.8375
+[2026-09-17 08:51:43]   [t1257 v3/6] fail (pred=bird) CTA=0.8392
+[2026-09-17 08:53:18]   [t1257 v4/6] fail (pred=bird) CTA=0.8347
+[2026-09-17 08:54:53]   [t1257 v5/6] fail (pred=bird) CTA=0.8433
+[2026-09-17 08:56:28]   [t1257 v6/6] fail (pred=bird) CTA=0.8370
+[2026-09-17 08:56:28]   target 1257, 6 victims on this gpu: ASR=0.0% CTA=0.8375 +/- 0.0032
+[2026-09-17 08:56:28] === target 8252 (3/10) ===
+[2026-09-17 08:57:47]   target 8252: crafted 100 poisons in 78 s, obj=0.22884
+[2026-09-17 08:57:47]   target 8252: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 08:59:22]   [t8252 v1/6] fail (pred=bird) CTA=0.8371
+[2026-09-17 09:00:57]   [t8252 v2/6] fail (pred=cat) CTA=0.8341
+[2026-09-17 09:02:33]   [t8252 v3/6] fail (pred=bird) CTA=0.8401
+[2026-09-17 09:04:08]   [t8252 v4/6] SUCCESS (pred=dog) CTA=0.8352
+[2026-09-17 09:05:43]   [t8252 v5/6] SUCCESS (pred=dog) CTA=0.8314
+[2026-09-17 09:07:18]   [t8252 v6/6] SUCCESS (pred=dog) CTA=0.8379
+[2026-09-17 09:07:18]   target 8252, 6 victims on this gpu: ASR=50.0% CTA=0.8360 +/- 0.0028
+[2026-09-17 09:07:18] === target 8730 (4/10) ===
+[2026-09-17 09:08:36]   target 8730: crafted 100 poisons in 78 s, obj=0.23091
+[2026-09-17 09:08:36]   target 8730: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 09:10:11]   [t8730 v1/6] fail (pred=bird) CTA=0.8348
+[2026-09-17 09:11:47]   [t8730 v2/6] fail (pred=bird) CTA=0.8407
+[2026-09-17 09:13:22]   [t8730 v3/6] fail (pred=bird) CTA=0.8411
+[2026-09-17 09:14:57]   [t8730 v4/6] fail (pred=bird) CTA=0.8377
+[2026-09-17 09:16:32]   [t8730 v5/6] fail (pred=deer) CTA=0.8371
+[2026-09-17 09:18:07]   [t8730 v6/6] fail (pred=bird) CTA=0.8366
+[2026-09-17 09:18:07]   target 8730, 6 victims on this gpu: ASR=0.0% CTA=0.8380 +/- 0.0022
+[2026-09-17 09:18:07] === target 8055 (5/10) ===
+[2026-09-17 09:19:26]   target 8055: crafted 100 poisons in 78 s, obj=0.26675
+[2026-09-17 09:19:26]   target 8055: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 09:21:01]   [t8055 v1/6] fail (pred=bird) CTA=0.8377
+[2026-09-17 09:22:36]   [t8055 v2/6] fail (pred=bird) CTA=0.8432
+[2026-09-17 09:24:11]   [t8055 v3/6] fail (pred=bird) CTA=0.8445
+[2026-09-17 09:25:46]   [t8055 v4/6] fail (pred=bird) CTA=0.8391
+[2026-09-17 09:27:21]   [t8055 v5/6] fail (pred=bird) CTA=0.8395
+[2026-09-17 09:28:57]   [t8055 v6/6] fail (pred=bird) CTA=0.8372
+[2026-09-17 09:28:57]   target 8055, 6 victims on this gpu: ASR=0.0% CTA=0.8402 +/- 0.0027
+[2026-09-17 09:28:57] === target 5859 (6/10) ===
+[2026-09-17 09:30:15]   target 5859: crafted 100 poisons in 78 s, obj=0.24034
+[2026-09-17 09:30:15]   target 5859: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 09:31:50]   [t5859 v1/6] fail (pred=bird) CTA=0.8390
+[2026-09-17 09:33:25]   [t5859 v2/6] fail (pred=bird) CTA=0.8390
+[2026-09-17 09:35:00]   [t5859 v3/6] fail (pred=frog) CTA=0.8413
+[2026-09-17 09:36:35]   [t5859 v4/6] fail (pred=bird) CTA=0.8359
+[2026-09-17 09:38:11]   [t5859 v5/6] fail (pred=bird) CTA=0.8394
+[2026-09-17 09:39:46]   [t5859 v6/6] fail (pred=bird) CTA=0.8351
+[2026-09-17 09:39:46]   target 5859, 6 victims on this gpu: ASR=0.0% CTA=0.8383 +/- 0.0021
+[2026-09-17 09:39:46] === target 8954 (7/10) ===
+[2026-09-17 09:41:04]   target 8954: crafted 100 poisons in 78 s, obj=0.20537
+[2026-09-17 09:41:04]   target 8954: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 09:42:40]   [t8954 v1/6] fail (pred=bird) CTA=0.8374
+[2026-09-17 09:44:15]   [t8954 v2/6] fail (pred=bird) CTA=0.8346
+[2026-09-17 09:45:50]   [t8954 v3/6] fail (pred=bird) CTA=0.8421
+[2026-09-17 09:47:25]   [t8954 v4/6] fail (pred=bird) CTA=0.8382
+[2026-09-17 09:49:01]   [t8954 v5/6] fail (pred=bird) CTA=0.8417
+[2026-09-17 09:50:36]   [t8954 v6/6] fail (pred=deer) CTA=0.8332
+[2026-09-17 09:50:36]   target 8954, 6 victims on this gpu: ASR=0.0% CTA=0.8379 +/- 0.0033
+[2026-09-17 09:50:36] === target 821 (8/10) ===
+[2026-09-17 09:51:54]   target 821: crafted 100 poisons in 78 s, obj=0.28194
+[2026-09-17 09:51:54]   target 821: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 09:53:30]   [t821 v1/6] fail (pred=bird) CTA=0.8388
+[2026-09-17 09:55:05]   [t821 v2/6] fail (pred=bird) CTA=0.8323
+[2026-09-17 09:56:40]   [t821 v3/6] fail (pred=bird) CTA=0.8365
+[2026-09-17 09:58:16]   [t821 v4/6] fail (pred=bird) CTA=0.8381
+[2026-09-17 09:59:51]   [t821 v5/6] fail (pred=horse) CTA=0.8337
+[2026-09-17 10:01:26]   [t821 v6/6] fail (pred=bird) CTA=0.8319
+[2026-09-17 10:01:27]   target 821, 6 victims on this gpu: ASR=0.0% CTA=0.8352 +/- 0.0027
+[2026-09-17 10:01:27] === target 1547 (9/10) ===
+[2026-09-17 10:02:45]   target 1547: crafted 100 poisons in 78 s, obj=0.35328
+[2026-09-17 10:02:45]   target 1547: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 10:04:20]   [t1547 v1/6] SUCCESS (pred=dog) CTA=0.8422
+[2026-09-17 10:05:56]   [t1547 v2/6] fail (pred=bird) CTA=0.8406
+[2026-09-17 10:07:31]   [t1547 v3/6] fail (pred=bird) CTA=0.8366
+[2026-09-17 10:09:06]   [t1547 v4/6] fail (pred=bird) CTA=0.8350
+[2026-09-17 10:10:42]   [t1547 v5/6] fail (pred=bird) CTA=0.8431
+[2026-09-17 10:12:17]   [t1547 v6/6] fail (pred=bird) CTA=0.8350
+[2026-09-17 10:12:17]   target 1547, 6 victims on this gpu: ASR=16.7% CTA=0.8387 +/- 0.0033
+[2026-09-17 10:12:17] === target 4427 (10/10) ===
+[2026-09-17 10:13:35]   target 4427: crafted 100 poisons in 78 s, obj=0.37040
+[2026-09-17 10:13:35]   target 4427: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-17 10:15:11]   [t4427 v1/6] fail (pred=bird) CTA=0.8343
+[2026-09-17 10:16:46]   [t4427 v2/6] fail (pred=bird) CTA=0.8387
+[2026-09-17 10:18:22]   [t4427 v3/6] fail (pred=bird) CTA=0.8437
+[2026-09-17 10:19:57]   [t4427 v4/6] fail (pred=bird) CTA=0.8334
+[2026-09-17 10:21:32]   [t4427 v5/6] fail (pred=bird) CTA=0.8378
+[2026-09-17 10:23:08]   [t4427 v6/6] fail (pred=bird) CTA=0.8333
+[2026-09-17 10:23:08]   target 4427, 6 victims on this gpu: ASR=0.0% CTA=0.8369 +/- 0.0037
+[2026-09-17 10:23:08] ==== CIFAR10_ConvNetBN_gradmatch_ours_dog-bird_b0.002_eps8_seed42_lam1_cosine_victimarchResNet20BN_K10_ce5_tgt70 : ASR = 6.7% +/- 15.3% | CTA = 0.8378 (baseline 0.8354) ====
+[2026-09-17 10:23:08]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 51, 1, 2, 4, 1, 1, 0, 0]
