@@ -11,6 +11,8 @@ RUN_ROOT="${RUN_ROOT:-${SLURM_TMPDIR:-}/PoisonBase_influence_fus}"
 LOCAL_DATA_ROOT="$RUN_ROOT/data"
 LOCAL_CACHE_ROOT="$RUN_ROOT/cache"
 LOCAL_RESULT_ROOT="$RUN_ROOT/influence_fus_baselines_result"
+LOCAL_RUN_DIR=""
+PERSISTENT_RUN_DIR=""
 METRIC_TAG="CIFAR10_${IFB_MODEL}_60ep_select10_lr0.1_bs128_decay35-45_wd0_seed42/class5"
 STEP_PID=""
 SYNCED=0
@@ -45,10 +47,11 @@ cache_has_nets() {
 sync_output() {
     [ "$SYNCED" = 0 ] || return 0
     SYNCED=1
-    if [ -d "$LOCAL_RESULT_ROOT/$IFB_RUN_NAME" ]; then
-        mkdir -p "$RESULT_ROOT/$IFB_RUN_NAME"
+    if [ -n "$LOCAL_RUN_DIR" ] && [ -n "$PERSISTENT_RUN_DIR" ] && \
+            [ -d "$LOCAL_RUN_DIR" ]; then
+        mkdir -p "$PERSISTENT_RUN_DIR"
         rsync -a --exclude='.lock' --exclude='*.tmp*' \
-            "$LOCAL_RESULT_ROOT/$IFB_RUN_NAME/" "$RESULT_ROOT/$IFB_RUN_NAME/"
+            "$LOCAL_RUN_DIR/" "$PERSISTENT_RUN_DIR/"
     fi
 }
 
@@ -105,37 +108,77 @@ PY
 }
 
 verify_target_file() {
-    local path="$1"
-    python - "$path" <<'PY'
+    local path="$1" expected_count="$2"
+    python - "$path" "$expected_count" <<'PY'
 import json
 import sys
 with open(sys.argv[1]) as handle:
     indices = json.load(handle)['pairs']['dog-bird']['indices']
-if len(indices) != 10 or len(set(map(int, indices))) != 10:
-    raise SystemExit('target set must contain exactly 10 unique IDs')
+expected_count = int(sys.argv[2])
+if len(indices) != expected_count or len(set(map(int, indices))) != expected_count:
+    raise SystemExit('target set must contain exactly %d unique IDs' % expected_count)
 print('targets:', ' '.join(map(str, indices)))
 PY
 }
 
+make_target_partition() {
+    local source_path="$1" output_path="$2" part_index="$3" part_count="$4"
+    python - "$source_path" "$output_path" "$part_index" "$part_count" <<'PY'
+import json
+import os
+import sys
+
+source_path, output_path, part_index, part_count = sys.argv[1:]
+part_index, part_count = int(part_index), int(part_count)
+with open(source_path) as handle:
+    blob = json.load(handle)
+indices = list(map(int, blob['pairs']['dog-bird']['indices']))
+quotient, remainder = divmod(len(indices), part_count)
+start = part_index * quotient + min(part_index, remainder)
+stop = start + quotient + (1 if part_index < remainder else 0)
+chosen = indices[start:stop]
+if not chosen:
+    raise SystemExit('empty target partition %d/%d' % (part_index + 1, part_count))
+out = {
+    '_generated_by': 'influence/FUS four-way target partition',
+    '_source': source_path,
+    '_part_index_zero_based': part_index,
+    '_part_count': part_count,
+    'pairs': {'dog-bird': {'indices': chosen}},
+}
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
+temporary = output_path + '.tmp'
+with open(temporary, 'w') as handle:
+    json.dump(out, handle, indent=2)
+os.replace(temporary, output_path)
+print(len(chosen))
+PY
+}
+
 verify_results() {
-    local csv_path="$LOCAL_RESULT_ROOT/$IFB_RUN_NAME/results.csv"
-    local target_path="$RUN_ROOT/target_sets/${IFB_MODEL}_gradmatch_dog-bird.json"
-    python - "$csv_path" "$target_path" "$IFB_MODEL" <<'PY'
+    local csv_path="$1" target_path="$2" model="$3" expected_targets="$4"
+    python - "$csv_path" "$target_path" "$model" "$expected_targets" <<'PY'
 import csv
 import json
 import sys
 
-csv_path, target_path, model = sys.argv[1:]
+csv_path, target_path, model, expected_targets = sys.argv[1:]
+expected_targets = int(expected_targets)
 with open(target_path) as handle:
     expected = set(map(int, json.load(handle)['pairs']['dog-bird']['indices']))
 with open(csv_path, newline='') as handle:
     rows = list(csv.DictReader(handle))
 pairs = [(int(row['target_idx']), int(row['victim_id'])) for row in rows]
+expected_rows = expected_targets * 6
 problems = []
-if len(rows) != 60:
-    problems.append('rows=%d, expected 60' % len(rows))
-if len(set(pairs)) != 60:
-    problems.append('unique target/victim pairs=%d, expected 60' % len(set(pairs)))
+if len(expected) != expected_targets:
+    problems.append('target file has %d targets, expected %d' %
+                    (len(expected), expected_targets))
+if len(rows) != expected_rows:
+    problems.append('rows=%d, expected %d' % (len(rows), expected_rows))
+if len(set(pairs)) != expected_rows:
+    problems.append('unique target/victim pairs=%d, expected %d' %
+                    (len(set(pairs)), expected_rows))
 if {target for target, _ in pairs} != expected:
     problems.append('target IDs differ from pinned set')
 if any(row['model'] != model for row in rows):
@@ -146,12 +189,14 @@ for target in expected:
         problems.append('target %d victim IDs=%s' % (target, got))
 if problems:
     raise SystemExit('incomplete result: ' + '; '.join(problems))
-print('verified: 10 targets x 6 victims = 60 unique evaluations')
+print('verified: %d targets x 6 victims = %d unique evaluations' %
+      (expected_targets, expected_rows))
 PY
 }
 
 main() {
-    local required file target_file cache_name status time_file
+    local required file target_file target_path active_target_path cache_name
+    local status time_file part_count part_index part_label target_count
     local sharp_args=()
     local time_prefix=()
     [ -n "${SLURM_TMPDIR:-}" ] || die "SLURM_TMPDIR is unset; submit with sbatch"
@@ -164,6 +209,25 @@ main() {
     case "$IFB_BUDGET" in 0.002|0.005) ;; *) die "bad budget: $IFB_BUDGET" ;; esac
     case "$IFB_MODEL:$IFB_TARGET_DEGREE" in ConvNetBN:70|ResNet20BN:14) ;; *) die "bad model/target degree" ;; esac
     [ "$IFB_K" = 20 ] || die "K must be 20"
+
+    part_count="${IFB_PART_COUNT:-1}"
+    part_index="${IFB_PART_INDEX:-${SLURM_ARRAY_TASK_ID:-0}}"
+    if [ "$IFB_SELECTOR" = fus ]; then
+        [ "$part_count" = 4 ] || die "FUS must use IFB_PART_COUNT=4"
+        case "$part_index" in 0|1|2|3) ;; *) die "FUS part index must be 0..3" ;; esac
+    else
+        [ "$part_count" = 1 ] || die "only FUS may be partitioned"
+        [ "$part_index" = 0 ] || die "non-FUS part index must be 0"
+    fi
+    if [ "$part_count" = 4 ]; then
+        part_label="part_$((part_index + 1))_of_4"
+        LOCAL_RESULT_ROOT="$RUN_ROOT/influence_fus_baselines_result/$part_label"
+        PERSISTENT_RUN_DIR="$RESULT_ROOT/$IFB_RUN_NAME/parts/$part_label"
+    else
+        part_label="full"
+        PERSISTENT_RUN_DIR="$RESULT_ROOT/$IFB_RUN_NAME"
+    fi
+    LOCAL_RUN_DIR="$LOCAL_RESULT_ROOT/$IFB_RUN_NAME"
 
     if command -v module >/dev/null 2>&1; then
         module load python/3.11.5 cuda/12.6 cudnn
@@ -192,7 +256,16 @@ main() {
     target_file="${IFB_MODEL}_gradmatch_dog-bird.json"
     [ -s "$ROOT/target_sets/$target_file" ] || die "missing target set: $target_file"
     rsync -a "$ROOT/target_sets/$target_file" "$RUN_ROOT/target_sets/"
-    verify_target_file "$RUN_ROOT/target_sets/$target_file"
+    target_path="$RUN_ROOT/target_sets/$target_file"
+    verify_target_file "$target_path" 10
+    active_target_path="$target_path"
+    target_count=10
+    if [ "$part_count" = 4 ]; then
+        active_target_path="$RUN_ROOT/target_sets/${IFB_MODEL}_gradmatch_dog-bird_${part_label}.json"
+        target_count="$(make_target_partition \
+            "$target_path" "$active_target_path" "$part_index" "$part_count")"
+        verify_target_file "$active_target_path" "$target_count"
+    fi
 
     cache_name="${IFB_MODEL}_60ep_lr0.1_bs128_seed42"
     cache_has_nets "$CACHE_ROOT/surrogates/$cache_name" 20 || \
@@ -213,17 +286,17 @@ main() {
     # This experiment has a dedicated result root, so the first submission is
     # fresh. Staging only its own run directory lets a timed-out job resume at
     # completed target/victim boundaries without importing any older baseline.
-    stage_dir_if_present "$RESULT_ROOT/$IFB_RUN_NAME" \
-                         "$LOCAL_RESULT_ROOT/$IFB_RUN_NAME"
+    stage_dir_if_present "$PERSISTENT_RUN_DIR" "$LOCAL_RUN_DIR"
     if [ "$IFB_ATTACK" = sapa ]; then
         sharp_args=(--sharp_mode worst --sharp_sigma 0.05)
     fi
 
     say "job: ${SLURM_JOB_ID:-unknown} ${SLURM_JOB_NAME:-unknown} on $(hostname)"
     say "config: $ORIGINAL_COMMAND"
-    say "output: $RESULT_ROOT/$IFB_RUN_NAME"
-    mkdir -p "$LOCAL_RESULT_ROOT/$IFB_RUN_NAME"
-    time_file="$LOCAL_RESULT_ROOT/$IFB_RUN_NAME/job_gnu_time_${SLURM_JOB_ID:-manual}.txt"
+    say "partition: $part_label ($target_count target(s), 6 victims each)"
+    say "output: $PERSISTENT_RUN_DIR"
+    mkdir -p "$LOCAL_RUN_DIR"
+    time_file="$LOCAL_RUN_DIR/job_gnu_time_${SLURM_JOB_ID:-manual}_${SLURM_ARRAY_TASK_ID:-0}.txt"
     if [ -x /usr/bin/time ]; then
         time_prefix=(/usr/bin/time -v -o "$time_file")
         say "whole-job CPU/time resources: $time_file"
@@ -247,14 +320,15 @@ main() {
         --craft_ensemble 5 --craft_aug "${sharp_args[@]}" \
         --num_surrogates 20 --surrogate_epochs 60 --surrogate_lr 0.1 \
         --surrogate_bs 128 --surrogate_decay 35 45 --surrogate_wd 0 \
-        --num_targets 10 --target_select "$IFB_TARGET_DEGREE" \
-        --target_idx_file "$RUN_ROOT/target_sets/$target_file" --keep_pinned_targets \
+        --num_targets "$target_count" --target_select "$IFB_TARGET_DEGREE" \
+        --target_idx_file "$active_target_path" --keep_pinned_targets \
         --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
         --victim_decay 40 --victim_wd 0 --clean_baseline
     status=$?
     set -e
     if [ "$status" -eq 0 ]; then
-        verify_results
+        verify_results "$LOCAL_RUN_DIR/results.csv" "$active_target_path" \
+                       "$IFB_MODEL" "$target_count"
     fi
     sync_output
     trap - EXIT
