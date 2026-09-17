@@ -328,6 +328,16 @@ def dataset_tag(args):
     return '' if ds == 'CIFAR10' else ds + '_'
 
 
+def victim_model_name(args):
+    """Architecture trained on the poisoned set.
+
+    Historically selection, crafting, and victim training all used --model.
+    Keeping a separate optional name preserves that behavior while allowing a
+    clean S=A, V!=A poison-transfer experiment.
+    """
+    return getattr(args, 'victim_model', None) or args.model
+
+
 def surrogate_dir(args):
     return os.path.join(args.cache_dir, 'surrogates',
                         '%s%s_%dep_lr%g_bs%d_seed%d'
@@ -336,9 +346,10 @@ def surrogate_dir(args):
 
 
 def victim_dir(args):
+    model = victim_model_name(args)
     return os.path.join(args.cache_dir, 'clean_victims',
                         '%s%s_%dep_lr%g_bs%d_wd%g_seed%d'
-                        % (dataset_tag(args), args.model, args.victim_epochs,
+                        % (dataset_tag(args), model, args.victim_epochs,
                            args.victim_lr, args.victim_bs, args.victim_wd, args.seed))
 
 
@@ -383,9 +394,10 @@ def get_sel_surrogates(args, *rest):
     """Surrogate pool used for base selection only, when --sel_model is set.
 
     Cross-architecture transfer: the bases are picked by one architecture (S) and
-    the poisons are then crafted and evaluated on another (A = V). Same seeds and
-    same surrogate hyper-parameters as a normal run of S, so these are literally
-    the nets S's own run selected with -- they load straight out of the cache.
+    the poisons are then crafted by --model (A). Victim training uses --model by
+    default, or --victim_model when explicitly supplied. Same seeds and surrogate
+    hyper-parameters as a normal run of S are used, so these are literally the
+    checkpoints S's own run selected with.
     """
     sel_args = argparse.Namespace(**vars(args))
     sel_args.model = args.sel_model
@@ -395,16 +407,17 @@ def get_sel_surrogates(args, *rest):
 def get_clean_victims(args, train_imgs, train_labs, test_imgs, test_labs,
                       channel, num_classes, im_size, device, dsa_param, only_id=None):
     d = victim_dir(args)
+    model = victim_model_name(args)
     ids = [only_id] if only_id is not None else range(args.num_victims)
     nets = []
     for i in ids:
         path = os.path.join(d, 'net_%d.pt' % i)
         net, _ = _load_or_train(
-            path, args.model, args.seed + 900000 + i, train_imgs, train_labs,
+            path, model, args.seed + 900000 + i, train_imgs, train_labs,
             test_imgs, test_labs, channel, num_classes, im_size, device,
             args.victim_epochs, args.victim_lr, args.victim_bs,
             args.victim_decay, args.victim_wd, args.victim_aug,
-            args.dsa_strategy, dsa_param, 'clean victim %d (%s)' % (i, args.model))
+            args.dsa_strategy, dsa_param, 'clean victim %d (%s)' % (i, model))
         net.eval()
         nets.append(net)
     return nets
@@ -459,6 +472,34 @@ def select_targets(args, nets, test_imgs, test_labs, y_adv, target_class, gen):
     p_adv = probs[:, y_adv]
     pred = probs.argmax(1)
 
+    def finish(order, how):
+        chosen = pool[order].tolist()
+        scores = {int(pool[i]): float(p_adv[i]) for i in order}
+        log('  chosen %d targets (%s), p_adv range %.4f..%.4f'
+            % (len(chosen), how, min(scores.values()), max(scores.values())))
+        return chosen, scores
+
+    # Architecture-transfer experiments must evaluate the identical pinned
+    # images for every victim architecture. In that setting a target that is a
+    # clean free win for one V is retained (and exposed by clean_asr) instead of
+    # silently changing the target set for that column.
+    if args.target_idx_file and getattr(args, 'keep_pinned_targets', False):
+        with open(args.target_idx_file) as f:
+            blob = json.load(f)
+        key = args.class_pair
+        want = (blob['pairs'][key]['indices'] if 'pairs' in blob else blob[key])
+        pos = {int(pool[i]): int(i) for i in range(len(pool))}
+        missing = [int(i) for i in want if int(i) not in pos]
+        if missing:
+            raise RuntimeError('pinned targets are outside target class %s: %s'
+                               % (target_class, missing))
+        order = [pos[int(i)] for i in want][:args.num_targets]
+        if len(order) < min(len(want), args.num_targets):
+            raise RuntimeError('target file supplies only %d of %d requested targets'
+                               % (len(order), args.num_targets))
+        return finish(torch.tensor(order, dtype=torch.long),
+                      'file, fixed across victim architectures')
+
     keep = (pred != y_adv)
     if args.require_correct_target:
         keep &= (pred == target_class)
@@ -467,13 +508,6 @@ def select_targets(args, nets, test_imgs, test_labs, y_adv, target_class, gen):
         raise RuntimeError('no eligible targets left; relax --require_correct_target')
     log('  target pool %d -> eligible %d (%d already predicted as y_adv or dropped)'
         % (len(pool), len(kept), len(pool) - len(kept)))
-
-    def finish(order, how):
-        chosen = pool[order].tolist()
-        scores = {int(pool[i]): float(p_adv[i]) for i in order}
-        log('  chosen %d targets (%s), p_adv range %.4f..%.4f'
-            % (len(chosen), how, min(scores.values()), max(scores.values())))
-        return chosen, scores
 
     if args.target_idx_file:
         with open(args.target_idx_file) as f:
@@ -1999,6 +2033,7 @@ def run_victims(args, ctx, tidx, y_adv, N_p, victim_ids, prep, target_score,
                 clean_asr, emit):
     """Inject the poisons, train the listed victims from scratch, restore."""
     device = ctx['device']
+    victim_model = victim_model_name(args)
     train_imgs, train_labs = ctx['train_imgs'], ctx['train_labs']
     class_names, num_classes = ctx['class_names'], ctx['num_classes']
     base_idx, x_adv01, obj, linf = prep
@@ -2013,7 +2048,7 @@ def run_victims(args, ctx, tidx, y_adv, N_p, victim_ids, prep, target_score,
             # victim init and sgd order depend only on (seed, target, victim), so a
             # trial gives the same answer whichever gpu happens to run it
             seed_v = args.seed * 100000 + tidx * 100 + vi
-            net = build_network(args.model, ctx['channel'], num_classes,
+            net = build_network(victim_model, ctx['channel'], num_classes,
                                 ctx['im_size'], device, seed=seed_v)
             net = train_from_scratch(net, train_imgs, train_labs, args.victim_epochs,
                                      args.victim_lr, args.victim_bs, args.victim_decay,
@@ -2028,7 +2063,7 @@ def run_victims(args, ctx, tidx, y_adv, N_p, victim_ids, prep, target_score,
             succ.append(ok)
             ctas.append(cta)
             emit({
-                'model': args.model, 'attack': args.attack, 'base': args.base,
+                'model': victim_model, 'attack': args.attack, 'base': args.base,
                 'class_pair': args.class_pair, 'seed': args.seed,
                 'budget': args.budget, 'num_poisons': N_p, 'epsilon': args.epsilon,
                 'target_idx': tidx, 'target_score': target_score,
@@ -2415,6 +2450,12 @@ def build_run_name(args):
     sel_model = getattr(args, 'sel_model', None)
     if sel_model and sel_model != args.model:
         name += '_selarch%s' % sel_model
+    # By default V=A=--model, preserving every historical run name. An explicit
+    # cross-architecture victim gets a suffix so its results and poison cache
+    # cannot collide with either the diagonal run or another victim architecture.
+    victim_model = victim_model_name(args)
+    if victim_model != args.model:
+        name += '_victimarch%s' % victim_model
     # a different selector ensemble size is a different selection, so it needs its
     # own run dir. Only when asked for explicitly -- runs that never pass --sel_K
     # keep the name they have always had.
@@ -2528,7 +2569,7 @@ def main(args):
     if len(gpus) > 1 and args.parallel_pretrain:
         pretrain_pools_parallel(args, gpus, _LOG_PATH)
 
-    log('=== surrogates (%d x %s, trained on the full real set) ==='
+    log('=== selection/crafting surrogates (%d x %s, trained on the full real set) ==='
         % (args.num_surrogates, args.model))
     surrogates = get_surrogates(args, train_imgs, train_labs, test_imgs, test_labs,
                                 channel, num_classes, im_size, device, dsa_param)
@@ -2545,7 +2586,8 @@ def main(args):
 
     clean_victims, cta_baseline_mean, cta_baseline_std = [], None, None
     if args.clean_baseline:
-        log('=== clean victims (%d x %s) ===' % (args.num_victims, args.model))
+        log('=== clean victims (%d x %s) ==='
+            % (args.num_victims, victim_model_name(args)))
         clean_victims = get_clean_victims(args, train_imgs, train_labs, test_imgs,
                                           test_labs, channel, num_classes, im_size,
                                           device, dsa_param)
@@ -2652,7 +2694,8 @@ def main(args):
     per_target_asr = [float(np.mean(v)) for v in per_target.values()]
 
     stats = {
-        'model': args.model, 'attack': args.attack, 'base': args.base,
+        'model': args.model, 'victim_model': victim_model_name(args),
+        'attack': args.attack, 'base': args.base,
         'class_pair': args.class_pair, 'pair_order': args.pair_order,
         'seed': args.seed, 'budget': args.budget, 'num_poisons': N_p,
         'epsilon': args.epsilon, 'fc_mode': args.fc_mode,
@@ -2716,6 +2759,11 @@ def parse_args(argv=None):
     p.add_argument('--dataset', type=str, default='CIFAR10')
     p.add_argument('--data_path', type=str, default='./data')
     p.add_argument('--model', type=str, default='ConvNetBN', choices=SUPPORTED_MODELS)
+    p.add_argument('--victim_model', type=str, default=None,
+                   choices=SUPPORTED_MODELS,
+                   help='architecture trained from scratch on the poisoned set '
+                        '(V). Defaults to --model, preserving the original '
+                        'matched crafting/victim behavior')
     p.add_argument('--base_topr', type=int, default=None,
                    help='concentrate the poison budget into r feature-space '
                         'neighbourhoods: r best-scoring seeds, then their nearest '
@@ -2728,7 +2776,8 @@ def parse_args(argv=None):
     p.add_argument('--sel_model', type=str, default=None, choices=SUPPORTED_MODELS,
                    help='architecture whose surrogates pick the bases (S in the '
                         'cross-architecture table). Defaults to --model; crafting '
-                        'and victim training always use --model')
+                        'uses --model and victim training uses --victim_model '
+                        '(or --model when it is omitted)')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--cache_dir', type=str, default='./cache')
     p.add_argument('--out_dir', type=str, default='./ours_result')
@@ -2886,6 +2935,10 @@ def parse_args(argv=None):
                         'num_targets across that ranking. Targets the clean ensemble '
                         'already predicts as y_adv are never selected.')
     p.add_argument('--target_idx_file', type=str, default=None)
+    p.add_argument('--keep_pinned_targets', action='store_true', default=False,
+                   help='use the exact IDs in --target_idx_file for every victim '
+                        'architecture, including IDs that a clean victim already '
+                        'predicts as the adversarial class')
     p.add_argument('--require_correct_target', action='store_true', default=False)
     p.add_argument('--rank_on_victims', action='store_true', default=True,
                    help='rank target easiness with the clean victims instead of the '
