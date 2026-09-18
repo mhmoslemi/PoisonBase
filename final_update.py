@@ -1005,7 +1005,7 @@ def _ours_pointwise_score(nets, images_norm, labels, x_t_norm, y_adv, lam, devic
             for i in range(0, len(cand), bs):
                 b = cand[i:i + bs]
                 fb = emb(b)
-                if base_dist == 'cosine':
+                if base_dist in ('cosine', 'cosine_norm'):
                     d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
                 else:
                     d = ((fb - f_t) ** 2).sum(dim=1)
@@ -1104,11 +1104,14 @@ COMPONENT_SELECTOR_SUFFIXES = {
 
 @torch.no_grad()
 def select_base_components(nets, images_norm, labels, x_t_norm, y_adv, N_p,
-                           device, formula, batch_size=64):
+                           device, formula, batch_size=64, base_dist='l2'):
     """Select using a scaled expression of the paper's A, M, and R components.
 
     A_i is <grad_phi ell_i, grad_phi L_adv,t>, M_i is the adversarial-class
     logit margin, and R_i is the raw representation inner product <h_i, h_t>.
+    With ``base_dist='cosine_norm'``, every formula containing R instead uses
+    cosine similarity <h_i,h_t>/(||h_i|| ||h_t||). Existing ``l2`` and
+    ``cosine`` runs retain the historical raw-inner-product R definition.
     Each component used by ``formula`` is averaged over surrogates in its raw
     scale and then standardized across the candidate pool before the requested
     expression is evaluated. Components absent from the expression are not
@@ -1143,8 +1146,15 @@ def select_base_components(nets, images_norm, labels, x_t_norm, y_adv, N_p,
                     batch = candidates[start:start + batch_size]
                     if need_relevance:
                         candidate_feature = embed(batch).flatten(1)
-                        relevances.append(
-                            (candidate_feature * target_feature).sum(dim=1))
+                        if base_dist == 'cosine_norm':
+                            relevances.append(F.cosine_similarity(
+                                candidate_feature,
+                                target_feature.expand_as(candidate_feature),
+                                dim=1,
+                                eps=1e-8))
+                        else:
+                            relevances.append(
+                                (candidate_feature * target_feature).sum(dim=1))
                     if need_margin:
                         logits = net(batch)
                         adversarial_logit = logits[:, y_adv].clone()
@@ -1190,7 +1200,7 @@ def select_base_components(nets, images_norm, labels, x_t_norm, y_adv, N_p,
 
 @torch.no_grad()
 def select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
-                           device, batch_size=64):
+                           device, batch_size=64, base_dist='l2'):
     """Select by A_i + (-M_i) * R_i using the paper's scaled components."""
     cls_idx = (labels == y_adv).nonzero(as_tuple=True)[0]
     if len(cls_idx) < N_p:
@@ -1215,7 +1225,15 @@ def select_base_a_minus_mr(nets, images_norm, labels, x_t_norm, y_adv, N_p,
                 other_logits = logits.clone()
                 other_logits[:, y_adv] = float('-inf')
                 margins.append(adversarial_logit - other_logits.max(dim=1).values)
-                relevances.append((candidate_feature * target_feature).sum(dim=1))
+                if base_dist == 'cosine_norm':
+                    relevances.append(F.cosine_similarity(
+                        candidate_feature,
+                        target_feature.expand_as(candidate_feature),
+                        dim=1,
+                        eps=1e-8))
+                else:
+                    relevances.append(
+                        (candidate_feature * target_feature).sum(dim=1))
             margin += torch.cat(margins)
             relevance += torch.cat(relevances)
         finally:
@@ -1615,7 +1633,7 @@ def select_base_criterion(criterion, nets, images_norm, labels, x_t_norm, y_adv,
                 parts.append(m)
                 continue
             fb = emb(b)
-            if base_dist == 'cosine':
+            if base_dist in ('cosine', 'cosine_norm'):
                 d = 1.0 - F.cosine_similarity(fb, f_t.expand(len(b), -1), dim=1)
             else:
                 d = ((fb - f_t) ** 2).sum(dim=1)
@@ -2334,13 +2352,15 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
         base_idx = select_base_a_minus_mr(
             sel_nets[:args.sel_K] if args.sel_K else sel_nets,
             train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
-            batch_size=getattr(args, 'jacobian_batch_size', 64))
+            batch_size=getattr(args, 'jacobian_batch_size', 64),
+            base_dist=args.base_dist)
     elif getattr(args, 'sel_component', None):
         base_idx = select_base_components(
             sel_nets[:args.sel_K] if args.sel_K else sel_nets,
             train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
             formula=args.sel_component,
-            batch_size=getattr(args, 'jacobian_batch_size', 64))
+            batch_size=getattr(args, 'jacobian_batch_size', 64),
+            base_dist=args.base_dist)
     elif getattr(args, 'sel_criterion', None) in GAO_CRITERIA:
         base_idx = select_base_gao(args, train_labs, y_adv, N_p, device)
     elif getattr(args, 'sel_criterion', None) == 'fus':
@@ -3337,7 +3357,11 @@ def parse_args(argv=None):
 
     # base selection
     p.add_argument('--lambda_margin', type=float, default=1.0)
-    p.add_argument('--base_dist', type=str, default='l2', choices=['l2', 'cosine'])
+    p.add_argument('--base_dist', type=str, default='l2',
+                   choices=['l2', 'cosine', 'cosine_norm'],
+                   help='feature distance for the proposed selector. cosine_norm '
+                        'uses cosine distance like cosine and additionally replaces '
+                        'raw R inner products with normalized cosine similarity')
     p.add_argument('--distance_margin_coef', type=float, default=None,
                    help='optional convex-combination ablation for the proposed '
                         'score: c*z(distance) + (1-c)*z(margin), with c in [0,1]. '

@@ -91,7 +91,8 @@ ATTACK="${ATTACK:-fc}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
 BUDGETS="${BUDGETS:-0.0004}"
-SELECT="${SELECT:-ours}"
+SELECT="${SELECT:-ours}" # ours r 
+BASE_DIST="${BASE_DIST:-cosine}" # cosine_norm
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
 
@@ -104,12 +105,16 @@ LAMBDA_MARGIN="${LAMBDA_MARGIN:-10.0}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
-CRAFT_STEPS="${CRAFT_STEPS:-750}"
+CRAFT_STEPS="${CRAFT_STEPS:-250}"
 CRAFT_ALPHA="${CRAFT_ALPHA:-0.0039216}"
 FC_RESTARTS="${FC_RESTARTS:-1}"
 case "$USE_JACOBIAN_SCORE" in
     0|1) ;;
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
+esac
+case "$BASE_DIST" in
+    l2|cosine|cosine_norm) ;;
+    *) echo "BASE_DIST=$BASE_DIST (expected: l2, cosine, or cosine_norm)"; exit 1 ;;
 esac
 COEF_FLAGS=""
 COEF_NOTE="legacy score: z(distance) + $LAMBDA_MARGIN*z(margin)"
@@ -317,7 +322,7 @@ for sig in $SIGMAS; do
             --budget "$bug" --epsilon 0.0313725 \
             --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
             --restarts 8 --fc_restarts "$FC_RESTARTS" --craft_ensemble 5 $CFG_MEM \
-            --base_dist cosine --lambda_margin "$LAMBDA_MARGIN" $COEF_FLAGS \
+            --base_dist "$BASE_DIST" --lambda_margin "$LAMBDA_MARGIN" $COEF_FLAGS \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
             --num_surrogates 20 --surrogate_epochs 60 --surrogate_decay 35 45 \
             --num_targets "$NUM_TARGETS" --target_select "$TGT_DEG" \
