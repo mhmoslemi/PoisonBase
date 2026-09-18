@@ -1,0 +1,201 @@
+===== bmc12_r20_sa_b0005_gigt: target shard 1 =====
+[2026-09-18 14:43:43] === run start: CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selexactgigt_worst0.05_ce5_tgt14 on cuda [0] ===
+[2026-09-18 14:43:43] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/PoisonBase/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/PoisonBase/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "0", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 5, "out_dir": "/home/ubuntu/PoisonBase/.local_bench_shards/bmc12_r20_sa_b0005_gigt/part1", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_exact_alignment": true, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/home/ubuntu/PoisonBase/.local_bench_shards/targets/r20_part1.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 14:43:43] Jacobian score: disabled
+[2026-09-18 14:43:43] Exact full-parameter gi^T gt selector: enabled, batch_size=64; per-surrogate alignment standardization enabled
+[2026-09-18 14:43:43] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 14:43:43] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-18 14:43:55]   crafting on 5/20 surrogates
+[2026-09-18 14:43:55] === clean victims (5 x ResNet20BN) ===
+[2026-09-18 14:44:00]   clean baseline CTA = 0.8350 +/- 0.0046
+[2026-09-18 14:44:00]   target pool 1000 -> eligible 976 (24 already predicted as y_adv or dropped)
+[2026-09-18 14:44:00]   chosen 4 targets (file), p_adv range 0.0001..0.3838
+[2026-09-18 14:44:00]   targets: [5118, 8740, 5324, 4630]
+[2026-09-18 14:44:00] === target 5118 (1/4) ===
+[2026-09-18 14:44:01]   Exact gi/gt alignment backend: torch.func JVP
+[2026-09-18 14:44:15]   target 5118: selector overhead 15.031 s, CUDA peak 1239.4 MiB (incremental 475.8 MiB)
+[W918 14:44:15.851039332 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 33554432 bytes (free: 32964608, total: 101973819392).
+[W918 14:44:15.859531901 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.859660344 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.863726424 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.863801052 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.865352366 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 39845888 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.865424480 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 39845888 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.866280581 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.866344968 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867087576 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867150476 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867907171 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867967693 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.868747982 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.868811267 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.869611662 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.869677874 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.870431518 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.870494091 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.871250830 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.871313388 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872019564 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872083890 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872714953 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872773456 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.873417822 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.873478501 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.875602530 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.875690999 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 5701632, total: 101973819392).
+Traceback (most recent call last):
+  File "/home/ubuntu/PoisonBase/final_update.py", line 3542, in <module>
+    main(parse_args())
+  File "/home/ubuntu/PoisonBase/final_update.py", line 3091, in main
+    tally += run_one_target(args, ctx, sel_nets, craft_nets, tidx, y_adv,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 2493, in run_one_target
+    prep = prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 2403, in prepare_poisons
+    base01, x_adv01, obj = craft_selected_bases(
+                           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 1937, in craft_selected_bases
+    x_adv01, objective = craft_gradmatch(
+                         ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 1907, in craft_gradmatch
+    loss_p = crit(net(x_adv_norm), y_p)
+                  ^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/networks.py", line 582, in forward
+    out = self.layer2(out)
+          ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/networks.py", line 447, in forward
+    out += self.shortcut(x)
+           ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 565, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 560, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 94.97 GiB of which 5.44 MiB is free. Process 9516 has 1.04 GiB memory in use. Process 13987 has 85.85 GiB memory in use. Process 27266 has 5.54 GiB memory in use. Including non-PyTorch memory, this process has 2.50 GiB memory in use. Of the allocated memory 1.78 GiB is allocated by PyTorch, and 60.44 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+[2026-09-18 15:37:31] === run start: CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selexactgigt_worst0.05_ce5_tgt14 on cuda [0] ===
+[2026-09-18 15:37:31] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/PoisonBase/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/PoisonBase/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "0", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 5, "out_dir": "/home/ubuntu/PoisonBase/.local_bench_shards/bmc12_r20_sa_b0005_gigt/part1", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_exact_alignment": true, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/home/ubuntu/PoisonBase/.local_bench_shards/targets/r20_part1.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 15:37:31] Jacobian score: disabled
+[2026-09-18 15:37:31] Exact full-parameter gi^T gt selector: enabled, batch_size=64; per-surrogate alignment standardization enabled
+[2026-09-18 15:37:31] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 15:37:31] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-18 15:37:50]   crafting on 5/20 surrogates
+[2026-09-18 15:37:50] === clean victims (5 x ResNet20BN) ===
+[2026-09-18 15:37:56]   clean baseline CTA = 0.8350 +/- 0.0046
+[2026-09-18 15:37:56]   target pool 1000 -> eligible 976 (24 already predicted as y_adv or dropped)
+[2026-09-18 15:37:56]   chosen 4 targets (file), p_adv range 0.0001..0.3838
+[2026-09-18 15:37:56]   targets: [5118, 8740, 5324, 4630]
+[2026-09-18 15:37:56] === target 5118 (1/4) ===
+[2026-09-18 15:37:57]   Exact gi/gt alignment backend: torch.func JVP
+[2026-09-18 15:38:14]   target 5118: selector overhead 17.968 s, CUDA peak 1239.4 MiB (incremental 475.8 MiB)
+[2026-09-18 15:55:56]   target 5118: crafted 250 poisons in 1062 s, obj=0.20275, CUDA peak=4730.7 MiB (incremental 3932.1 MiB)
+[2026-09-18 15:55:56]   target 5118: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 16:00:20]   [t5118 v1/5] SUCCESS (pred=dog) CTA=0.8371
+[2026-09-18 16:04:44]   [t5118 v2/5] SUCCESS (pred=dog) CTA=0.8376
+[2026-09-18 16:09:05]   [t5118 v3/5] SUCCESS (pred=dog) CTA=0.8398
+[2026-09-18 16:13:25]   [t5118 v4/5] SUCCESS (pred=dog) CTA=0.8395
+[2026-09-18 16:17:44]   [t5118 v5/5] SUCCESS (pred=dog) CTA=0.8449
+[2026-09-18 16:17:44]   target 5118, 5 victims on this gpu: ASR=100.0% CTA=0.8398 +/- 0.0028
+[2026-09-18 16:17:44] === target 8740 (2/4) ===
+[2026-09-18 16:18:03]   target 8740: selector overhead 18.151 s, CUDA peak 1239.4 MiB (incremental 443.8 MiB)
+[2026-09-18 16:35:49]   target 8740: crafted 250 poisons in 1066 s, obj=0.18704, CUDA peak=4739.4 MiB (incremental 3940.6 MiB)
+[2026-09-18 16:35:49]   target 8740: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 16:40:00]   [t8740 v1/5] SUCCESS (pred=dog) CTA=0.8417
+[2026-09-18 16:42:46]   [t8740 v2/5] fail (pred=bird) CTA=0.8306
+[2026-09-18 16:45:15]   [t8740 v3/5] SUCCESS (pred=dog) CTA=0.8344
+[2026-09-18 16:47:45]   [t8740 v4/5] SUCCESS (pred=dog) CTA=0.8428
+
+===== bmc12_r20_sa_b0005_gigt: target shard 2 =====
+[2026-09-18 14:43:40] === run start: CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selexactgigt_worst0.05_ce5_tgt14 on cuda [0] ===
+[2026-09-18 14:43:40] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/PoisonBase/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/PoisonBase/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "0", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 5, "out_dir": "/home/ubuntu/PoisonBase/.local_bench_shards/bmc12_r20_sa_b0005_gigt/part2", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_exact_alignment": true, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/home/ubuntu/PoisonBase/.local_bench_shards/targets/r20_part2.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 14:43:40] Jacobian score: disabled
+[2026-09-18 14:43:40] Exact full-parameter gi^T gt selector: enabled, batch_size=64; per-surrogate alignment standardization enabled
+[2026-09-18 14:43:40] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 14:43:40] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-18 14:43:52]   crafting on 5/20 surrogates
+[2026-09-18 14:43:52] === clean victims (5 x ResNet20BN) ===
+[2026-09-18 14:43:56]   clean baseline CTA = 0.8350 +/- 0.0046
+[2026-09-18 14:43:56]   target pool 1000 -> eligible 976 (24 already predicted as y_adv or dropped)
+[2026-09-18 14:43:56]   chosen 4 targets (file), p_adv range 0.0026..0.0475
+[2026-09-18 14:43:56]   targets: [833, 2065, 7056, 9059]
+[2026-09-18 14:43:56] === target 833 (1/4) ===
+[2026-09-18 14:43:57]   Exact gi/gt alignment backend: torch.func JVP
+[2026-09-18 14:44:11]   target 833: selector overhead 14.707 s, CUDA peak 1239.4 MiB (incremental 475.8 MiB)
+[2026-09-18 14:51:49]   target 833: crafted 250 poisons in 459 s, obj=0.19857, CUDA peak=4731.0 MiB (incremental 3932.5 MiB)
+[2026-09-18 14:51:49]   target 833: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 14:54:33]   [t833 v1/5] SUCCESS (pred=dog) CTA=0.8410
+[2026-09-18 14:57:06]   [t833 v2/5] SUCCESS (pred=dog) CTA=0.8390
+[2026-09-18 14:59:29]   [t833 v3/5] SUCCESS (pred=dog) CTA=0.8436
+[2026-09-18 15:01:54]   [t833 v4/5] SUCCESS (pred=dog) CTA=0.8434
+[2026-09-18 15:04:16]   [t833 v5/5] SUCCESS (pred=dog) CTA=0.8322
+[2026-09-18 15:04:16]   target 833, 5 victims on this gpu: ASR=100.0% CTA=0.8398 +/- 0.0042
+[2026-09-18 15:04:16] === target 2065 (2/4) ===
+[2026-09-18 15:04:33]   target 2065: selector overhead 16.082 s, CUDA peak 1239.4 MiB (incremental 443.8 MiB)
+[2026-09-18 15:10:20]   target 2065: crafted 250 poisons in 347 s, obj=0.18637, CUDA peak=4740.6 MiB (incremental 3941.8 MiB)
+[2026-09-18 15:10:20]   target 2065: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 15:13:10]   [t2065 v1/5] SUCCESS (pred=dog) CTA=0.8332
+[2026-09-18 15:16:03]   [t2065 v2/5] SUCCESS (pred=dog) CTA=0.8373
+[2026-09-18 15:18:52]   [t2065 v3/5] SUCCESS (pred=dog) CTA=0.8380
+[2026-09-18 15:21:41]   [t2065 v4/5] SUCCESS (pred=dog) CTA=0.8405
+[2026-09-18 15:24:24]   [t2065 v5/5] SUCCESS (pred=dog) CTA=0.8384
+[2026-09-18 15:24:24]   target 2065, 5 victims on this gpu: ASR=100.0% CTA=0.8375 +/- 0.0024
+[2026-09-18 15:24:24] === target 7056 (3/4) ===
+[2026-09-18 15:24:41]   target 7056: selector overhead 17.027 s, CUDA peak 1239.4 MiB (incremental 443.8 MiB)
+[2026-09-18 15:30:34]   target 7056: crafted 250 poisons in 353 s, obj=0.24789, CUDA peak=4739.0 MiB (incremental 3940.2 MiB)
+[2026-09-18 15:30:34]   target 7056: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 15:33:24]   [t7056 v1/5] SUCCESS (pred=dog) CTA=0.8384
+[2026-09-18 15:36:14]   [t7056 v2/5] fail (pred=bird) CTA=0.8319
+[2026-09-18 15:39:05]   [t7056 v3/5] fail (pred=bird) CTA=0.8452
+[2026-09-18 15:41:59]   [t7056 v4/5] fail (pred=bird) CTA=0.8366
+[2026-09-18 15:44:52]   [t7056 v5/5] fail (pred=bird) CTA=0.8430
+[2026-09-18 15:44:52]   target 7056, 5 victims on this gpu: ASR=20.0% CTA=0.8390 +/- 0.0047
+[2026-09-18 15:44:52] === target 9059 (4/4) ===
+[2026-09-18 15:45:10]   target 9059: selector overhead 17.970 s, CUDA peak 1239.4 MiB (incremental 443.8 MiB)
+[2026-09-18 15:51:06]   target 9059: crafted 250 poisons in 355 s, obj=0.21132, CUDA peak=4739.3 MiB (incremental 3940.5 MiB)
+[2026-09-18 15:51:06]   target 9059: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 15:53:56]   [t9059 v1/5] SUCCESS (pred=dog) CTA=0.8378
+[2026-09-18 15:56:41]   [t9059 v2/5] fail (pred=bird) CTA=0.8378
+[2026-09-18 15:59:31]   [t9059 v3/5] SUCCESS (pred=dog) CTA=0.8415
+[2026-09-18 16:02:24]   [t9059 v4/5] fail (pred=cat) CTA=0.8450
+[2026-09-18 16:05:11]   [t9059 v5/5] fail (pred=cat) CTA=0.8440
+[2026-09-18 16:05:11]   target 9059, 5 victims on this gpu: ASR=40.0% CTA=0.8412 +/- 0.0030
+[2026-09-18 16:05:11]   selector resources: 4 target(s), 65.8 total target-seconds, max CUDA allocated 1239.4 MiB (incremental 475.8 MiB)
+[2026-09-18 16:05:11] ==== CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selexactgigt_worst0.05_ce5_tgt14 : ASR = 65.0% +/- 35.7% | CTA = 0.8394 (baseline 0.8350) ====
+[2026-09-18 16:05:11]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 5, 2, 0, 13, 0, 0, 0, 0]
