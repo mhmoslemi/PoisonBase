@@ -1,0 +1,24 @@
+[2026-09-18 14:43:45] === run start: CIFAR10_ResNet20BN_gradmatch_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selMinusM_ce5_tgt14 on cuda [0] ===
+[2026-09-18 14:43:45] args: {"FORCE": false, "attack": "gradmatch", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/PoisonBase/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/PoisonBase/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "0", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 5, "out_dir": "/home/ubuntu/PoisonBase/.local_bench_shards/bmc05_r20_gm_b0005_m/part2", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_component": "minus-m", "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/home/ubuntu/PoisonBase/.local_bench_shards/targets/r20_part2.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 14:43:45] Jacobian score: disabled
+[2026-09-18 14:43:45] -M component selector: raw components averaged over surrogates, then each used component standardized across candidates; batch_size=64
+[2026-09-18 14:43:45] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 14:43:45] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-18 14:43:57]   crafting on 5/20 surrogates
+[2026-09-18 14:43:57] === clean victims (5 x ResNet20BN) ===
+[2026-09-18 14:44:00]   clean baseline CTA = 0.8350 +/- 0.0046
+[2026-09-18 14:44:00]   target pool 1000 -> eligible 976 (24 already predicted as y_adv or dropped)
+[2026-09-18 14:44:00]   chosen 4 targets (file), p_adv range 0.0026..0.0475
+[2026-09-18 14:44:00]   targets: [833, 2065, 7056, 9059]
+[2026-09-18 14:44:01] === target 833 (1/4) ===
+[2026-09-18 14:44:03]   target 833: selector overhead 2.473 s, CUDA peak 842.3 MiB (incremental 78.7 MiB)
+[2026-09-18 14:51:47]   target 833: crafted 250 poisons in 464 s, obj=0.19551, CUDA peak=4731.6 MiB (incremental 3965.1 MiB)
+[2026-09-18 14:51:47]   target 833: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 14:54:37]   [t833 v1/5] SUCCESS (pred=dog) CTA=0.8407
+[2026-09-18 14:57:18]   [t833 v2/5] fail (pred=bird) CTA=0.8389
+[2026-09-18 14:59:50]   [t833 v3/5] SUCCESS (pred=dog) CTA=0.8334
+[2026-09-18 15:02:22]   [t833 v4/5] SUCCESS (pred=dog) CTA=0.8388
+[2026-09-18 15:04:49]   [t833 v5/5] SUCCESS (pred=dog) CTA=0.8355
+[2026-09-18 15:04:49]   target 833, 5 victims on this gpu: ASR=80.0% CTA=0.8375 +/- 0.0026
+[2026-09-18 15:04:49] === target 2065 (2/4) ===
+[2026-09-18 15:04:52]   target 2065: selector overhead 2.192 s, CUDA peak 874.3 MiB (incremental 78.7 MiB)

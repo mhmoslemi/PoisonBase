@@ -1,0 +1,111 @@
+[2026-09-18 14:43:43] === run start: CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selexactgigt_worst0.05_ce5_tgt14 on cuda [0] ===
+[2026-09-18 14:43:43] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/PoisonBase/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/PoisonBase/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "0", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 5, "out_dir": "/home/ubuntu/PoisonBase/.local_bench_shards/bmc12_r20_sa_b0005_gigt/part1", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_exact_alignment": true, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/home/ubuntu/PoisonBase/.local_bench_shards/targets/r20_part1.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 14:43:43] Jacobian score: disabled
+[2026-09-18 14:43:43] Exact full-parameter gi^T gt selector: enabled, batch_size=64; per-surrogate alignment standardization enabled
+[2026-09-18 14:43:43] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 14:43:43] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-18 14:43:55]   crafting on 5/20 surrogates
+[2026-09-18 14:43:55] === clean victims (5 x ResNet20BN) ===
+[2026-09-18 14:44:00]   clean baseline CTA = 0.8350 +/- 0.0046
+[2026-09-18 14:44:00]   target pool 1000 -> eligible 976 (24 already predicted as y_adv or dropped)
+[2026-09-18 14:44:00]   chosen 4 targets (file), p_adv range 0.0001..0.3838
+[2026-09-18 14:44:00]   targets: [5118, 8740, 5324, 4630]
+[2026-09-18 14:44:00] === target 5118 (1/4) ===
+[2026-09-18 14:44:01]   Exact gi/gt alignment backend: torch.func JVP
+[2026-09-18 14:44:15]   target 5118: selector overhead 15.031 s, CUDA peak 1239.4 MiB (incremental 475.8 MiB)
+[W918 14:44:15.851039332 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 33554432 bytes (free: 32964608, total: 101973819392).
+[W918 14:44:15.859531901 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.859660344 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.863726424 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.863801052 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.865352366 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 39845888 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.865424480 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 39845888 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.866280581 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.866344968 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867087576 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867150476 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867907171 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.867967693 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.868747982 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.868811267 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.869611662 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.869677874 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.870431518 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.870494091 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.871250830 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.871313388 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872019564 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872083890 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872714953 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.872773456 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.873417822 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.873478501 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 16777216 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.875602530 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 5701632, total: 101973819392).
+[W918 14:44:15.875690999 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 5701632, total: 101973819392).
+Traceback (most recent call last):
+  File "/home/ubuntu/PoisonBase/final_update.py", line 3542, in <module>
+    main(parse_args())
+  File "/home/ubuntu/PoisonBase/final_update.py", line 3091, in main
+    tally += run_one_target(args, ctx, sel_nets, craft_nets, tidx, y_adv,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 2493, in run_one_target
+    prep = prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 2403, in prepare_poisons
+    base01, x_adv01, obj = craft_selected_bases(
+                           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 1937, in craft_selected_bases
+    x_adv01, objective = craft_gradmatch(
+                         ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 1907, in craft_gradmatch
+    loss_p = crit(net(x_adv_norm), y_p)
+                  ^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/networks.py", line 582, in forward
+    out = self.layer2(out)
+          ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/networks.py", line 447, in forward
+    out += self.shortcut(x)
+           ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/container.py", line 253, in forward
+    input = module(input)
+            ^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1778, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1789, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 565, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/nn/modules/conv.py", line 560, in _conv_forward
+    return F.conv2d(
+           ^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 94.97 GiB of which 5.44 MiB is free. Process 9516 has 1.04 GiB memory in use. Process 13987 has 85.85 GiB memory in use. Process 27266 has 5.54 GiB memory in use. Including non-PyTorch memory, this process has 2.50 GiB memory in use. Of the allocated memory 1.78 GiB is allocated by PyTorch, and 60.44 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

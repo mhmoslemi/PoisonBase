@@ -1,0 +1,49 @@
+[2026-09-18 14:43:47] === run start: CIFAR10_ResNet20BN_sapa_ours_dog-bird_b0.005_eps8_seed42_lam1_cosine_selMinusM_worst0.05_ce5_tgt14 on cuda [0] ===
+[2026-09-18 14:43:47] args: {"FORCE": false, "attack": "sapa", "base": "ours", "base_dist": "cosine", "base_topr": null, "budget": 0.005, "cache_dir": "/home/ubuntu/PoisonBase/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/home/ubuntu/PoisonBase/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "0", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 1.0, "model": "ResNet20BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 5, "out_dir": "/home/ubuntu/PoisonBase/.local_bench_shards/bmc11_r20_sa_b0005_m/part2", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_component": "minus-m", "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/home/ubuntu/PoisonBase/.local_bench_shards/targets/r20_part2.json", "target_select": 14, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 14:43:47] Jacobian score: disabled
+[2026-09-18 14:43:47] -M component selector: raw components averaged over surrogates, then each used component standardized across candidates; batch_size=64
+[2026-09-18 14:43:47] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 14:43:47] === selection/crafting surrogates (20 x ResNet20BN, trained on the full real set) ===
+[2026-09-18 14:43:58]   crafting on 5/20 surrogates
+[2026-09-18 14:43:58] === clean victims (5 x ResNet20BN) ===
+[2026-09-18 14:44:04]   clean baseline CTA = 0.8350 +/- 0.0046
+[2026-09-18 14:44:04]   target pool 1000 -> eligible 976 (24 already predicted as y_adv or dropped)
+[2026-09-18 14:44:04]   chosen 4 targets (file), p_adv range 0.0026..0.0475
+[2026-09-18 14:44:04]   targets: [833, 2065, 7056, 9059]
+[2026-09-18 14:44:04] === target 833 (1/4) ===
+[2026-09-18 14:44:07]   target 833: selector overhead 2.976 s, CUDA peak 842.3 MiB (incremental 78.7 MiB)
+[W918 14:44:08.911635507 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 18874368 bytes (free: 9895936, total: 101973819392).
+[W918 14:44:08.914543218 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 18874368 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.918789176 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 18874368 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.918904069 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 18874368 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.921226713 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 18874368 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.921346043 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 18874368 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.922605312 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.922700749 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.924220229 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 14090240, total: 101973819392).
+[W918 14:44:08.924323367 CUDACachingAllocator.cpp:3933] memory allocation failed with OOM on device 0 while trying to allocate 20971520 bytes (free: 14090240, total: 101973819392).
+Traceback (most recent call last):
+  File "/home/ubuntu/PoisonBase/final_update.py", line 3542, in <module>
+    main(parse_args())
+  File "/home/ubuntu/PoisonBase/final_update.py", line 3091, in main
+    tally += run_one_target(args, ctx, sel_nets, craft_nets, tidx, y_adv,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 2493, in run_one_target
+    prep = prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 2403, in prepare_poisons
+    base01, x_adv01, obj = craft_selected_bases(
+                           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 1937, in craft_selected_bases
+    x_adv01, objective = craft_gradmatch(
+                         ^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/PoisonBase/final_update.py", line 1908, in craft_gradmatch
+    g_p = flat_grad(torch.autograd.grad(loss_p, params, create_graph=True))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/autograd/__init__.py", line 594, in grad
+    result = _engine_run_backward(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/unsloth_env/lib/python3.12/site-packages/torch/autograd/graph.py", line 979, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 94.97 GiB of which 13.44 MiB is free. Process 9515 has 1024.00 MiB memory in use. Process 14403 has 85.85 GiB memory in use. Process 27259 has 5.42 GiB memory in use. Including non-PyTorch memory, this process has 2.64 GiB memory in use. Of the allocated memory 1.95 GiB is allocated by PyTorch, and 25.05 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
