@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Shared runtime for one fresh S=A -> V architecture-transfer configuration.
 #
-# K changes only the selector ensemble.  Poison construction always uses the
-# first five checkpoints of A, and victim training uses V.  --FORCE makes every
-# submitted job select bases and craft perturbations again; no poison cache from
-# another experiment is staged.
+# K changes only the selector ensemble. Poison construction always uses the
+# first five checkpoints of A, and victim training uses V. Normal submissions
+# are fresh. Recovery submissions set VXF_RESUME=1, stage only that run's saved
+# state, and omit --FORCE so completed target/victim pairs are preserved.
 
 set -Eeuo pipefail
 
@@ -116,8 +116,12 @@ stage_inputs() {
     stage_dir_if_present "$CACHE_ROOT/clean_victims/$cache_name" \
                          "$LOCAL_CACHE_ROOT/clean_victims/$cache_name"
 
-    # Intentionally do not stage any result/poison directory.  Every job starts
-    # from an empty node-local result root and --FORCE reselects and recrafts.
+    if [ "${VXF_RESUME:-0}" = 1 ]; then
+        # Only the matching run is staged. This preserves its completed rows and
+        # poison cache without importing state from another configuration.
+        stage_dir_if_present "$RESULT_ROOT/$VXF_RUN_NAME" \
+                             "$LOCAL_RESULT_ROOT/$VXF_RUN_NAME"
+    fi
 }
 
 sync_outputs() {
@@ -216,7 +220,7 @@ PY
 
 main() {
     local required expected_degree target_file status
-    local memory_args=() sharp_args=()
+    local memory_args=() sharp_args=() force_args=()
 
     [ -n "${SLURM_TMPDIR:-}" ] || die "SLURM_TMPDIR is unset; submit with sbatch"
     for required in VXF_INDEX VXF_ATTACK VXF_BUDGET VXF_K \
@@ -229,6 +233,7 @@ main() {
     case "$VXF_K" in 10|20) ;; *) die "bad selector K: $VXF_K" ;; esac
     case "$VXF_SOURCE_MODEL" in ConvNetBN) expected_degree=70 ;; ResNet20BN) expected_degree=14 ;; VGG13BN) expected_degree=50 ;; *) die "bad source model: $VXF_SOURCE_MODEL" ;; esac
     case "$VXF_VICTIM_MODEL" in ConvNetBN|ResNet20BN|VGG13BN) ;; *) die "bad victim model: $VXF_VICTIM_MODEL" ;; esac
+    case "${VXF_RESUME:-0}" in 0) force_args=(--FORCE) ;; 1) ;; *) die "VXF_RESUME must be 0 or 1" ;; esac
     [ "$VXF_TARGET_DEGREE" = "$expected_degree" ] || \
         die "target degree $VXF_TARGET_DEGREE != expected $expected_degree"
 
@@ -264,7 +269,11 @@ main() {
     say "job: ${SLURM_JOB_ID:-unknown} ${SLURM_JOB_NAME:-unknown} on $(hostname)"
     say "config: $ORIGINAL_COMMAND"
     say "protocol: S=A=$VXF_SOURCE_MODEL V=$VXF_VICTIM_MODEL K=$VXF_K"
-    say "protocol: fresh base selection + fresh poison optimization (FORCE)"
+    if [ "${VXF_RESUME:-0}" = 1 ]; then
+        say "protocol: resume this configuration from saved rows/cache"
+    else
+        say "protocol: fresh base selection + fresh poison optimization (FORCE)"
+    fi
     say "output: $RESULT_ROOT/$VXF_RUN_NAME"
 
     set +e
@@ -283,7 +292,7 @@ main() {
         --num_targets 10 --target_select "$VXF_TARGET_DEGREE" \
         --target_idx_file "$target_file" --keep_pinned_targets \
         --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
-        --victim_decay 40 --victim_wd 0 --clean_baseline --FORCE
+        --victim_decay 40 --victim_wd 0 --clean_baseline "${force_args[@]}"
     status=$?
     set -e
 
