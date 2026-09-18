@@ -2,10 +2,10 @@
 # Run the eight remaining component-ablation configurations on one 8-GPU host.
 #
 # Each original configuration is assigned to one physical GPU and split into
-# two concurrent four-target workers on that GPU.  When both workers finish,
-# their 8 x 5 victim evaluations, poison caches, overhead records, and logs are
-# merged into the canonical ours_result/<run-name> directory.  Thus downstream
-# table scripts see the same 40-row result they would have seen from one job.
+# two four-target shards. RUN_MODE=parallel runs both shards concurrently for a
+# fresh run. RUN_MODE=resume runs them sequentially, preserving completed rows
+# and avoiding the OOMs caused by two attack workers sharing one busy GPU.
+# The two shards are merged into the canonical ours_result/<run-name> directory.
 
 set -Eeuo pipefail
 
@@ -17,6 +17,21 @@ WORK_ROOT="${WORK_ROOT:-$ROOT/.local_bench_shards}"
 LOG_ROOT="${LOG_ROOT:-$ROOT/local_logs/bench_missing_8gpu}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 BOOTSTRAP_CACHE="${BOOTSTRAP_CACHE:-1}"
+RUN_MODE="${RUN_MODE:-parallel}"
+MIN_FREE_MIB="${MIN_FREE_MIB:-7000}"
+GPU_POLL_SECONDS="${GPU_POLL_SECONDS:-30}"
+MAX_RETRIES="${MAX_RETRIES:-3}"
+
+case "$RUN_MODE" in
+    parallel|resume) ;;
+    *) printf 'ERROR: RUN_MODE must be parallel or resume (got %s)\n' "$RUN_MODE" >&2; exit 1 ;;
+esac
+[[ "$MIN_FREE_MIB" =~ ^[0-9]+$ ]] || \
+    { printf 'ERROR: MIN_FREE_MIB must be an integer\n' >&2; exit 1; }
+[[ "$GPU_POLL_SECONDS" =~ ^[0-9]+$ ]] && (( GPU_POLL_SECONDS > 0 )) || \
+    { printf 'ERROR: GPU_POLL_SECONDS must be a positive integer\n' >&2; exit 1; }
+[[ "$MAX_RETRIES" =~ ^[0-9]+$ ]] && (( MAX_RETRIES > 0 )) || \
+    { printf 'ERROR: MAX_RETRIES must be a positive integer\n' >&2; exit 1; }
 
 say() { printf '%s\n' "$*"; }
 die() { say "ERROR: $*" >&2; exit 1; }
@@ -25,11 +40,15 @@ die() { say "ERROR: $*" >&2; exit 1; }
 [[ -d "$DATA_ROOT/cifar-10-batches-py" ]] || \
     die "missing CIFAR-10 data at $DATA_ROOT/cifar-10-batches-py"
 
-# Prefer an explicitly supplied environment, then the two likely local paths.
+# Prefer an explicitly supplied environment, then the likely local paths.
 if [[ -n "${ENV_ACTIVATE:-}" ]]; then
     [[ -f "$ENV_ACTIVATE" ]] || die "ENV_ACTIVATE does not exist: $ENV_ACTIVATE"
     # shellcheck disable=SC1090
     source "$ENV_ACTIVATE"
+elif [[ -f /home/ubuntu/unsloth_env/bin/activate ]]; then
+    # This is the environment used by the saved local-server runs.
+    # shellcheck disable=SC1091
+    source /home/ubuntu/unsloth_env/bin/activate
 elif [[ -f /home/ubuntu/ENV/bin/activate ]]; then
     # shellcheck disable=SC1091
     source /home/ubuntu/ENV/bin/activate
@@ -50,7 +69,11 @@ PY
 )"
 [[ "$GPU_COUNT" =~ ^[0-9]+$ ]] || die "could not determine the CUDA device count"
 (( GPU_COUNT >= 8 )) || die "need 8 visible CUDA GPUs; PyTorch sees $GPU_COUNT"
-say "GPUs: using physical devices 0-7 (two attack workers per GPU)"
+if [[ "$RUN_MODE" == resume ]]; then
+    say "GPUs: resume mode uses physical devices 0-7 with at most one attack worker per GPU"
+else
+    say "GPUs: using physical devices 0-7 (two attack workers per GPU)"
+fi
 
 # ---------------------------------------------------------------------------
 # Cache bootstrap.  The cluster runs reused 20 surrogate and 5 clean-victim
@@ -231,6 +254,68 @@ expected = {(target, victim) for target in targets for victim in range(5)}
 sys.exit(0 if len(rows) == 40 and len(pairs) == 40 and set(pairs) == expected
          and all(count == 1 for count in Counter(pairs).values()) else 1)
 PY
+}
+
+shard_is_complete() {
+    local results_csv="$1" target_file="$2"
+    [[ -s "$results_csv" ]] || return 1
+    "$PYTHON_BIN" - "$results_csv" "$target_file" <<'PY'
+import csv
+import json
+import sys
+from collections import Counter
+
+csv_path, target_path = sys.argv[1:]
+with open(target_path) as handle:
+    targets = [int(value) for value in
+               json.load(handle)['pairs']['dog-bird']['indices']]
+with open(csv_path, newline='') as handle:
+    rows = list(csv.DictReader(handle))
+pairs = [(int(row['target_idx']), int(row['victim_id'])) for row in rows
+         if row.get('target_idx', '') != '' and row.get('victim_id', '') != '']
+expected = {(target, victim) for target in targets for victim in range(5)}
+counts = Counter(pairs)
+sys.exit(0 if len(rows) == len(expected) and set(pairs) == expected
+         and all(value == 1 for value in counts.values()) else 1)
+PY
+}
+
+wait_for_run_lock() {
+    local run_dir="$1" lock="$run_dir/.lock" who lock_host lock_pid backup
+    local local_host
+    local_host="$(hostname)"
+    while [[ -e "$lock" ]]; do
+        who="$(command cat "$lock" 2>/dev/null || true)"
+        [[ -e "$lock" ]] || continue
+        lock_host="${who%:*}"
+        lock_pid="${who##*:}"
+        if [[ "$lock_host" == "$local_host" && "$lock_pid" =~ ^[0-9]+$ ]] && \
+                kill -0 "$lock_pid" 2>/dev/null; then
+            say "lock: $run_dir is still active as PID $lock_pid; waiting ${GPU_POLL_SECONDS}s"
+            sleep "$GPU_POLL_SECONDS"
+            continue
+        fi
+        backup="${lock}.dead.$(date +%Y%m%d-%H%M%S).$$"
+        if mv -- "$lock" "$backup" 2>/dev/null; then
+            say "lock: preserved dead lock $who as $(basename "$backup")"
+        fi
+    done
+}
+
+wait_for_gpu_memory() {
+    local gpu="$1" free_mib
+    command -v nvidia-smi >/dev/null 2>&1 || die "nvidia-smi is required in resume mode"
+    while true; do
+        free_mib="$(nvidia-smi -i "$gpu" --query-gpu=memory.free \
+            --format=csv,noheader,nounits 2>/dev/null | head -n 1 | tr -cd '0-9' || true)"
+        [[ "$free_mib" =~ ^[0-9]+$ ]] || die "could not read free memory for GPU $gpu"
+        if (( free_mib >= MIN_FREE_MIB )); then
+            say "GPU $gpu: ${free_mib} MiB free; starting/resuming shard"
+            return
+        fi
+        say "GPU $gpu: only ${free_mib} MiB free; need ${MIN_FREE_MIB} MiB, waiting ${GPU_POLL_SECONDS}s"
+        sleep "$GPU_POLL_SECONDS"
+    done
 }
 
 run_shard() {
@@ -467,6 +552,145 @@ print('==== %s : MERGED ASR = %.1f%% +/- %.1f%% | 8 targets x 5 victims ===='
          100.0 * summary['asr_std']))
 PY
 }
+
+run_config_resume() {
+    local index="$1" gpu="$2"
+    local cfg model attack budget selector degree prefix source_targets run_name
+    local canonical_dir part target_file shard_out part_log shard_run attempt status
+    local combined_log combined_tmp merge_output
+
+    cfg="${CFG_IDS[$index]}"
+    model="${MODELS[$index]}"
+    attack="${ATTACKS[$index]}"
+    budget="${BUDGETS[$index]}"
+    selector="${SELECTORS[$index]}"
+    degree="${DEGREES[$index]}"
+    prefix="${TARGET_PREFIXES[$index]}"
+    source_targets="${TARGET_SOURCES[$index]}"
+    run_name="$(canonical_run_name "$model" "$attack" "$budget" "$selector" "$degree")"
+    canonical_dir="$RESULT_ROOT/$run_name"
+
+    if result_is_complete "$canonical_dir/results.csv" "$source_targets"; then
+        say "GPU $gpu: SKIP $cfg; canonical result already has 40/40 evaluations"
+        return 0
+    fi
+
+    for part in 1 2; do
+        target_file="$WORK_ROOT/targets/${prefix}_part${part}.json"
+        shard_out="$WORK_ROOT/$cfg/part${part}"
+        shard_run="$shard_out/$run_name"
+        part_log="$LOG_ROOT/${cfg}.part${part}.out"
+
+        if shard_is_complete "$shard_run/results.csv" "$target_file"; then
+            say "GPU $gpu: SKIP $cfg part $part; shard already has 20/20 evaluations"
+            continue
+        fi
+
+        attempt=1
+        while (( attempt <= MAX_RETRIES )); do
+            wait_for_run_lock "$shard_run"
+            if shard_is_complete "$shard_run/results.csv" "$target_file"; then
+                say "GPU $gpu: $cfg part $part completed while waiting for its prior process"
+                break
+            fi
+            wait_for_gpu_memory "$gpu"
+            {
+                printf '\n===== resume attempt %d/%d on GPU %d at %s =====\n' \
+                    "$attempt" "$MAX_RETRIES" "$gpu" "$(date -Is)"
+            } >>"$part_log"
+            say "GPU $gpu: resume $cfg part $part, attempt $attempt/$MAX_RETRIES"
+            status=0
+            set +e
+            run_shard "$gpu" "$model" "$attack" "$budget" "$selector" \
+                "$degree" "$target_file" "$shard_out" >>"$part_log" 2>&1
+            status=$?
+            set -e
+            if (( status == 0 )) && \
+                    shard_is_complete "$shard_run/results.csv" "$target_file"; then
+                say "GPU $gpu: completed $cfg part $part (20/20)"
+                break
+            fi
+            say "GPU $gpu: $cfg part $part attempt $attempt failed/incomplete (exit $status)" >&2
+            attempt=$((attempt + 1))
+            if (( attempt <= MAX_RETRIES )); then
+                sleep "$GPU_POLL_SECONDS"
+            fi
+        done
+        if ! shard_is_complete "$shard_run/results.csv" "$target_file"; then
+            say "GPU $gpu: giving up $cfg part $part after $MAX_RETRIES attempts" >&2
+            return 1
+        fi
+    done
+
+    combined_log="$LOG_ROOT/${cfg}.out"
+    combined_tmp="${combined_log}.tmp.$$"
+    {
+        printf '===== %s: target shard 1 (including resume attempts) =====\n' "$cfg"
+        cat "$LOG_ROOT/${cfg}.part1.out"
+        printf '\n===== %s: target shard 2 (including resume attempts) =====\n' "$cfg"
+        cat "$LOG_ROOT/${cfg}.part2.out"
+    } >"$combined_tmp"
+    mv "$combined_tmp" "$combined_log"
+
+    if merge_output="$(merge_shards \
+        "$WORK_ROOT/$cfg/part1/$run_name" \
+        "$WORK_ROOT/$cfg/part2/$run_name" \
+        "$canonical_dir" "$source_targets" 2>&1)"; then
+        printf '\n===== validated merged result =====\n%s\n' "$merge_output" >>"$combined_log"
+        say "$merge_output"
+        say "GPU $gpu: merged $cfg; combined stdout: $combined_log"
+        return 0
+    fi
+    printf '\n===== merge failed =====\n%s\n' "$merge_output" >>"$combined_log"
+    say "GPU $gpu: merge FAILED for $cfg: $merge_output" >&2
+    return 1
+}
+
+if [[ "$RUN_MODE" == resume ]]; then
+    export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+    declare -a RESUME_PIDS=()
+    declare -a RESUME_INDEXES=()
+
+    stop_resume_workers() {
+        trap - INT TERM
+        say "signal: terminating resume workers" >&2
+        if (( ${#RESUME_PIDS[@]} > 0 )); then
+            kill "${RESUME_PIDS[@]}" 2>/dev/null || true
+            wait "${RESUME_PIDS[@]}" 2>/dev/null || true
+        fi
+        exit 130
+    }
+    trap stop_resume_workers INT TERM
+
+    say "resume: auditing canonical results and starting only incomplete configurations"
+    for index in "${!CFG_IDS[@]}"; do
+        run_name="$(canonical_run_name "${MODELS[$index]}" "${ATTACKS[$index]}" \
+            "${BUDGETS[$index]}" "${SELECTORS[$index]}" "${DEGREES[$index]}")"
+        if result_is_complete "$RESULT_ROOT/$run_name/results.csv" \
+                "${TARGET_SOURCES[$index]}"; then
+            say "GPU $index: SKIP ${CFG_IDS[$index]}; already complete"
+            continue
+        fi
+        run_config_resume "$index" "$index" &
+        RESUME_PIDS+=("$!")
+        RESUME_INDEXES+=("$index")
+    done
+
+    resume_failures=0
+    for slot in "${!RESUME_PIDS[@]}"; do
+        index="${RESUME_INDEXES[$slot]}"
+        if wait "${RESUME_PIDS[$slot]}"; then
+            say "resume: ${CFG_IDS[$index]} complete"
+        else
+            say "resume: ${CFG_IDS[$index]} FAILED; rerun resume mode to continue" >&2
+            resume_failures=$((resume_failures + 1))
+        fi
+    done
+    trap - INT TERM
+    (( resume_failures == 0 )) || die "$resume_failures configuration(s) remain incomplete"
+    say "resume: all eight canonical configurations now contain 40/40 evaluations"
+    exit 0
+fi
 
 declare -a PIDS=()
 declare -a PART_LOGS=()
