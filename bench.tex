@@ -1,82 +1,78 @@
 
-
-
-
-
-\begin{table*}[h]
+\begin{table*}[t]
 \centering
-\caption{Ablation of the \textsc{Basis} selection score on ResNet20 and VGG13.}
+\caption{Comparison of base selectors and \textsc{Basis} score ablations on
+dog$\rightarrow$bird with $K=20$. Cells report ASR (\%). The \textsc{Rand},
+\textsc{Basis}, and unmarked Gao/FUS entries use 10 targets and six victim
+seeds per target. A dagger marks eight-target estimates: component-ablation
+rows use five victim seeds per target, whereas daggered Gao/FUS cells use six.
+A dash denotes that no matching completed ablation run is available. The best
+and second-best values in each column are shown in bold and underlined,
+respectively.}
 \label{tab:selector-combined}
-\vspace{-0.6em}
+\begingroup
+\fontsize{8}{9.5}\selectfont
+\setlength{\tabcolsep}{4.2pt}
+\renewcommand{\arraystretch}{1.08}
+\setlength{\belowrulesep}{2pt}
+\setlength{\aboverulesep}{2pt}
+\newcommand{\partialasr}[1]{#1\textsuperscript{\ensuremath{\dagger}}}
 
-\resizebox{0.95\textwidth}{!}{%
-\begin{tabular}{@{}l *{16}{c}@{}}
-\toprule
-& \multicolumn{9}{c}{\textbf{ResNet20}} 
-& \multicolumn{7}{c}{\textbf{VGG13}} \\
-\cmidrule(lr){2-10} \cmidrule(l){11-17}
-
-& \multicolumn{5}{c}{Dog $\rightarrow$ Bird}
-& \multicolumn{4}{c}{Frog $\rightarrow$ Airplane} 
-& \multicolumn{6}{c}{Dog $\rightarrow$ Bird}
-& Frog $\rightarrow$ Airplane \\
-\cmidrule(lr){2-6}\cmidrule(lr){7-10} \cmidrule(lr){11-16}\cmidrule(l){17-17}
-
-& \multicolumn{2}{c}{BP} & \multicolumn{2}{c}{GM} & SAPA 
-& BP & GM & \multicolumn{2}{c}{SAPA} 
-& \multicolumn{3}{c}{BP} & \multicolumn{2}{c}{GM} & SAPA & GM \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-6} 
-\cmidrule(lr){7-7}\cmidrule(lr){8-8}\cmidrule(lr){9-10} 
-\cmidrule(lr){11-13}\cmidrule(lr){14-15}\cmidrule(lr){16-16}\cmidrule(l){17-17}
-
-\textbf{Method} ($\boldsymbol{\rho}$)
-& .001 & .005 & .001 & .002 & .001 
-& .010 & .002 & .001 & .002 
-& .001 & .002 & .005 & .001 & .002 & .001 & .001 \\
-\midrule
-
-\textsc{Rand}
-& 11.7 & 30.0 & 15.0 & 31.7 & 18.3 
-& 16.7 & 0.0 & 1.7 & 5.0 
-& 21.7 & 21.4 & 45.0 & 13.3 & 21.7 & 11.7 & 0.0 \\
-\addlinespace[1pt]
-
-$R$
-& 12.5 & 5.0 & 7.5 & 2.5 & 7.5 
-& 2.5 & 0.0 & 0.0 & 2.5 
-& 12.5 & 27.5 & 27.5 & 5.0 & 5.0 & 0.0 & 0.0 \\
-
-$M$
-& \textbf{17.5} & \textbf{45.0} & \underline{40.0} & 51.4 & 40.0
-& 22.5 & 25.7 & \underline{25.0} & \underline{22.9} 
-& \underline{27.5} & 25.0 & \underline{50.0} & \underline{67.5} & 82.5 & \textbf{80.0} & \underline{35.0} \\
-
-$A$
-& 10.0 & 30.0 & 37.5 & \textbf{62.5} & \underline{42.5}
-& \underline{30.0} & \textbf{32.5} & 10.0 & 15.0 
-& \underline{27.5} & \textbf{45.0} & \textbf{55.0} & 60.0 & \underline{85.0} & 62.5 & 27.5 \\
-\addlinespace[1pt]
-
-\textsc{Basis}
-& \textbf{17.5} & \underline{37.5} & 35.0 & \underline{57.5} & \underline{42.5} 
-& \textbf{40.0} & \underline{30.0} & \textbf{27.5} & 20.0 
-& \underline{27.5} & \underline{40.0} & \textbf{55.0} & 52.5 & 57.5 & 52.5 & \textbf{40.0} \\
-
-$R+A$
-& \textbf{17.5} & 35.0 & 30.0 & 50.0 & 40.0
-& 20.0 & 25.0 & 17.5 & \textbf{27.5} 
-& 20.0 & \underline{40.0} & 42.5 & 47.5 & 82.5 & 42.5 & 25.0 \\
-
-$g_i^\top g_t$
-& \underline{15.0} & 27.5 & \textbf{50.0} & \underline{57.5} & \textbf{47.5} 
-& 20.0 & 25.0 & 20.0 & 22.5 
-& \textbf{35.0} & 35.0 & \underline{50.0} & \textbf{71.4} & \textbf{87.5} & \underline{65.0} & 14.3 \\
-\bottomrule
-\end{tabular}%
+\begin{tabular*}{\linewidth}{
+  @{\extracolsep{\fill}}l
+  @{}cccc
+  @{}cccc@{}
 }
-\vspace{-0.5em}
+\toprule
+& \multicolumn{4}{c}{\textbf{ConvNet}}
+& \multicolumn{4}{c}{\textbf{ResNet20}} \\
+\cmidrule(lr){2-5}
+\cmidrule(l){6-9}
+& \multicolumn{2}{c}{\textbf{GM}}
+& \multicolumn{2}{c}{\textbf{SAPA}}
+& \multicolumn{2}{c}{\textbf{GM}}
+& \multicolumn{2}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){2-3}
+\cmidrule(lr){4-5}
+\cmidrule(lr){6-7}
+\cmidrule(l){8-9}
+\textbf{Selector}
+& $\rho=0.002$ & $\rho=0.005$
+& $\rho=0.002$ & $\rho=0.005$
+& $\rho=0.002$ & $\rho=0.005$
+& $\rho=0.002$ & $\rho=0.005$ \\
+% \multicolumn{9}{r}{\fontsize{7}{8}\selectfont $\rho$ is in units of $10^{-3}$} \\
+\midrule
+\textsc{Rand}
+& 0.0 & 1.7 & 0.0 & 6.7
+& 31.7 & 43.3 & 21.7 & 55.0 \\
+\textsc{Basis}
+& 28.3 & \underline{73.3} & \textbf{26.7} & 48.3
+& \underline{56.7} & \textbf{76.7} & \textbf{53.3} & \underline{78.3} \\
+\addlinespace[1pt]
+$R$\textsuperscript{$\dagger$}
+& 15.0 & 20.0 & -- & 25.0
+& 2.5 & -- & -- & -- \\
+$M$\textsuperscript{$\dagger$}
+& \underline{32.5} & 55.0 & -- & \underline{62.5}
+& 55.0 & -- & -- & -- \\
+$g_i^\top g_t$\textsuperscript{$\dagger$}
+& \textbf{35.0} & \textbf{87.5} & -- & \textbf{82.5}
+& \textbf{57.5} & -- & -- & -- \\
+\midrule
+% Gao (loss)
+% & 26.7 & 58.3 & 13.3 & 61.7
+% & 65.0 & {79.2} & 65.0 & {77.1} \\
+Gao (gradient norm)
+& 10.0 & 46.7 & 6.7 & 48.3
+& 53.3 & \partialasr{\underline{70.8}} & 45.0 & \partialasr{\textbf{81.3}} \\
+Gao (forgetting events)
+& 15.0 & 31.7 & \underline{21.7} & 40.0
+& 48.3 & \partialasr{66.7} & \underline{46.7} & \partialasr{52.1} \\
+FUS
+& 8.3 & 28.3 & 10.0 & 20.0
+& 40.0 & \partialasr{64.6} & 40.0 & \partialasr{70.8} \\
+\bottomrule
+\end{tabular*}
+\endgroup
 \end{table*}
-
-
-
-
