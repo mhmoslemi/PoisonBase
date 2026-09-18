@@ -2,7 +2,7 @@
 # Shared node-local runtime for one BASIS cross-architecture/K configuration.
 #
 # Invariants for this experiment:
-#   * ten pinned targets and six victim seeds (60 evaluations per cell)
+#   * pinned targets and six victim seeds (10 targets by default; reruns may use 8)
 #   * A=V for poison crafting and victim training
 #   * S affects base selection only
 #   * K affects the number of selector checkpoints only
@@ -21,6 +21,9 @@ RUN_ROOT="${RUN_ROOT:-${SLURM_TMPDIR:-}/PoisonBase_cross_arch_k_10x6}"
 LOCAL_DATA_ROOT="$RUN_ROOT/data"
 LOCAL_CACHE_ROOT="$RUN_ROOT/cache"
 LOCAL_RESULT_ROOT="$RUN_ROOT/cross_arch_k_10x6_result"
+XFULL_NUM_TARGETS="${XFULL_NUM_TARGETS:-10}"
+XFULL_NUM_VICTIMS="${XFULL_NUM_VICTIMS:-6}"
+XFULL_COMPONENT="${XFULL_COMPONENT:-}"
 SYNCED=0
 STEP_PID=""
 
@@ -188,12 +191,12 @@ handle_signal() {
 }
 
 verify_target_file() {
-    local path="$1"
-    python - "$path" <<'PY'
+    local path="$1" count="$2"
+    python - "$path" "$count" <<'PY'
 import json
 import sys
 
-path = sys.argv[1]
+path, count = sys.argv[1], int(sys.argv[2])
 with open(path) as handle:
     payload = json.load(handle)
 try:
@@ -203,26 +206,31 @@ except (KeyError, TypeError):
         indices = payload
     else:
         raise SystemExit('unrecognized target-set structure: %s' % path)
-if len(indices) != 10 or len(set(map(int, indices))) != 10:
-    raise SystemExit('%s must contain exactly 10 unique dog-bird targets' % path)
-print('targets: 10 unique pinned indices:', ' '.join(map(str, indices)))
+indices = list(map(int, indices[:count]))
+if len(indices) != count or len(set(indices)) != count:
+    raise SystemExit('%s must supply at least %d unique dog-bird targets' %
+                     (path, count))
+print('targets: %d unique pinned indices:' % count, ' '.join(map(str, indices)))
 PY
 }
 
 verify_results() {
     local csv_path="$LOCAL_RESULT_ROOT/$XFULL_RUN_NAME/results.csv"
-    local lookup target_file
+    local lookup target_file expected_rows
     lookup="$(target_attack)"
     target_file="$RUN_ROOT/target_sets/${XFULL_VICTIM_MODEL}_${lookup}_dog-bird.json"
-    python - "$csv_path" "$target_file" <<'PY'
+    expected_rows=$((XFULL_NUM_TARGETS * XFULL_NUM_VICTIMS))
+    python - "$csv_path" "$target_file" "$XFULL_NUM_TARGETS" \
+        "$XFULL_NUM_VICTIMS" "$expected_rows" <<'PY'
 import csv
 import json
 import sys
 from collections import Counter
 
-csv_path, target_path = sys.argv[1:]
+csv_path, target_path = sys.argv[1:3]
+num_targets, num_victims, expected_rows = map(int, sys.argv[3:])
 with open(target_path) as handle:
-    expected = list(map(int, json.load(handle)['pairs']['dog-bird']['indices']))
+    expected = list(map(int, json.load(handle)['pairs']['dog-bird']['indices']))[:num_targets]
 with open(csv_path, newline='') as handle:
     rows = list(csv.DictReader(handle))
 
@@ -241,25 +249,27 @@ for row in rows:
 counts = Counter(t for t, _ in pairs)
 victims = {t: sorted(v for tt, v in pairs if tt == t) for t in counts}
 problems = []
-if len(rows) != 60:
-    problems.append('expected 60 rows, found %d' % len(rows))
-if len(set(pairs)) != 60:
-    problems.append('expected 60 unique (target,victim) pairs, found %d' % len(set(pairs)))
+if len(rows) != expected_rows:
+    problems.append('expected %d rows, found %d' % (expected_rows, len(rows)))
+if len(set(pairs)) != expected_rows:
+    problems.append('expected %d unique (target,victim) pairs, found %d' %
+                    (expected_rows, len(set(pairs))))
 if set(counts) != set(expected):
     problems.append('target IDs differ from the pinned set')
 for target in expected:
-    if victims.get(target) != list(range(6)):
-        problems.append('target %d victim IDs are %s, expected 0..5' %
-                        (target, victims.get(target, [])))
+    if victims.get(target) != list(range(num_victims)):
+        problems.append('target %d victim IDs are %s, expected 0..%d' %
+                        (target, victims.get(target, []), num_victims - 1))
 if problems:
     raise SystemExit('incomplete result: ' + '; '.join(problems))
-print('verified: 10 targets x 6 victims = 60 unique evaluations')
+print('verified: %d targets x %d victims = %d unique evaluations' %
+      (num_targets, num_victims, expected_rows))
 PY
 }
 
 main() {
     local required expected_degree lookup target_file status
-    local memory_args=() sharp_args=()
+    local memory_args=() sharp_args=() selector_args=()
     [ -n "${SLURM_TMPDIR:-}" ] || die "SLURM_TMPDIR is unset; submit this with sbatch"
     for required in XFULL_INDEX XFULL_ATTACK XFULL_BUDGET XFULL_VICTIM_MODEL \
                     XFULL_SELECTOR_MODEL XFULL_K XFULL_TARGET_DEGREE \
@@ -274,7 +284,17 @@ main() {
     case "$XFULL_SELECTOR_MODEL" in ConvNetBN|ResNet20BN|VGG13BN) ;;
         *) die "bad selector model: $XFULL_SELECTOR_MODEL" ;;
     esac
-    case "$XFULL_K" in 1|3|10|30) ;; *) die "bad selector K: $XFULL_K" ;; esac
+    case "$XFULL_K" in 1|3|10|20|30) ;; *) die "bad selector K: $XFULL_K" ;; esac
+    case "$XFULL_NUM_TARGETS" in 8|10) ;;
+        *) die "XFULL_NUM_TARGETS must be 8 or 10 (got $XFULL_NUM_TARGETS)" ;;
+    esac
+    [ "$XFULL_NUM_VICTIMS" = 6 ] || \
+        die "XFULL_NUM_VICTIMS must be 6 (got $XFULL_NUM_VICTIMS)"
+    case "$XFULL_COMPONENT" in
+        '') ;;
+        minus-m) selector_args=(--sel_component minus-m --jacobian_batch_size 64) ;;
+        *) die "unsupported XFULL_COMPONENT: $XFULL_COMPONENT" ;;
+    esac
 
     case "$XFULL_VICTIM_MODEL:$XFULL_ATTACK" in
         ConvNetBN:fc) expected_degree=50 ;;
@@ -321,7 +341,7 @@ main() {
     stage_inputs
     lookup="$(target_attack)"
     target_file="$RUN_ROOT/target_sets/${XFULL_VICTIM_MODEL}_${lookup}_dog-bird.json"
-    verify_target_file "$target_file"
+    verify_target_file "$target_file" "$XFULL_NUM_TARGETS"
 
     if [ "$XFULL_VICTIM_MODEL" = VGG13BN ] && \
        { [ "$XFULL_ATTACK" = gradmatch ] || [ "$XFULL_ATTACK" = sapa ]; }; then
@@ -333,7 +353,7 @@ main() {
 
     say "job: ${SLURM_JOB_ID:-unknown} ${SLURM_JOB_NAME:-unknown} on $(hostname)"
     say "config: $ORIGINAL_COMMAND"
-    say "protocol: method=ours Jacobian=off targets=10 victims=6 selector_K=$XFULL_K"
+    say "protocol: method=ours Jacobian=off targets=$XFULL_NUM_TARGETS victims=$XFULL_NUM_VICTIMS selector_K=$XFULL_K component=${XFULL_COMPONENT:-basis}"
     say "protocol: 30 shared surrogates available; crafting always uses V checkpoints 0..4"
     say "output: $RESULT_ROOT/$XFULL_RUN_NAME"
 
@@ -346,12 +366,13 @@ main() {
         --budget "$XFULL_BUDGET" --epsilon 0.0313725 \
         --craft_steps 250 --craft_alpha 0.0039216 --restarts 8 --fc_restarts 1 \
         --craft_ensemble 5 --craft_aug "${memory_args[@]}" "${sharp_args[@]}" \
+        "${selector_args[@]}" \
         --num_surrogates 30 --surrogate_epochs 60 --surrogate_lr 0.1 \
         --surrogate_bs 128 --surrogate_decay 35 45 --surrogate_wd 0 \
         --sel_K "$XFULL_K" \
-        --num_targets 10 --target_select "$XFULL_TARGET_DEGREE" \
+        --num_targets "$XFULL_NUM_TARGETS" --target_select "$XFULL_TARGET_DEGREE" \
         --target_idx_file "$target_file" --rank_on_victims \
-        --num_victims 6 --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
+        --num_victims "$XFULL_NUM_VICTIMS" --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
         --victim_decay 40 --victim_wd 0 --clean_baseline
     status=$?
     if [ "$status" -eq 0 ]; then
