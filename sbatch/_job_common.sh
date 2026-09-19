@@ -85,17 +85,18 @@ PY
 attack_run_name() {
     local selection="$1" budget="$2" target_degree="$3"
     local base=random name alpha_tag jacobian_tag coefficient_tag margin_tag
+    local base_dist="${BASE_DIST:-cosine_norm}"
     [ "$selection" != random ] && base=ours
     name="CIFAR10_${MODEL}_${ATTACK}_${base}_${CLASS_PAIR}_b${budget}_eps8_seed42"
     if [ "$base" = ours ]; then
         if [ -n "${DISTANCE_MARGIN_COEF:-}" ]; then
             coefficient_tag="$(fmt_g "$DISTANCE_MARGIN_COEF")"
-            name+="_dmcoef${coefficient_tag}_cosine"
+            name+="_dmcoef${coefficient_tag}_${base_dist}"
         elif [ -n "${LAMBDA_MARGIN:-}" ]; then
             margin_tag="$(fmt_g "$LAMBDA_MARGIN")"
-            name+="_lam${margin_tag}_cosine"
+            name+="_lam${margin_tag}_${base_dist}"
         else
-            name+="_lam1_cosine"
+            name+="_lam10_${base_dist}"
         fi
         case "$selection" in
             dpp)
