@@ -86,13 +86,13 @@
 # BASES=(random ours)
 # CLASS_PAIRS=(dog-bird frog-airplane)
 
-MODEL="${MODEL:-VGG13BN}"
-ATTACK="${ATTACK:-fc}"
+MODEL="${MODEL:-ResNet20BN}"
+ATTACK="${ATTACK:-gradmatch}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
-BUDGETS="${BUDGETS:-0.0004}"
-SELECT="${SELECT:-ours}" # ours r 
-BASE_DIST="${BASE_DIST:-cosine}" # cosine_norm
+BUDGETS="${BUDGETS:-0.002}"
+SELECT="${SELECT:-r}" # ours r 
+BASE_DIST="${BASE_DIST:-cosine_norm}" # cosine_norm
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
 
