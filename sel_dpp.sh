@@ -322,7 +322,7 @@ for sig in $SIGMAS; do
             --model "$model" --attack "$attack" --base "$BASE" \
             --class_pair "$pair" --pair_order poison-target \
             --budget "$bug" --epsilon 0.0313725 \
-            --craft_steps "$CRAFT_STEPS" --craft_alpha "$CRAFT_ALPHA" \
+            --craft_steps "$CRAFT_STEPS" --craft_alpha th this" \
             --restarts 8 --fc_restarts "$FC_RESTARTS" --craft_ensemble 5 $CFG_MEM \
             --base_dist "$BASE_DIST" --lambda_margin "$LAMBDA_MARGIN" $COEF_FLAGS \
             $SEL_FLAGS $JACOBIAN_FLAGS $SHARP_FLAGS \
