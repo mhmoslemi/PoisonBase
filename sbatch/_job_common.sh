@@ -165,8 +165,9 @@ stage_code_and_data() {
 }
 
 stage_attack_job() {
-    local target_degree run_name budget
+    local target_degree run_name budget victim_cache_name
     target_degree="$(cfg_target)"
+    victim_cache_name="${MODEL}_${VICTIM_EPOCHS:-50}ep_lr0.1_bs125_wd0_seed42"
     copy_legacy_dir_if_present \
         "cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
         "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
@@ -174,11 +175,11 @@ stage_attack_job() {
         "$SOURCE_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
         "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
     copy_legacy_dir_if_present \
-        "cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
-        "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
+        "cache/clean_victims/$victim_cache_name" \
+        "$RUN_ROOT/cache/clean_victims/$victim_cache_name"
     copy_dir_if_present \
-        "$SOURCE_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
-        "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
+        "$SOURCE_ROOT/cache/clean_victims/$victim_cache_name" \
+        "$RUN_ROOT/cache/clean_victims/$victim_cache_name"
     for budget in $BUDGETS; do
         run_name="$(attack_run_name "$SELECT" "$budget" "$target_degree")"
         ATTACK_RUN_NAMES+=("$run_name")
@@ -240,7 +241,7 @@ sync_outputs() {
     [ "$SYNCED" = 0 ] || return 0
     SYNCED=1
     say "sync: preserving outputs in $SOURCE_ROOT"
-    local name file
+    local name file victim_cache_name
     if [ "$JOB_KIND" = attack ]; then
         for name in "${ATTACK_RUN_NAMES[@]}"; do
             [ -d "$RUN_ROOT/ours_result/$name" ] || continue
@@ -251,9 +252,10 @@ sync_outputs() {
         sync_cache_dir \
             "$RUN_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42" \
             "$SOURCE_ROOT/cache/surrogates/${MODEL}_60ep_lr0.1_bs128_seed42"
+        victim_cache_name="${MODEL}_${VICTIM_EPOCHS:-50}ep_lr0.1_bs125_wd0_seed42"
         sync_cache_dir \
-            "$RUN_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42" \
-            "$SOURCE_ROOT/cache/clean_victims/${MODEL}_50ep_lr0.1_bs125_wd0_seed42"
+            "$RUN_ROOT/cache/clean_victims/$victim_cache_name" \
+            "$SOURCE_ROOT/cache/clean_victims/$victim_cache_name"
     else
         for name in "${DEFENSE_RUN_NAMES[@]}"; do
             [ -d "$RUN_ROOT/defense_result/$name" ] || continue

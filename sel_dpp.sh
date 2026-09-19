@@ -108,6 +108,8 @@ LAMBDA_MARGIN="${LAMBDA_MARGIN:-10.0}"
 CRAFT_STEPS="${CRAFT_STEPS:-250}"
 CRAFT_ALPHA="${CRAFT_ALPHA:-0.0039216}"
 FC_RESTARTS="${FC_RESTARTS:-1}"
+VICTIM_EPOCHS="${VICTIM_EPOCHS:-50}"
+VICTIM_DECAY="${VICTIM_DECAY:-40}"
 case "$USE_JACOBIAN_SCORE" in
     0|1) ;;
     *) echo "USE_JACOBIAN_SCORE=$USE_JACOBIAN_SCORE (expected: 0 or 1)"; exit 1 ;;
@@ -329,8 +331,8 @@ for sig in $SIGMAS; do
             $TGT_FLAGS \
             $RECOMPUTE_FLAGS \
             $FORCE_FLAGS \
-            --num_victims "$NUM_VICTIMS" --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
-            --victim_decay 40 --victim_wd 0.0 \
+            --num_victims "$NUM_VICTIMS" --victim_epochs "$VICTIM_EPOCHS" --victim_lr 0.1 --victim_bs 125 \
+            --victim_decay $VICTIM_DECAY --victim_wd 0.0 \
             --clean_baseline
     done
     echo
