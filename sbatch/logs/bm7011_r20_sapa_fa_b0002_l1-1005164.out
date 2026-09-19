@@ -1,0 +1,12 @@
+stage: optional directory absent: /home/mmoslem3/scratch/PoisonBase/cache/clean_victims/ResNet20BN_70ep_lr0.1_bs125_wd0_seed42
+stage: optional directory absent: /home/mmoslem3/scratch/PoisonBase/ours_result/CIFAR10_ResNet20BN_sapa_ours_frog-airplane_b0.002_eps8_seed42_lam1_cosine_norm_worst0.05_ce5_tgt10
+job: 1005164 bm7011_r20_sapa_fa_b0002_l1 on rack07-02
+work: /tmp/attack_if
+config: SOURCE_ROOT=/home/mmoslem3/scratch/PoisonBase PERSIST_DATA_ROOT=/home/mmoslem3/scratch/PoisonBase/data MODEL=ResNet20BN ATTACK=sapa CLASS_PAIR=frog-airplane BUDGETS=0.002 SELECT=ours BASE_DIST=cosine_norm LAMBDA_MARGIN=1 USE_JACOBIAN_SCORE=0 NUM_TARGETS=8 NUM_VICTIMS=5 CRAFT_STEPS=250 VICTIM_EPOCHS=70 VICTIM_DECAY=50 sh sel_dpp.sh
+protocol: attack=8 targets x 5 victims
+gpu: NVIDIA L40S
+/tmp/attack_if/sel_dpp.sh: line 334: unexpected EOF while looking for matching `"'
+/tmp/attack_if/sel_dpp.sh: line 349: syntax error: unexpected end of file
+srun: error: rack07-02: task 0: Exited with exit code 2
+sync: preserving outputs in /home/mmoslem3/scratch/PoisonBase
+sync: complete
