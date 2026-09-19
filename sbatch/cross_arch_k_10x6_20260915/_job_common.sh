@@ -301,8 +301,8 @@ main() {
         *) die "bad base distance: $XFULL_BASE_DIST" ;;
     esac
     case "$XFULL_LAMBDA_MARGIN" in
-        1|100) ;;
-        *) die "XFULL_LAMBDA_MARGIN must be 1 or 100 (got $XFULL_LAMBDA_MARGIN)" ;;
+        1|10|100) ;;
+        *) die "XFULL_LAMBDA_MARGIN must be 1, 10, or 100 (got $XFULL_LAMBDA_MARGIN)" ;;
     esac
     case "$XFULL_VICTIM_EPOCHS:$XFULL_VICTIM_DECAY" in
         50:40|70:50) ;;
