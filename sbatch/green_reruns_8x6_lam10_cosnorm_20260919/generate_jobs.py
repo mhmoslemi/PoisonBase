@@ -103,8 +103,8 @@ def account(index: int) -> str:
     return "aip-yiweilu" if index % 3 == 0 else "aip-boyuwang"
 
 
-def walltime(victim: str) -> str:
-    return "0-03:10:00" if victim == "ConvNet" else "0-03:50:00"
+def walltime(_victim: str) -> str:
+    return "0-03:10:00"
 
 
 def run_name(attack: str, rho: str, selector: str,

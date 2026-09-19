@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=aip-boyuwang
 #SBATCH --job-name=grn50_sapa_b0002_vvgg_sr20_k20
-#SBATCH --time=0-03:50:00
+#SBATCH --time=0-03:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
