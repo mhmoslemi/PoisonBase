@@ -1,0 +1,93 @@
+stage: optional directory absent: /home/mmoslem3/scratch/PoisonBase/ours_result/CIFAR10_VGG13BN_fc_ours_dog-bird_b0.005_eps8_seed42_lam10_cosine_norm_selR_ce5_tgt3
+job: 1000997 rcnp09_vgg_bp_db_b0005 on rack12-03
+work: /tmp/attack_if
+config: SOURCE_ROOT=/home/mmoslem3/scratch/PoisonBase PERSIST_DATA_ROOT=/home/mmoslem3/scratch/PoisonBase/data MODEL=VGG13BN ATTACK=fc CLASS_PAIR=dog-bird BUDGETS=0.005 SELECT=r BASE_DIST=cosine_norm NUM_TARGETS=8 NUM_VICTIMS=5 CRAFT_STEPS=250 sh sel_dpp.sh
+protocol: attack=8 targets x 5 victims
+gpu: NVIDIA L40S
+=== component ablation: R | VGG13BN / fc / dog-bird ===
+    targets: pinned from target_sets/VGG13BN_fc_dog-bird.json (same 10 the random-base run attacked)
+    difficulty label tgt3   craft flags: none
+    component ablation: R; needed raw components are averaged over surrogates, then standardized (batch=64)
+    legacy score: z(distance) + 10.0*z(margin)
+    budgets: 0.005
+
+--- r | VGG13BN / fc / dog-bird | budget 0.005 ---
+[2026-09-18 23:29:48] === run start: CIFAR10_VGG13BN_fc_ours_dog-bird_b0.005_eps8_seed42_lam10_cosine_norm_selR_ce5_tgt3 on cuda [0] ===
+[2026-09-18 23:29:48] args: {"FORCE": false, "attack": "fc", "base": "ours", "base_dist": "cosine_norm", "base_topr": null, "budget": 0.005, "cache_dir": "/tmp/attack_if/cache", "class_pair": "dog-bird", "clean_baseline": true, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 250, "data_path": "/tmp/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": false, "lambda_margin": 10.0, "model": "VGG13BN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 8, "num_victims": 5, "out_dir": "/tmp/attack_if/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": null, "sel_alpha": 1.0, "sel_component": "r", "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "target_sets/VGG13BN_fc_dog-bird.json", "target_select": 3, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [40], "victim_epochs": 50, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-09-18 23:29:48] Jacobian score: disabled
+[2026-09-18 23:29:48] R component selector: raw components averaged over surrogates, then each used component standardized across candidates; batch_size=64
+[2026-09-18 23:29:48] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-09-18 23:29:48] === selection/crafting surrogates (20 x VGG13BN, trained on the full real set) ===
+[2026-09-18 23:29:50]   crafting on 5/20 surrogates
+[2026-09-18 23:29:50] === clean victims (5 x VGG13BN) ===
+[2026-09-18 23:29:51]   clean baseline CTA = 0.8451 +/- 0.0161
+[2026-09-18 23:29:51]   target pool 1000 -> eligible 970 (30 already predicted as y_adv or dropped)
+[2026-09-18 23:29:51]   chosen 8 targets (file), p_adv range 0.0196..0.2338
+[2026-09-18 23:29:51]   targets: [3728, 5640, 6922, 7855, 2127, 7586, 7360, 2171]
+[2026-09-18 23:29:51] === target 3728 (1/8) ===
+[2026-09-18 23:29:53]   target 3728: selector overhead 1.411 s, CUDA peak 1741.2 MiB (incremental 107.0 MiB)
+[2026-09-18 23:30:02]   target 3728: crafted 250 poisons in 9 s, obj=0.00228, CUDA peak=4528.5 MiB (incremental 2891.4 MiB)
+[2026-09-18 23:30:02]   target 3728: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 23:31:45]   [t3728 v1/5] SUCCESS (pred=dog) CTA=0.8560
+[2026-09-18 23:33:27]   [t3728 v2/5] SUCCESS (pred=dog) CTA=0.8512
+[2026-09-18 23:35:10]   [t3728 v3/5] SUCCESS (pred=dog) CTA=0.8491
+[2026-09-18 23:36:53]   [t3728 v4/5] SUCCESS (pred=dog) CTA=0.8583
+[2026-09-18 23:38:36]   [t3728 v5/5] SUCCESS (pred=dog) CTA=0.8552
+[2026-09-18 23:38:36]   target 3728, 5 victims on this gpu: ASR=100.0% CTA=0.8540 +/- 0.0033
+[2026-09-18 23:38:36] === target 5640 (2/8) ===
+[2026-09-18 23:38:37]   target 5640: selector overhead 1.304 s, CUDA peak 1749.3 MiB (incremental 107.0 MiB)
+[2026-09-18 23:38:46]   target 5640: crafted 250 poisons in 9 s, obj=0.00207, CUDA peak=4540.2 MiB (incremental 2894.9 MiB)
+[2026-09-18 23:38:46]   target 5640: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 23:40:30]   [t5640 v1/5] fail (pred=cat) CTA=0.8516
+[2026-09-18 23:42:12]   [t5640 v2/5] fail (pred=cat) CTA=0.8571
+[2026-09-18 23:43:55]   [t5640 v3/5] fail (pred=cat) CTA=0.8452
+[2026-09-18 23:45:38]   [t5640 v4/5] SUCCESS (pred=dog) CTA=0.8542
+[2026-09-18 23:47:20]   [t5640 v5/5] fail (pred=bird) CTA=0.8556
+[2026-09-18 23:47:20]   target 5640, 5 victims on this gpu: ASR=20.0% CTA=0.8527 +/- 0.0042
+[2026-09-18 23:47:20] === target 6922 (3/8) ===
+[2026-09-18 23:47:21]   target 6922: selector overhead 1.303 s, CUDA peak 1749.3 MiB (incremental 107.0 MiB)
+[2026-09-18 23:47:30]   target 6922: crafted 250 poisons in 9 s, obj=0.00212, CUDA peak=4540.2 MiB (incremental 2894.9 MiB)
+[2026-09-18 23:47:30]   target 6922: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 23:49:14]   [t6922 v1/5] SUCCESS (pred=dog) CTA=0.8600
+[2026-09-18 23:50:55]   [t6922 v2/5] SUCCESS (pred=dog) CTA=0.8558
+[2026-09-18 23:52:37]   [t6922 v3/5] SUCCESS (pred=dog) CTA=0.8541
+[2026-09-18 23:54:18]   [t6922 v4/5] SUCCESS (pred=dog) CTA=0.8510
+[2026-09-18 23:55:59]   [t6922 v5/5] SUCCESS (pred=dog) CTA=0.8407
+[2026-09-18 23:55:59]   target 6922, 5 victims on this gpu: ASR=100.0% CTA=0.8523 +/- 0.0065
+[2026-09-18 23:55:59] === target 7855 (4/8) ===
+[2026-09-18 23:56:01]   target 7855: selector overhead 1.303 s, CUDA peak 1749.3 MiB (incremental 107.0 MiB)
+[2026-09-18 23:56:09]   target 7855: crafted 250 poisons in 9 s, obj=0.00191, CUDA peak=4540.3 MiB (incremental 2895.0 MiB)
+[2026-09-18 23:56:09]   target 7855: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-18 23:57:53]   [t7855 v1/5] SUCCESS (pred=dog) CTA=0.8559
+[2026-09-18 23:59:36]   [t7855 v2/5] SUCCESS (pred=dog) CTA=0.8556
+[2026-09-19 00:01:19]   [t7855 v3/5] SUCCESS (pred=dog) CTA=0.8516
+[2026-09-19 00:03:01]   [t7855 v4/5] SUCCESS (pred=dog) CTA=0.8596
+[2026-09-19 00:04:44]   [t7855 v5/5] SUCCESS (pred=dog) CTA=0.8681
+[2026-09-19 00:04:44]   target 7855, 5 victims on this gpu: ASR=100.0% CTA=0.8582 +/- 0.0056
+[2026-09-19 00:04:44] === target 2127 (5/8) ===
+[2026-09-19 00:04:45]   target 2127: selector overhead 1.305 s, CUDA peak 1749.3 MiB (incremental 107.0 MiB)
+[2026-09-19 00:04:54]   target 2127: crafted 250 poisons in 9 s, obj=0.00196, CUDA peak=4540.3 MiB (incremental 2895.0 MiB)
+[2026-09-19 00:04:54]   target 2127: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-19 00:06:38]   [t2127 v1/5] SUCCESS (pred=dog) CTA=0.8653
+[2026-09-19 00:08:20]   [t2127 v2/5] SUCCESS (pred=dog) CTA=0.8459
+[2026-09-19 00:10:03]   [t2127 v3/5] SUCCESS (pred=dog) CTA=0.8564
+[2026-09-19 00:11:45]   [t2127 v4/5] SUCCESS (pred=dog) CTA=0.8543
+[2026-09-19 00:13:28]   [t2127 v5/5] SUCCESS (pred=dog) CTA=0.8551
+[2026-09-19 00:13:28]   target 2127, 5 victims on this gpu: ASR=100.0% CTA=0.8554 +/- 0.0062
+[2026-09-19 00:13:28] === target 7586 (6/8) ===
+[2026-09-19 00:13:29]   target 7586: selector overhead 1.308 s, CUDA peak 1749.3 MiB (incremental 107.0 MiB)
+[2026-09-19 00:13:38]   target 7586: crafted 250 poisons in 9 s, obj=0.00207, CUDA peak=4540.3 MiB (incremental 2895.0 MiB)
+[2026-09-19 00:13:38]   target 7586: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-19 00:15:21]   [t7586 v1/5] fail (pred=cat) CTA=0.8593
+[2026-09-19 00:17:04]   [t7586 v2/5] fail (pred=bird) CTA=0.8668
+[2026-09-19 00:18:46]   [t7586 v3/5] fail (pred=bird) CTA=0.8550
+[2026-09-19 00:20:29]   [t7586 v4/5] fail (pred=horse) CTA=0.8577
+[2026-09-19 00:22:11]   [t7586 v5/5] fail (pred=bird) CTA=0.8503
+[2026-09-19 00:22:11]   target 7586, 5 victims on this gpu: ASR=0.0% CTA=0.8578 +/- 0.0054
+[2026-09-19 00:22:11] === target 7360 (7/8) ===
+[2026-09-19 00:22:13]   target 7360: selector overhead 1.307 s, CUDA peak 1749.3 MiB (incremental 107.0 MiB)
+[2026-09-19 00:22:21]   target 7360: crafted 250 poisons in 9 s, obj=0.00221, CUDA peak=4540.2 MiB (incremental 2894.9 MiB)
+[2026-09-19 00:22:21]   target 7360: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-09-19 00:24:05]   [t7360 v1/5] fail (pred=bird) CTA=0.8512
+[2026-09-19 00:25:47]   [t7360 v2/5] fail (pred=bird) CTA=0.8520
+[2026-09-19 00:27:30]   [t7360 v3/5] SUCCESS (pred=dog) CTA=0.8604
