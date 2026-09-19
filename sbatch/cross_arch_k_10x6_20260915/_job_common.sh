@@ -7,7 +7,9 @@
 #   * S affects base selection only
 #   * K affects the number of selector checkpoints only
 #   * the first five V checkpoints craft poisons for every K
-#   * method=ours, cosine distance, lambda_margin=1, Jacobian disabled
+#   * method=ours and Jacobian disabled
+#   * score/victim-training settings default to the original table protocol,
+#     but may be pinned explicitly by a dedicated rerun batch
 #   * 250 poison-optimization steps
 
 set -Eeuo pipefail
@@ -24,6 +26,10 @@ LOCAL_RESULT_ROOT="$RUN_ROOT/cross_arch_k_10x6_result"
 XFULL_NUM_TARGETS="${XFULL_NUM_TARGETS:-10}"
 XFULL_NUM_VICTIMS="${XFULL_NUM_VICTIMS:-6}"
 XFULL_COMPONENT="${XFULL_COMPONENT:-}"
+XFULL_BASE_DIST="${XFULL_BASE_DIST:-cosine}"
+XFULL_LAMBDA_MARGIN="${XFULL_LAMBDA_MARGIN:-1}"
+XFULL_VICTIM_EPOCHS="${XFULL_VICTIM_EPOCHS:-50}"
+XFULL_VICTIM_DECAY="${XFULL_VICTIM_DECAY:-40}"
 SYNCED=0
 STEP_PID=""
 
@@ -57,8 +63,8 @@ precompute_cache() {
         --model "$model" --gpus all \
         --num_surrogates 30 --surrogate_epochs 60 --surrogate_lr 0.1 \
         --surrogate_bs 128 --surrogate_decay 35 45 --surrogate_wd 0 \
-        --num_victims 6 --victim_epochs 50 --victim_lr 0.1 \
-        --victim_bs 125 --victim_decay 40 --victim_wd 0 \
+        --num_victims 6 --victim_epochs "$XFULL_VICTIM_EPOCHS" --victim_lr 0.1 \
+        --victim_bs 125 --victim_decay "$XFULL_VICTIM_DECAY" --victim_wd 0 \
         --precompute_only --precompute_part "$part"
 }
 
@@ -68,7 +74,7 @@ ensure_model_cache() {
     local model="$1" need_victims="$2"
     local surrogate_dir victim_dir lock_file lock_fd
     surrogate_dir="$CACHE_ROOT/surrogates/${model}_60ep_lr0.1_bs128_seed42"
-    victim_dir="$CACHE_ROOT/clean_victims/${model}_50ep_lr0.1_bs125_wd0_seed42"
+    victim_dir="$CACHE_ROOT/clean_victims/${model}_${XFULL_VICTIM_EPOCHS}ep_lr0.1_bs125_wd0_seed42"
     mkdir -p "$CACHE_ROOT/.cross_arch_k_locks"
     lock_file="$CACHE_ROOT/.cross_arch_k_locks/${model}.lock"
     exec {lock_fd}>"$lock_file"
@@ -142,7 +148,7 @@ stage_inputs() {
         stage_dir_if_present "$CACHE_ROOT/surrogates/$cache_name" \
                              "$LOCAL_CACHE_ROOT/surrogates/$cache_name"
         [ "$model" = "$XFULL_VICTIM_MODEL" ] || continue
-        cache_name="${model}_50ep_lr0.1_bs125_wd0_seed42"
+        cache_name="${model}_${XFULL_VICTIM_EPOCHS}ep_lr0.1_bs125_wd0_seed42"
         stage_dir_if_present "$CACHE_ROOT/clean_victims/$cache_name" \
                              "$LOCAL_CACHE_ROOT/clean_victims/$cache_name"
     done
@@ -171,7 +177,7 @@ sync_outputs() {
         sync_cache_dir "$LOCAL_CACHE_ROOT/surrogates/$cache_name" \
                        "$CACHE_ROOT/surrogates/$cache_name"
         [ "$model" = "$XFULL_VICTIM_MODEL" ] || continue
-        cache_name="${model}_50ep_lr0.1_bs125_wd0_seed42"
+        cache_name="${model}_${XFULL_VICTIM_EPOCHS}ep_lr0.1_bs125_wd0_seed42"
         sync_cache_dir "$LOCAL_CACHE_ROOT/clean_victims/$cache_name" \
                        "$CACHE_ROOT/clean_victims/$cache_name"
     done
@@ -290,6 +296,18 @@ main() {
     esac
     [ "$XFULL_NUM_VICTIMS" = 6 ] || \
         die "XFULL_NUM_VICTIMS must be 6 (got $XFULL_NUM_VICTIMS)"
+    case "$XFULL_BASE_DIST" in
+        l2|cosine|cosine_norm) ;;
+        *) die "bad base distance: $XFULL_BASE_DIST" ;;
+    esac
+    case "$XFULL_LAMBDA_MARGIN" in
+        1|100) ;;
+        *) die "XFULL_LAMBDA_MARGIN must be 1 or 100 (got $XFULL_LAMBDA_MARGIN)" ;;
+    esac
+    case "$XFULL_VICTIM_EPOCHS:$XFULL_VICTIM_DECAY" in
+        50:40|70:50) ;;
+        *) die "unsupported victim schedule: epochs=$XFULL_VICTIM_EPOCHS decay=$XFULL_VICTIM_DECAY" ;;
+    esac
     case "$XFULL_COMPONENT" in
         '') ;;
         minus-m) selector_args=(--sel_component minus-m --jacobian_batch_size 64) ;;
@@ -354,6 +372,7 @@ main() {
     say "job: ${SLURM_JOB_ID:-unknown} ${SLURM_JOB_NAME:-unknown} on $(hostname)"
     say "config: $ORIGINAL_COMMAND"
     say "protocol: method=ours Jacobian=off targets=$XFULL_NUM_TARGETS victims=$XFULL_NUM_VICTIMS selector_K=$XFULL_K component=${XFULL_COMPONENT:-basis}"
+    say "protocol: base_dist=$XFULL_BASE_DIST lambda_margin=$XFULL_LAMBDA_MARGIN victim_epochs=$XFULL_VICTIM_EPOCHS victim_decay=$XFULL_VICTIM_DECAY"
     say "protocol: 30 shared surrogates available; crafting always uses V checkpoints 0..4"
     say "output: $RESULT_ROOT/$XFULL_RUN_NAME"
 
@@ -361,7 +380,8 @@ main() {
         --dataset CIFAR10 --data_path "$LOCAL_DATA_ROOT" --seed 42 --gpus all \
         --cache_dir "$LOCAL_CACHE_ROOT" --out_dir "$LOCAL_RESULT_ROOT" \
         --model "$XFULL_VICTIM_MODEL" --sel_model "$XFULL_SELECTOR_MODEL" \
-        --attack "$XFULL_ATTACK" --base ours --base_dist cosine --lambda_margin 1 \
+        --attack "$XFULL_ATTACK" --base ours \
+        --base_dist "$XFULL_BASE_DIST" --lambda_margin "$XFULL_LAMBDA_MARGIN" \
         --class_pair dog-bird --pair_order poison-target \
         --budget "$XFULL_BUDGET" --epsilon 0.0313725 \
         --craft_steps 250 --craft_alpha 0.0039216 --restarts 8 --fc_restarts 1 \
@@ -372,8 +392,9 @@ main() {
         --sel_K "$XFULL_K" \
         --num_targets "$XFULL_NUM_TARGETS" --target_select "$XFULL_TARGET_DEGREE" \
         --target_idx_file "$target_file" --rank_on_victims \
-        --num_victims "$XFULL_NUM_VICTIMS" --victim_epochs 50 --victim_lr 0.1 --victim_bs 125 \
-        --victim_decay 40 --victim_wd 0 --clean_baseline
+        --num_victims "$XFULL_NUM_VICTIMS" --victim_epochs "$XFULL_VICTIM_EPOCHS" \
+        --victim_lr 0.1 --victim_bs 125 \
+        --victim_decay "$XFULL_VICTIM_DECAY" --victim_wd 0 --clean_baseline
     status=$?
     if [ "$status" -eq 0 ]; then
         verify_results
