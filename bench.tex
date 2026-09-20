@@ -1,80 +1,64 @@
 
-\begin{table*}[t]
+\begin{wraptable}{r}{0.48\textwidth}
 \centering
-\caption{Comparison of base selectors and \textsc{Basis} score ablations on
-dog$\rightarrow$bird with $K=20$. Cells report ASR (\%). The \textsc{Rand},
-\textsc{Basis}, and unmarked Gao/FUS entries use 10 targets and six victim
-seeds per target. A dagger marks eight-target estimates: component-ablation
-rows use five victim seeds per target, whereas daggered Gao/FUS cells use six.
-The best and second-best values in each column are shown in bold and
-underlined, respectively.
-}
+\vspace{-1.35em} % Pulls table closer to text above it
+\caption{ASR ($\%$, $\uparrow$) for different sample selection methods. Column values $0.2$ and $0.5$ denote the poisoning budget $\rho$ in percent (\%).}
 \label{tab:selector-combined}
-\begingroup
-\fontsize{8}{9.5}\selectfont
-\setlength{\tabcolsep}{4.2pt}
-\renewcommand{\arraystretch}{1.08}
-\setlength{\belowrulesep}{2pt}
-\setlength{\aboverulesep}{2pt}
-\newcommand{\partialasr}[1]{#1\textsuperscript{\ensuremath{\dagger}}}
+\vspace{-0.6em}
 
-\begin{tabular*}{\linewidth}{
-  @{\extracolsep{\fill}}l
-  @{}cccc
-  @{}cccc@{}
-%  @{}c@{}
-}
+\setlength{\tabcolsep}{3.8pt} % Tightens columns to keep font size large
+\renewcommand{\arraystretch}{1.05}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}l cccc cccc@{}}
 \toprule
 & \multicolumn{4}{c}{\textbf{ConvNet}}
-& \multicolumn{4}{c}{\textbf{ResNet20}}
-% & \textbf{Overhead}
-\\
+& \multicolumn{4}{c}{\textbf{ResNet20}} \\
 \cmidrule(lr){2-5}
 \cmidrule(l){6-9}
-% \cmidrule(l){10-10}
+
 & \multicolumn{2}{c}{\textbf{GM}}
 & \multicolumn{2}{c}{\textbf{SAPA}}
 & \multicolumn{2}{c}{\textbf{GM}}
-& \multicolumn{2}{c}{\textbf{SAPA}}
-% & \textbf{time / mem.}
-\\
+& \multicolumn{2}{c}{\textbf{SAPA}} \\
 \cmidrule(lr){2-3}
 \cmidrule(lr){4-5}
 \cmidrule(lr){6-7}
 \cmidrule(l){8-9}
-\textbf{Selector}
-& $0.002$ & $0.005$
-& $0.002$ & $0.005$
-& $0.002$ & $0.005$
-& $0.002$ & $0.005$
-\\
+
+
+
+\textbf{Method}
+& 0.2 & 0.5
+& 0.2 & 0.5
+& 0.2 & 0.5
+& 0.2 & 0.5 \\
 \midrule
+
 \textsc{Rand}
 & 0.0 & 1.7 & 0.0 & 6.7
-& 31.7 & 43.3 & 21.7 & 55.0
-\\
+& 31.7 & 43.3 & 21.7 & 55.0 \\
+
 \textsc{Grad}
 & 10.0 & \underline{46.7} & 6.7 & \underline{48.3}
-& \underline{53.3} & \underline{70.8} & 45.0 & \textbf{81.3}
-\\
+& \underline{53.3} & \underline{70.8} & 45.0 & \textbf{81.3}/\textcolor{red}{83.3} \\
+
 \textsc{Forget}
 & \underline{15.0} & 31.7 & \underline{21.7} & 40.0
-& 48.3 & 66.7 & \underline{46.7} & 52.1
-\\
+& 48.3 & 66.7 & \underline{46.7} & 52.1 \\
+
 FUS
 & 8.3 & 28.3 & 10.0 & 20.0
-& 40.0 & {64.6} & 40.0 & {70.8}
-\\
+& 40.0 & {64.6} & 40.0 & {70.8} \\
+% \addlinespace[2pt] % Adds a slight visual break before your proposed method
+
 \textsc{Basis}
 & \textbf{40.0} & \textbf{77.5} & \textbf{30.0} & \textbf{62.5}
 & \textbf{57.5} & \textbf{72.5} & \textbf{52.5} & \underline{77.5} \\
 \bottomrule
-\end{tabular*}
-\endgroup
-\end{table*}
-
-
-
+\end{tabular}%
+}
+\vspace{-1em} % Trims bottom spacing after the float
+\end{wraptable}
 
 % \begin{table*}[t]
 % \centering
@@ -85,10 +69,6 @@ FUS
 % rows use five victim seeds per target, whereas daggered Gao/FUS cells use six.
 % The best and second-best values in each column are shown in bold and
 % underlined, respectively.
-% % The final column reports mean online selection time per target and the
-% % maximum allocated GPU memory observed during selection, averaged or
-% % maximized over the available settings, respectively. Gao's one-time metric
-% % precomputation and reusable surrogate training are excluded.
 % }
 % \label{tab:selector-combined}
 % \begingroup
@@ -124,60 +104,141 @@ FUS
 % \cmidrule(lr){6-7}
 % \cmidrule(l){8-9}
 % \textbf{Selector}
-% & $\rho=0.002$ & $\rho=0.005$
-% & $\rho=0.002$ & $\rho=0.005$
-% & $\rho=0.002$ & $\rho=0.005$
-% & $\rho=0.002$ & $\rho=0.005$
-% % & \textbf{per target}
+% & $0.002$ & $0.005$
+% & $0.002$ & $0.005$
+% & $0.002$ & $0.005$
+% & $0.002$ & $0.005$
 % \\
-% % \multicolumn{9}{r}{\fontsize{7}{8}\selectfont $\rho$ is in units of $10^{-3}$} \\
 % \midrule
 % \textsc{Rand}
 % & 0.0 & 1.7 & 0.0 & 6.7
 % & 31.7 & 43.3 & 21.7 & 55.0
-% % & negligible / 0\,GiB
 % \\
-% \textsc{Basis}
-% & \textbf{40.0} & \underline{77.5} & \underline{30.0} & \underline{62.5}
-% & \textbf{57.5} & \underline{72.5} & 52.5 & 77.5
-% % & 0.859\,s / 2.14\,GiB
+% \textsc{Grad}
+% & 10.0 & \underline{46.7} & 6.7 & \underline{48.3}
+% & \underline{53.3} & \underline{70.8} & 45.0 & \textbf{81.3}
 % \\
-% \addlinespace[1pt]
-% $R$\textsuperscript{$\dagger$}
-% & 15.0 & 20.0 & 15.0 & 25.0
-% & 48.0 & 67.5 & 42.9 & \textbf{82.5}
-% % & 0.446\,s / 2.14\,GiB
-% \\
-% $M$\textsuperscript{$\dagger$}
-% & 20.8 & 55.0 & 27.5 & \underline{62.5}
-% & \underline{55.0} & \textbf{77.5} & \textbf{57.5} & 77.5
-% % & 0.436\,s / 2.14\,GiB
-% \\
-% $g_i^\top g_t$\textsuperscript{$\dagger$}
-% & \underline{35.0} & \textbf{87.5} & \textbf{40.0} & \textbf{82.5}
-% & \textbf{57.5} & \textbf{77.5} & \underline{55.0} & 75.0
-% % & 8.30\,s / 2.14\,GiB
-% \\
-% \midrule
-% % Gao (loss)
-% % & 26.7 & 58.3 & 13.3 & 61.7
-% % & 65.0 & {79.2} & 65.0 & {77.1} & 0.020\,s / 0.74\,GiB \\
-% Gao (gradient norm)
-% & 10.0 & 46.7 & 6.7 & 48.3
-% & 53.3 & \partialasr{70.8} & 45.0 & \partialasr{\underline{81.3}}
-% % & 0.021\,s / 0.74\,GiB
-% \\
-% Gao (forgetting events)
-% & 15.0 & 31.7 & 21.7 & 40.0
-% & 48.3 & \partialasr{66.7} & 46.7 & \partialasr{52.1}
-% % & 0.017\,s / 0.74\,GiB
+% \textsc{Forget}
+% & \underline{15.0} & 31.7 & \underline{21.7} & 40.0
+% & 48.3 & 66.7 & \underline{46.7} & 52.1
 % \\
 % FUS
 % & 8.3 & 28.3 & 10.0 & 20.0
-% & 40.0 & \partialasr{64.6} & 40.0 & \partialasr{70.8}
-% % & 54.2\,min / 4.95\,GiB
+% & 40.0 & {64.6} & 40.0 & {70.8}
 % \\
+% \textsc{Basis}
+% & \textbf{40.0} & \textbf{77.5} & \textbf{30.0} & \textbf{62.5}
+% & \textbf{57.5} & \textbf{72.5} & \textbf{52.5} & \underline{77.5} \\
 % \bottomrule
 % \end{tabular*}
 % \endgroup
 % \end{table*}
+
+
+
+
+% % \begin{table*}[t]
+% % \centering
+% % \caption{Comparison of base selectors and \textsc{Basis} score ablations on
+% % dog$\rightarrow$bird with $K=20$. Cells report ASR (\%). The \textsc{Rand},
+% % \textsc{Basis}, and unmarked Gao/FUS entries use 10 targets and six victim
+% % seeds per target. A dagger marks eight-target estimates: component-ablation
+% % rows use five victim seeds per target, whereas daggered Gao/FUS cells use six.
+% % The best and second-best values in each column are shown in bold and
+% % underlined, respectively.
+% % % The final column reports mean online selection time per target and the
+% % % maximum allocated GPU memory observed during selection, averaged or
+% % % maximized over the available settings, respectively. Gao's one-time metric
+% % % precomputation and reusable surrogate training are excluded.
+% % }
+% % \label{tab:selector-combined}
+% % \begingroup
+% % \fontsize{8}{9.5}\selectfont
+% % \setlength{\tabcolsep}{4.2pt}
+% % \renewcommand{\arraystretch}{1.08}
+% % \setlength{\belowrulesep}{2pt}
+% % \setlength{\aboverulesep}{2pt}
+% % \newcommand{\partialasr}[1]{#1\textsuperscript{\ensuremath{\dagger}}}
+
+% % \begin{tabular*}{\linewidth}{
+% %   @{\extracolsep{\fill}}l
+% %   @{}cccc
+% %   @{}cccc@{}
+% % %  @{}c@{}
+% % }
+% % \toprule
+% % & \multicolumn{4}{c}{\textbf{ConvNet}}
+% % & \multicolumn{4}{c}{\textbf{ResNet20}}
+% % % & \textbf{Overhead}
+% % \\
+% % \cmidrule(lr){2-5}
+% % \cmidrule(l){6-9}
+% % % \cmidrule(l){10-10}
+% % & \multicolumn{2}{c}{\textbf{GM}}
+% % & \multicolumn{2}{c}{\textbf{SAPA}}
+% % & \multicolumn{2}{c}{\textbf{GM}}
+% % & \multicolumn{2}{c}{\textbf{SAPA}}
+% % % & \textbf{time / mem.}
+% % \\
+% % \cmidrule(lr){2-3}
+% % \cmidrule(lr){4-5}
+% % \cmidrule(lr){6-7}
+% % \cmidrule(l){8-9}
+% % \textbf{Selector}
+% % & $\rho=0.002$ & $\rho=0.005$
+% % & $\rho=0.002$ & $\rho=0.005$
+% % & $\rho=0.002$ & $\rho=0.005$
+% % & $\rho=0.002$ & $\rho=0.005$
+% % % & \textbf{per target}
+% % \\
+% % % \multicolumn{9}{r}{\fontsize{7}{8}\selectfont $\rho$ is in units of $10^{-3}$} \\
+% % \midrule
+% % \textsc{Rand}
+% % & 0.0 & 1.7 & 0.0 & 6.7
+% % & 31.7 & 43.3 & 21.7 & 55.0
+% % % & negligible / 0\,GiB
+% % \\
+% % \textsc{Basis}
+% % & \textbf{40.0} & \underline{77.5} & \underline{30.0} & \underline{62.5}
+% % & \textbf{57.5} & \underline{72.5} & 52.5 & 77.5
+% % % & 0.859\,s / 2.14\,GiB
+% % \\
+% % \addlinespace[1pt]
+% % $R$\textsuperscript{$\dagger$}
+% % & 15.0 & 20.0 & 15.0 & 25.0
+% % & 48.0 & 67.5 & 42.9 & \textbf{82.5}
+% % % & 0.446\,s / 2.14\,GiB
+% % \\
+% % $M$\textsuperscript{$\dagger$}
+% % & 20.8 & 55.0 & 27.5 & \underline{62.5}
+% % & \underline{55.0} & \textbf{77.5} & \textbf{57.5} & 77.5
+% % % & 0.436\,s / 2.14\,GiB
+% % \\
+% % $g_i^\top g_t$\textsuperscript{$\dagger$}
+% % & \underline{35.0} & \textbf{87.5} & \textbf{40.0} & \textbf{82.5}
+% % & \textbf{57.5} & \textbf{77.5} & \underline{55.0} & 75.0
+% % % & 8.30\,s / 2.14\,GiB
+% % \\
+% % \midrule
+% % % Gao (loss)
+% % % & 26.7 & 58.3 & 13.3 & 61.7
+% % % & 65.0 & {79.2} & 65.0 & {77.1} & 0.020\,s / 0.74\,GiB \\
+% % Gao (gradient norm)
+% % & 10.0 & 46.7 & 6.7 & 48.3
+% % & 53.3 & \partialasr{70.8} & 45.0 & \partialasr{\underline{81.3}}
+% % % & 0.021\,s / 0.74\,GiB
+% % \\
+% % Gao (forgetting events)
+% % & 15.0 & 31.7 & 21.7 & 40.0
+% % & 48.3 & \partialasr{66.7} & 46.7 & \partialasr{52.1}
+% % % & 0.017\,s / 0.74\,GiB
+% % \\
+% % FUS
+% % & 8.3 & 28.3 & 10.0 & 20.0
+% % & 40.0 & \partialasr{64.6} & 40.0 & \partialasr{70.8}
+% % % & 54.2\,min / 4.95\,GiB
+% % \\
+% % \bottomrule
+% % \end{tabular*}
+% % \endgroup
+% % \end{table*}
