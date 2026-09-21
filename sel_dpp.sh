@@ -87,11 +87,11 @@
 # CLASS_PAIRS=(dog-bird frog-airplane)
 
 MODEL="${MODEL:-ResNet20BN}"
-ATTACK="${ATTACK:-gradmatch}"
+ATTACK="${ATTACK:-fc}"
 CLASS_PAIR="${CLASS_PAIR:-dog-bird}"
 # BUDGETS="${BUDGETS:-0.002 0.005 0.02 0.001 0.01 0.04}"
-BUDGETS="${BUDGETS:-0.002}"
-SELECT="${SELECT:-r}" # ours r 
+BUDGETS="${BUDGETS:-0.02}"
+SELECT="${SELECT:-ours}" # ours r 
 BASE_DIST="${BASE_DIST:-cosine_norm}" # cosine_norm
 
 # BUDGETS="${BUDGETS:-0.001 0.002 0.005 0.01 0.02 0.04}"
@@ -101,13 +101,13 @@ USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
 DISTANCE_MARGIN_COEF="${DISTANCE_MARGIN_COEF:-}"
-LAMBDA_MARGIN="${LAMBDA_MARGIN:-10.0}"
+LAMBDA_MARGIN="${LAMBDA_MARGIN:-0.5}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
-CRAFT_STEPS="${CRAFT_STEPS:-250}"
+CRAFT_STEPS="${CRAFT_STEPS:-750}"
 CRAFT_ALPHA="${CRAFT_ALPHA:-0.0039216}"
-FC_RESTARTS="${FC_RESTARTS:-1}"
+FC_RESTARTS="${FC_RESTARTS:-4}"
 VICTIM_EPOCHS="${VICTIM_EPOCHS:-50}"
 VICTIM_DECAY="${VICTIM_DECAY:-40}"
 case "$USE_JACOBIAN_SCORE" in
@@ -151,8 +151,8 @@ CACHE_DIR="${CACHE_DIR:-./cache}"
 SEED="${SEED:-42}"
 PROJECT_ROOT="${PROJECT_ROOT:-/home/mmoslem3/scratch/attack_if}"
 PYTHON_ENV="${PYTHON_ENV:-/home/mmoslem3/ENV}"
-NUM_TARGETS="${NUM_TARGETS:-8}"
-NUM_VICTIMS="${NUM_VICTIMS:-5}"
+NUM_TARGETS="${NUM_TARGETS:-10}"
+NUM_VICTIMS="${NUM_VICTIMS:-6}"
 RECOMPUTE_DELTAS="${RECOMPUTE_DELTAS:-0}"
 case "$RECOMPUTE_DELTAS" in
     0) RECOMPUTE_FLAGS="" ;;
