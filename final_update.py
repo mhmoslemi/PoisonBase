@@ -1878,7 +1878,8 @@ def _target_grads(nets, x_t_norm, y_t, crit, sharp_mode, sharp_sigma, sharp_samp
 
 
 def _gradmatch_net_grad(net, g_t, base01, delta, y_p, norm, crit, chunk,
-                        use_dsa, dsa_strategy, dsa_param, seed):
+                        use_dsa, dsa_strategy, dsa_param, seed,
+                        poison_transform=None):
     """d/d(delta) of (1 - cos(g_p, g_t)) for one surrogate, in poison micro-batches.
 
     Same value as the full-batch path, computed without ever holding the whole
@@ -1892,7 +1893,9 @@ def _gradmatch_net_grad(net, g_t, base01, delta, y_p, norm, crit, chunk,
     N = base01.shape[0]
 
     def chunk_loss(i0, i1, d):
-        x = norm(torch.clamp(base01[i0:i1] + d, 0.0, 1.0))
+        pixels = torch.clamp(base01[i0:i1] + d, 0.0, 1.0)
+        x = (poison_transform(pixels, i0, i1) if poison_transform is not None
+             else norm(pixels))
         if use_dsa:
             x = DiffAugment(x, dsa_strategy, seed=seed, param=dsa_param)
         return crit(net(x), y_p[i0:i1]) * ((i1 - i0) / N)
@@ -1938,7 +1941,9 @@ def _gradmatch_net_grad(net, g_t, base01, delta, y_p, norm, crit, chunk,
 def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, restarts,
                     device, dsa_strategy=None, dsa_param=None, fast=False,
                     schedule=False, lowmem=False, chunk=0,
-                    sharp_mode=None, sharp_sigma=0.0, sharp_samples=20):
+                    sharp_mode=None, sharp_sigma=0.0, sharp_samples=20,
+                    poison_transform=None, resume_state=None,
+                    checkpoint_callback=None):
     set_requires_grad(nets, True)
     for n in nets:
         n.eval()
@@ -1957,8 +1962,27 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
     if chunk <= 0:
         chunk = base01.shape[0]
     best_delta, best_obj = None, float('inf')
+    start_restart = 0
+    if resume_state is not None:
+        start_restart = int(resume_state['restart'])
+        best_delta = resume_state['best_delta'].to(device)
+        best_obj = float(resume_state['best_obj'])
 
-    for _r in range(restarts):
+    def checkpoint(restart, next_step, delta, opt, sched):
+        # Optional resumable crafting for the streaming ImageNet runner. The
+        # existing CIFAR path never creates or serializes this state.
+        if checkpoint_callback is not None:
+            checkpoint_callback({
+                'restart': restart, 'next_step': next_step,
+                'delta': delta.detach(), 'best_delta': best_delta,
+                'best_obj': best_obj, 'optimizer': opt.state_dict(),
+                'scheduler': sched.state_dict() if sched is not None else None,
+                'rng_cpu': torch.get_rng_state(),
+                'rng_cuda': (torch.cuda.get_rng_state(device)
+                             if str(device).startswith('cuda') else None),
+            })
+
+    for _r in range(start_restart, restarts):
         delta = torch.empty_like(base01).uniform_(-eps, eps)
         delta = (torch.clamp(base01 + delta, 0.0, 1.0) - base01).detach().requires_grad_(True)
         opt = torch.optim.Adam([delta], lr=step)
@@ -1967,7 +1991,19 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
             ms = [int(iters * 0.375), int(iters * 0.625), int(iters * 0.875)]
             sched = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=ms, gamma=0.1)
 
-        for _t in range(iters):
+        start_step = 0
+        if resume_state is not None and _r == start_restart:
+            with torch.no_grad():
+                delta.copy_(resume_state['delta'].to(device))
+            opt.load_state_dict(resume_state['optimizer'])
+            if sched is not None:
+                sched.load_state_dict(resume_state['scheduler'])
+            torch.set_rng_state(resume_state['rng_cpu'].cpu())
+            if resume_state['rng_cuda'] is not None:
+                torch.cuda.set_rng_state(resume_state['rng_cuda'].cpu(), device)
+            start_step = int(resume_state['next_step'])
+
+        for _t in range(start_step, iters):
             if lowmem:
                 # exact objective, but one surrogate and one micro-batch of poisons
                 # at a time so the second-order graph never covers the whole set
@@ -1976,7 +2012,7 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
                 for net, g_t in zip(nets, g_targets):
                     g, o = _gradmatch_net_grad(net, g_t, base01, delta, y_p, norm,
                                                crit, chunk, use_dsa, dsa_strategy,
-                                               dsa_param, seed)
+                                               dsa_param, seed, poison_transform)
                     grad = g if grad is None else grad + g
                     obj_val += o
                 grad /= len(nets)
@@ -1994,9 +2030,12 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
                 with torch.no_grad():
                     delta.clamp_(-eps, eps)
                     delta.data = torch.clamp(base01 + delta, 0.0, 1.0) - base01
+                checkpoint(_r, _t + 1, delta, opt, sched)
                 continue
 
-            x_adv_norm = norm(torch.clamp(base01 + delta, 0.0, 1.0))
+            pixels = torch.clamp(base01 + delta, 0.0, 1.0)
+            x_adv_norm = (poison_transform(pixels, 0, len(base01))
+                          if poison_transform is not None else norm(pixels))
             if use_dsa:
                 seed = int(torch.randint(0, 100000, (1,)).item())
                 x_adv_norm = DiffAugment(x_adv_norm, dsa_strategy, seed=seed,
@@ -2041,6 +2080,7 @@ def craft_gradmatch(nets, base01, x_t_norm, y_adv, norm, eps, step, iters, resta
             with torch.no_grad():
                 delta.clamp_(-eps, eps)
                 delta.data = torch.clamp(base01 + delta, 0.0, 1.0) - base01
+            checkpoint(_r, _t + 1, delta, opt, sched)
 
     return torch.clamp(base01 + best_delta, 0.0, 1.0), best_obj
 
