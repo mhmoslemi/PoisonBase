@@ -101,11 +101,11 @@ USE_JACOBIAN_SCORE="${USE_JACOBIAN_SCORE:-0}"
 JACOBIAN_WEIGHT="${JACOBIAN_WEIGHT:-1.0}"
 JACOBIAN_BATCH_SIZE="${JACOBIAN_BATCH_SIZE:-64}"
 DISTANCE_MARGIN_COEF="${DISTANCE_MARGIN_COEF:-}"
-LAMBDA_MARGIN="${LAMBDA_MARGIN:-0.5}"
+LAMBDA_MARGIN="${LAMBDA_MARGIN:-10.0}"
 # Crafting defaults are unchanged when these variables are not supplied.  They
 # are environment knobs so a Slurm job can keep its FC settings in a separate,
 # editable file instead of modifying this sweep driver.
-CRAFT_STEPS="${CRAFT_STEPS:-750}"
+CRAFT_STEPS="${CRAFT_STEPS:-250}"
 CRAFT_ALPHA="${CRAFT_ALPHA:-0.0039216}"
 FC_RESTARTS="${FC_RESTARTS:-4}"
 VICTIM_EPOCHS="${VICTIM_EPOCHS:-50}"

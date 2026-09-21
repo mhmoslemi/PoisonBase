@@ -1090,6 +1090,11 @@ COMPONENT_SELECTOR_LABELS = {
     'a-minus-m': 'A-M',
     'a-plus-r': 'A+R',
     'minus-m-times-r': '(-M)*R',
+    'classifier': '(r_i^T r_t)*(h_i^T h_t)',
+    'classifier-norm': '(r_i^T r_t)*cos(h_i,h_t)',
+    'target-margin': 'z_target(x_i)-z_adv(x_i)',
+    'similarity-target-margin': 'z(cos(h_i,h_t))+z(target margin)',
+    'confidence': '-p(y_adv|x_i)',
 }
 
 COMPONENT_SELECTOR_SUFFIXES = {
@@ -1099,12 +1104,102 @@ COMPONENT_SELECTOR_SUFFIXES = {
     'a-minus-m': 'AminusM',
     'a-plus-r': 'AplusR',
     'minus-m-times-r': 'MinusMtimesR',
+    'classifier': 'Classifier',
+    'classifier-norm': 'ClassifierNorm',
+    'target-margin': 'TargetMargin',
+    'similarity-target-margin': 'SimilarityTargetMargin',
+    'confidence': 'Confidence',
 }
+
+
+SCORE_ALTERNATIVES = (
+    'classifier', 'classifier-norm', 'target-margin',
+    'similarity-target-margin', 'confidence',
+)
+
+
+def classifier_alignment_terms(logits, target_logits, features, target_feature,
+                               y_adv):
+    """The screenshot's classifier-weight alignment, without a bias term.
+
+    Both CE residuals use the adversarial label, as in full-gradient alignment.
+    Including the classifier bias would add r_i^T r_t to the raw expression;
+    the requested formula contains only the weight-gradient interaction.
+    """
+    residual = logits.softmax(dim=1).clone()
+    target_residual = target_logits.softmax(dim=1).clone()
+    residual[:, y_adv] -= 1
+    target_residual[:, y_adv] -= 1
+    residual_dot = (residual * target_residual).sum(dim=1)
+    feature_dot = (features * target_feature).sum(dim=1)
+    similarity = F.cosine_similarity(
+        features, target_feature.expand_as(features), dim=1, eps=1e-8)
+    return residual_dot * feature_dot, residual_dot * similarity
+
+
+@torch.no_grad()
+def score_alternative_candidates(nets, candidates, x_t_norm, y_adv,
+                                 target_class, formula, batch_size=64):
+    """Higher is better for all five additional scoring alternatives.
+
+    Classifier alignments use per-surrogate score standardization, matching
+    select_base_exact_alignment. The similarity+target-margin sum standardizes
+    its two terms per surrogate, matching BASIS's distance+margin convention.
+    Margin-only and confidence-only average raw values across the ensemble.
+    R in the normalized and similarity-sum alternatives is cosine similarity.
+    """
+    if formula not in SCORE_ALTERNATIVES:
+        raise ValueError('unknown scoring alternative %r' % formula)
+    if not nets or batch_size <= 0 or len(candidates) < 2:
+        raise ValueError('scoring requires models, positive batch size, and >=2 candidates')
+    if formula in ('target-margin', 'similarity-target-margin'):
+        if target_class is None or target_class == y_adv:
+            raise ValueError('target-margin scoring requires the true target class')
+    score = candidates.new_zeros(len(candidates))
+    for net in nets:
+        states = [(module, module.training) for module in net.modules()]
+        net.eval()
+        try:
+            need_features = formula in ('classifier', 'classifier-norm',
+                                        'similarity-target-margin')
+            embed = embed_of(net) if need_features else None
+            target_feature = (embed(x_t_norm.unsqueeze(0)).flatten(1)
+                              if need_features else None)
+            target_logits = (net(x_t_norm.unsqueeze(0))
+                             if formula.startswith('classifier') else None)
+            values, similarities = [], []
+            for start in range(0, len(candidates), batch_size):
+                batch = candidates[start:start + batch_size]
+                logits = net(batch)
+                features = embed(batch).flatten(1) if need_features else None
+                if formula.startswith('classifier'):
+                    raw, normalized = classifier_alignment_terms(
+                        logits, target_logits, features, target_feature, y_adv)
+                    values.append(raw if formula == 'classifier' else normalized)
+                elif formula == 'confidence':
+                    values.append(-logits.softmax(dim=1)[:, y_adv])
+                else:
+                    values.append(logits[:, target_class] - logits[:, y_adv])
+                    if formula == 'similarity-target-margin':
+                        similarities.append(F.cosine_similarity(
+                            features, target_feature.expand_as(features),
+                            dim=1, eps=1e-8))
+            component = torch.cat(values)
+            if formula.startswith('classifier'):
+                component = standardize(component)
+            elif formula == 'similarity-target-margin':
+                component = (standardize(component) +
+                             standardize(torch.cat(similarities)))
+            score += component
+        finally:
+            _restore_training_states(states)
+    return score / len(nets)
 
 
 @torch.no_grad()
 def select_base_components(nets, images_norm, labels, x_t_norm, y_adv, N_p,
-                           device, formula, batch_size=64, base_dist='l2'):
+                           device, formula, batch_size=64, base_dist='l2',
+                           target_class=None):
     """Select using a scaled expression of the paper's A, M, and R components.
 
     A_i is <grad_phi ell_i, grad_phi L_adv,t>, M_i is the adversarial-class
@@ -1125,6 +1220,11 @@ def select_base_components(nets, images_norm, labels, x_t_norm, y_adv, N_p,
         raise ValueError('class %d has %d images < N_p=%d'
                          % (y_adv, len(cls_idx), N_p))
     candidates = images_norm[cls_idx]
+    if formula in SCORE_ALTERNATIVES:
+        score = score_alternative_candidates(
+            nets, candidates, x_t_norm, y_adv, target_class, formula, batch_size)
+        selected = torch.topk(score, k=N_p, largest=True).indices
+        return cls_idx[selected]
     need_margin = formula in ('minus-m', 'a-minus-m', 'minus-m-times-r')
     need_relevance = formula in ('r', 'a-plus-r', 'minus-m-times-r')
     need_interaction = formula in ('a', 'a-minus-m', 'a-plus-r')
@@ -2360,7 +2460,8 @@ def prepare_poisons(args, ctx, sel_nets, craft_nets, tidx, y_adv, N_p, run_dir,
             train_imgs, train_labs, x_t_norm, y_adv, N_p, device,
             formula=args.sel_component,
             batch_size=getattr(args, 'jacobian_batch_size', 64),
-            base_dist=args.base_dist)
+            base_dist=args.base_dist,
+            target_class=int(ctx['test_labs'][tidx].item()))
     elif getattr(args, 'sel_criterion', None) in GAO_CRITERIA:
         base_idx = select_base_gao(args, train_labs, y_adv, N_p, device)
     elif getattr(args, 'sel_criterion', None) == 'fus':
@@ -2990,9 +3091,12 @@ def main(args):
             'components averaged over surrogates before standardization'
             % getattr(args, 'jacobian_batch_size', 64))
     if getattr(args, 'sel_component', None):
-        log('%s component selector: raw components averaged over surrogates, '
-            'then each used component standardized across candidates; batch_size=%d'
+        log('%s component selector: %s; batch_size=%d'
             % (COMPONENT_SELECTOR_LABELS[args.sel_component],
+               ('alignment/similarity terms standardized per surrogate; '
+                'standalone margin/confidence averaged raw'
+                if args.sel_component in SCORE_ALTERNATIVES else
+                'raw components averaged over surrogates, then standardized'),
                getattr(args, 'jacobian_batch_size', 64)))
 
     y_adv, target_class = parse_pair(args.class_pair, class_names, args.pair_order)
@@ -3154,6 +3258,7 @@ def main(args):
         'jacobian_backend': (_jacobian_backend_metadata()
                              if getattr(args, 'use_jacobian_score', False) else None),
         'sel_criterion': getattr(args, 'sel_criterion', None),
+        'sel_component': getattr(args, 'sel_component', None),
         'sel_K': getattr(args, 'sel_K', None),
         'sel_metric_epoch': getattr(args, 'sel_metric_epoch', None),
         'fus_iters': getattr(args, 'fus_iters', None),
@@ -3384,9 +3489,10 @@ def parse_args(argv=None):
                         'components, averaged over surrogates before scaling')
     p.add_argument('--sel_component', type=str, default=argparse.SUPPRESS,
                    choices=list(COMPONENT_SELECTOR_LABELS),
-                   help='select by one paper-component expression: -M, R, A, A-M, '
-                        'A+R, or (-M)*R. Raw components are averaged over surrogates '
-                        'and each used component is standardized before combining')
+                   help='paper-component or scoring-alternative selector; '
+                        'classifier variants align CE residuals and features, '
+                        'target-margin uses the true target class, confidence '
+                        'ranks by negative adversarial-class probability')
 
     # --- diversity-aware base selection (--base ours only) --------------------
     # All three reuse the SAME per-candidate score as plain --base ours and only
