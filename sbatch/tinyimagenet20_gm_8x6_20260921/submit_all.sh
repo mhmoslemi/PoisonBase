@@ -2,24 +2,23 @@
 # One command submits all prerequisites and three methods with dependencies.
 set -Eeuo pipefail
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-ACCOUNT="${IMAGENET_SLURM_ACCOUNT:-aip-boyuwang}"
+ACCOUNT="${TINYIMAGENET_SLURM_ACCOUNT:-aip-boyuwang}"
 case "$ACCOUNT" in
     aip-boyuwang|aip-yiweilu) ;;
     *) echo "Unsupported account: $ACCOUNT" >&2; exit 1 ;;
 esac
 python3 "$HERE/validate.py"
 if [[ "${DRY_RUN:-0}" != 1 ]]; then
-    # Check real inputs before submitting any dependency chain. This uses only
-    # Python's standard library and does not require activating the GPU env.
-    IMAGENET_ROOT=$(python3 "$HERE/../../experiments/imagenet100_data.py" \
-        "${IMAGENET_ROOT:-/home/mmoslem3/scratch/PoisonBase/data}")
-    export IMAGENET_ROOT
-    mkdir -p /home/mmoslem3/scratch/PoisonBase/sbatch/logs
+    # Memory-map and validate the tensor archive before submitting any jobs.
+    TINYIMAGENET_FILE=$("${PYTHON_BIN:-/home/mmoslem3/ENV/bin/python}" "$HERE/../../experiments/tinyimagenet20_data.py" \
+        "${TINYIMAGENET_FILE:-/home/mmoslem3/scratch/PoisonBase/data/tinyimagenet.pt}")
+    export TINYIMAGENET_FILE
+    mkdir -p "${SBATCH_LOG_DIR:-/home/mmoslem3/scratch/PoisonBase/sbatch/logs}"
 fi
 submit() {
     local name="$1" dependency="${2:-}"
     local args=(--parsable --account="$ACCOUNT" --kill-on-invalid-dep=yes \
-                --export="ALL,IMAGENET_SLURM_ACCOUNT=$ACCOUNT")
+                --export="ALL,TINYIMAGENET_SLURM_ACCOUNT=$ACCOUNT")
     [[ -z "$dependency" ]] || args+=(--dependency="afterok:$dependency")
     if [[ "${DRY_RUN:-0}" == 1 ]]; then
         printf 'sbatch' >&2
@@ -42,4 +41,4 @@ targets=$(submit targets_0 "$s0:$s1:$s2")
 submit experiment_random "$targets" >/dev/null
 submit experiment_minus-m "$targets" >/dev/null
 submit experiment_basis "$targets" >/dev/null
-echo "Prepared ImageNet-100 on $ACCOUNT: RAND, M-only, BASIS; 8 targets x 6 victims each; shared 3-surrogate setup."
+echo "Submitted TinyImageNet-20 (4,000 train images, 64x64, 30 epochs) on $ACCOUNT: RAND, M-only, BASIS; 8 targets x 6 victims each; shared 3-surrogate setup."

@@ -22,6 +22,7 @@ from torchvision.transforms import functional as TF
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import final_update as fu
+from experiments.imagenet100_data import inspect_layout, locate_data
 
 MEAN, STD = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 METHODS = ('random', 'minus-m', 'basis')
@@ -71,22 +72,8 @@ def seed(value):
     torch.manual_seed(value)
 
 
-def locate_data(base):
-    for path in (base / 'imagenet', base / 'imagenet1k', base / 'ILSVRC2012', base):
-        if (path / 'train').is_dir() and (path / 'val').is_dir():
-            return path.resolve()
-    raise RuntimeError(f'ImageNet-1K not found under {base}. Expected '
-                       'train/<WNID> and val/<WNID> directories; '
-                       'set IMAGENET_ROOT to their parent directory.')
-
-
 def prepare(data_root, output):
-    data_root = locate_data(data_root)
-    available = sorted(p.name for p in (data_root / 'train').iterdir()
-                       if p.is_dir() and p.name.startswith('n'))
-    if len(available) != 1000:
-        raise RuntimeError(f'Expected 1000 ImageNet-1K train class directories, found {len(available)}')
-    classes = sorted(random.Random(0).sample(available, 100))
+    data_root, classes = inspect_layout(data_root)
     poison_class, target_class = random.Random(0).sample(classes, 2)
     manifest = dict(protocol=PROTOCOL, classes=classes, data_root=str(data_root),
                     poison_class=poison_class, target_class=target_class)
@@ -122,7 +109,8 @@ def normalize(x):
 
 
 def eval_pixels(x):
-    return TF.center_crop(TF.resize(x, 256, antialias=True), [224, 224])
+    size = PROTOCOL['eval_crop']
+    return TF.center_crop(TF.resize(x, PROTOCOL['eval_resize'], antialias=True), [size, size])
 
 
 def native_poison(clean, delta):
@@ -133,6 +121,8 @@ def native_poison(clean, delta):
     L-infinity bound. Both crafting and victim training use this same map,
     before their respective preprocessing; original image dimensions are kept.
     """
+    if PROTOCOL['poison_geometry'] == 'native_64_v1':
+        return (clean + delta).clamp(0, 1)
     h, w = clean.shape[-2:]
     rh, rw = (256, int(w * 256 / h)) if h <= w else (int(h * 256 / w), 256)
     top, left = int(round((rh - 224) / 2)), int(round((rw - 224) / 2))
@@ -144,7 +134,10 @@ def native_poison(clean, delta):
 class ImageNetResNet18(nn.Module):
     def __init__(self):
         super().__init__()
-        self.net = models.resnet18(weights=None, num_classes=100)
+        self.net = models.resnet18(weights=None, num_classes=PROTOCOL['classes'])
+        if PROTOCOL.get('small_stem'):
+            self.net.conv1 = nn.Conv2d(3, 64, 3, stride=1, padding=1, bias=False)
+            self.net.maxpool = nn.Identity()
 
     def embed(self, x):
         n = self.net
@@ -161,8 +154,10 @@ class Images(Dataset):
         self.root, self.records, self.training = root, records, training
         self.seed, self.epoch = seed_value, epoch
         self.poison = {} if poison is None else dict(zip(poison['indices'], poison['delta']))
-        self.augment = transforms.Compose([transforms.RandomResizedCrop(224, antialias=True),
-                                             transforms.RandomHorizontalFlip()])
+        crop = (transforms.RandomCrop(PROTOCOL['train_crop'], padding=4)
+                if PROTOCOL.get('small_stem') else
+                transforms.RandomResizedCrop(PROTOCOL['train_crop'], antialias=True))
+        self.augment = transforms.Compose([crop, transforms.RandomHorizontalFlip()])
 
     def __len__(self):
         return len(self.records)
@@ -199,7 +194,8 @@ def evaluate(net, dataset, device, workers):
 def train_model(path, manifest, data_root, device, workers, seed_value, poison=None):
     seed(seed_value)
     net = ImageNetResNet18().to(device)
-    opt = torch.optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+    opt = torch.optim.SGD(net.parameters(), lr=PROTOCOL['lr'],
+                          momentum=PROTOCOL['momentum'], weight_decay=PROTOCOL['weight_decay'])
     state = load(path, device) if path.exists() else None
     epoch, offset = 0, 0
     if state:
@@ -215,10 +211,10 @@ def train_model(path, manifest, data_root, device, workers, seed_value, poison=N
                         model=net.state_dict(), optimizer=opt.state_dict() if not complete else None,
                         epoch=ep, offset=position, complete=complete, accuracy=accuracy))
     n = len(manifest['train'])
-    for ep in range(epoch, 90):
+    for ep in range(epoch, PROTOCOL['epochs']):
         net.train()
         for group in opt.param_groups:
-            group['lr'] = 0.1 * (0.1 ** (int(ep >= 30) + int(ep >= 60)))
+            group['lr'] = PROTOCOL['lr'] * 0.1 ** sum(ep >= m for m in PROTOCOL['decay'])
         order = torch.randperm(n, generator=torch.Generator().manual_seed(seed_value + ep)).tolist()
         dataset = Images(data_root, manifest['train'], True, seed_value, ep, poison)
         loader = DataLoader(dataset, batch_size=128, sampler=order[offset:],
@@ -236,9 +232,9 @@ def train_model(path, manifest, data_root, device, workers, seed_value, poison=N
                 raise Paused()
         checkpoint(ep + 1, 0)
         offset = 0
-        print(f'{path.name}: epoch {ep + 1}/90 complete', flush=True)
+        print(f'{path.name}: epoch {ep + 1}/{PROTOCOL["epochs"]} complete', flush=True)
     accuracy = evaluate(net, Images(data_root, manifest['val']), device, workers)
-    checkpoint(90, 0, True, accuracy)
+    checkpoint(PROTOCOL['epochs'], 0, True, accuracy)
     return net.eval(), accuracy
 
 
@@ -343,14 +339,15 @@ def craft_target(method, target, manifest, data_root, directory, nets, device):
     # evaluation preprocessing; victim training injects those same fields.
     seed(seed_value)
     crafted, objective = fu.craft_gradmatch(
-        nets, base, x_t, adv, normalize, 8/255, 0.0039216, 250, 8, device,
+        nets, base, x_t, adv, normalize, PROTOCOL['epsilon'], PROTOCOL['craft_alpha'],
+        PROTOCOL['craft_steps'], PROTOCOL['restarts'], device,
         dsa_strategy=fu.DSA_DEFAULT, dsa_param=fu.ParamDiffAug(),
-        lowmem=True, chunk=2, poison_transform=CraftView(originals, base, device),
+        lowmem=True, chunk=PROTOCOL.get('craft_chunk', 2), poison_transform=CraftView(originals, base, device),
         resume_state=resume, checkpoint_callback=checkpoint)
     delta = (crafted - base).detach().cpu()
     linf = max(float((native_poison(x, d) - x).abs().max())
                for x, d in zip(originals, delta))
-    if linf > 8/255 + 1e-6:
+    if linf > PROTOCOL['epsilon'] + 1e-6:
         raise RuntimeError(f'native-pixel perturbation exceeds the bound: {linf}')
     poison = dict(indices=selected, delta=delta, objective=objective, native_linf=linf,
                   fingerprint=manifest['fingerprint'], target=idx, method=method)
@@ -406,7 +403,10 @@ def experiment(method, manifest, data_root, output, device, workers):
                 protocol=PROTOCOL, fingerprint=manifest['fingerprint']))
 
 
-def main():
+def main(protocol=None, prepare_fn=None):
+    global PROTOCOL
+    if protocol is not None:
+        PROTOCOL = protocol
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('phase', choices=['prepare', 'surrogate', 'targets', 'experiment'])
     parser.add_argument('--id', default='0')
@@ -419,10 +419,10 @@ def main():
     for sig in (signal.SIGUSR1, signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, request_stop)
     if args.phase == 'prepare':
-        prepare(args.data_root, args.output)
+        (prepare_fn or prepare)(args.data_root, args.output)
         return
     if not torch.cuda.is_available():
-        raise RuntimeError('This ImageNet experiment requires a CUDA GPU')
+        raise RuntimeError('This experiment requires a CUDA GPU')
     manifest = json.loads((args.output / 'manifest.json').read_text())
     if manifest['protocol'] != PROTOCOL:
         raise RuntimeError('saved experiment protocol differs from the runner')

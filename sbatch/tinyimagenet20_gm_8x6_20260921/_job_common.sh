@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Shared ImageNet runtime: stage only the fixed subset, checkpoint, and requeue.
+# Shared TinyImageNet runtime: stage only the fixed subset, checkpoint, and requeue.
 set -Eeuo pipefail
 : "${PHASE:?}"
 : "${PHASE_ID:?}"
 : "${SLURM_TMPDIR:?Submit with sbatch}"
 ROOT=/home/mmoslem3/scratch/PoisonBase
-OUTPUT="$ROOT/imagenet100_gm_8x6_20260921_result"
-case "${IMAGENET_SLURM_ACCOUNT:-aip-boyuwang}" in
+OUTPUT="$ROOT/tinyimagenet20_gm_8x6_20260921_result"
+case "${TINYIMAGENET_SLURM_ACCOUNT:-aip-boyuwang}" in
     aip-boyuwang) ;;
     aip-yiweilu) OUTPUT="${OUTPUT}_yiweilu" ;;
-    *) echo 'Unsupported ImageNet Slurm account' >&2; exit 1 ;;
+    *) echo 'Unsupported TinyImageNet Slurm account' >&2; exit 1 ;;
 esac
-WORK="$SLURM_TMPDIR/imagenet100_${PHASE}_${PHASE_ID}"
+WORK="$SLURM_TMPDIR/tinyimagenet20_${PHASE}_${PHASE_ID}"
 LOCAL_OUTPUT="$WORK/results"
 PID=''
 REQUEUE=0
@@ -63,20 +63,22 @@ trap 'stop_step TERM' TERM
 trap 'stop_step INT' INT
 
 if [[ "$PHASE" == prepare ]]; then
-    python "$ROOT/experiments/imagenet100_gm.py" prepare \
-        --data-root "${IMAGENET_ROOT:-$ROOT/data}" --output "$OUTPUT"
+    python "$ROOT/experiments/tinyimagenet20_gm.py" prepare \
+        --data-root "${TINYIMAGENET_FILE:-$ROOT/data/tinyimagenet.pt}" --output "$OUTPUT"
     exit 0
 fi
 
 for file in final_update.py networks.py utils.py; do
     rsync -a "$ROOT/$file" "$WORK/"
 done
+rsync -a "$ROOT/experiments/tinyimagenet20_gm.py" "$WORK/experiments/"
+rsync -a "$ROOT/experiments/tinyimagenet20_data.py" "$WORK/experiments/"
 rsync -a "$ROOT/experiments/imagenet100_gm.py" "$WORK/experiments/"
 rsync -a "$ROOT/experiments/imagenet100_data.py" "$WORK/experiments/"
 rsync -a "$OUTPUT/manifest.json" "$LOCAL_OUTPUT/"
 
-# ImageFolder layout: train/<WNID> and val/<WNID>. Copy only the 100 saved
-# classes; all stages use the exact same class ordering and file manifest.
+# Preparation exports only 4,000 train images plus the selected validation
+# images. The full tensor archive is never staged onto a GPU node.
 python - "$OUTPUT/manifest.json" "$WORK/data" "$PHASE" <<'PY'
 import json, pathlib, subprocess, sys
 manifest = json.load(open(sys.argv[1]))
@@ -114,7 +116,7 @@ if [[ "$REQUEUE" == 1 ]]; then
     exit 0
 fi
 
-python "$WORK/experiments/imagenet100_gm.py" "$PHASE" --id "$PHASE_ID" \
+python "$WORK/experiments/tinyimagenet20_gm.py" "$PHASE" --id "$PHASE_ID" \
     --data-root "$WORK/data" --output "$LOCAL_OUTPUT" \
     --workers 8 &
 PID=$!

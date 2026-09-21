@@ -14,7 +14,9 @@ for phase, identifier in JOBS:
         raise SystemExit(f'Job differs from the pinned configuration: {path}')
 for path in HERE.glob('*.sh'):
     subprocess.run(['bash', '-n', str(path)], check=True)
-for path in [*HERE.glob('*.py'), HERE.parents[1] / 'experiments/imagenet100_gm.py',
+for path in [*HERE.glob('*.py'), HERE.parents[1] / 'experiments/tinyimagenet20_gm.py',
+             HERE.parents[1] / 'experiments/tinyimagenet20_data.py',
+             HERE.parents[1] / 'experiments/imagenet100_gm.py',
              HERE.parents[1] / 'experiments/imagenet100_data.py']:
     ast.parse(path.read_text(), filename=str(path))
-print('Validated eight ImageNet job templates; 03:20:00; account chosen by submitter.')
+print('Validated eight TinyImageNet job templates; 03:20:00; account chosen by submitter.')

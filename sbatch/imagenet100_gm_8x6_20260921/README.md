@@ -27,6 +27,11 @@ already be organized into class directories. No dataset download is attempted.
 If the data are elsewhere, `IMAGENET_ROOT=/path/to/imagenet bash ...` overrides
 discovery. The exact location on the server has not been verified locally.
 
+The submitter checks the selected classes' training and validation folders
+**before submitting any jobs**, so missing data cannot strand GPU dependencies.
+Dependent jobs also use `--kill-on-invalid-dep=yes` to cancel themselves if a
+prerequisite fails instead of waiting indefinitely.
+
 From the sorted list of exactly 1000 training class IDs, Python's
 `random.Random(0).sample(..., 100)` chooses the subset; its sorted class list
 is saved as `classes_seed0.txt`. A separate seed-0 draw chooses the poison and
