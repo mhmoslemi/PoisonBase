@@ -6,12 +6,12 @@ set -Eeuo pipefail
 : "${SLURM_TMPDIR:?Submit with sbatch; SLURM_TMPDIR is required}"
 ROOT="${ROOT:-/home/mmoslem3/scratch/PoisonBase}"
 ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
-DATA_ROOT="$ROOT/data"
-CACHE_ROOT="$ROOT/cache"
+DATA_ROOT="${DATA_ROOT:-$ROOT/data}"
+CACHE_ROOT="${CACHE_ROOT:-$ROOT/cache}"
 BATCH_DIR="$ROOT/sbatch/score_alternatives_8x6_20260921"
-RESULT_ROOT="$ROOT/score_alternatives_8x6_20260921_result"
+RESULT_ROOT="${RESULT_ROOT:-$ROOT/score_alternatives_8x6_20260921_result}"
 CELL_ROOT="$RESULT_ROOT/cell_$SCORE_JOB_ID"
-RUN_ROOT="$SLURM_TMPDIR/PoisonBase_score_$SCORE_JOB_ID"
+RUN_ROOT="${RUN_ROOT:-$SLURM_TMPDIR/PoisonBase_score_$SCORE_JOB_ID}"
 SURROGATES=surrogates/ConvNetBN_60ep_lr0.1_bs128_seed42
 VICTIMS=clean_victims/ConvNetBN_50ep_lr0.1_bs125_wd0_seed42
 STEP_PID=''
