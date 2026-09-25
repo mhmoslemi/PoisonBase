@@ -180,7 +180,8 @@ def main():
                    help='font size of the cosine number below each base')
     p.add_argument('--similarity_height_pt', type=float, default=6.0,
                    help='vertical space reserved below each base')
-    p.add_argument('--save_dir', default=os.path.join(_HERE, 'paper'))
+    p.add_argument('--save_dir', default=None,
+                   help='output directory (default: <repo_root>/out2)')
     p.add_argument('--name', default=None)
     p.add_argument('--dpi', type=int, default=600)
     a = p.parse_args()
@@ -188,6 +189,7 @@ def main():
     a.repo_root = os.path.abspath(a.repo_root)
     a.out_dir = a.out_dir or os.path.join(a.repo_root, 'ours_result')
     a.cache_dir = a.cache_dir or os.path.join(a.repo_root, 'cache')
+    a.save_dir = a.save_dir or os.path.join(a.repo_root, 'out2')
     a.sweep_config = a.sweep_config or os.path.join(a.repo_root, 'sweep_config.json')
     a.target_sets_dir = a.target_sets_dir or os.path.join(a.repo_root, 'target_sets')
 
