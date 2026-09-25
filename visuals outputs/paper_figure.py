@@ -191,6 +191,10 @@ def main():
                    help='font size of the cosine number below each base')
     p.add_argument('--similarity_height_pt', type=float, default=6.0,
                    help='vertical space reserved below each base')
+    p.add_argument('--average_pt', type=float, default=5.0,
+                   help='font size of the displayed-row average at the right')
+    p.add_argument('--average_width_pt', type=float, default=31.0,
+                   help='horizontal space reserved for the row average')
     p.add_argument('--save_dir', default=None,
                    help='output directory (default: <repo_root>/out2)')
     p.add_argument('--name', default=None)
@@ -281,10 +285,11 @@ def render(a, dst_train, dst_test, mean, std, panels, name, similarities):
     gap, rgap, tgap, pgap = (a.gap_pt * PT, a.row_gap_pt * PT,
                              a.target_gap_pt * PT, a.panel_gap_pt * PT)
     lab_w = (a.label_pt * 2.6 * PT) if a.labels else 0.0
+    avg_w = a.average_width_pt * PT
 
     # solve the cell size from the fixed total width:
-    #   width = target(2*cell + rgap) + tgap + m*cell + (m-1)*gap + lab_w
-    cell = (a.width - tgap - (m - 1) * gap - lab_w - rgap) / (m + 2.0)
+    #   width = target + gap + row + labels + right-side average
+    cell = (a.width - tgap - (m - 1) * gap - lab_w - avg_w - rgap) / (m + 2.0)
     tsize = 2 * cell + rgap                       # target spans both rows
     sim_h = a.similarity_height_pt * PT
     panel_h = tsize + 2 * sim_h
@@ -315,6 +320,14 @@ def render(a, dst_train, dst_test, mean, std, panels, name, similarities):
                     ha='center', va='center', fontsize=a.similarity_pt,
                     color='#333333',
                 )
+            row_mean = sum(similarities[(int(tid), int(j))] for j in idxs) / len(idxs)
+            fig.text(
+                (x0 + m * cell + (m - 1) * gap + 2.0 * PT) / a.width,
+                (y + cell / 2.0) / fig_h,
+                'avg %.2f' % row_mean,
+                ha='left', va='center', fontsize=a.average_pt,
+                color='#222222',
+            )
             if a.labels:
                 fig.text((x0 - 0.35 * PT * a.label_pt) / a.width,
                          (y + cell / 2.0) / fig_h, ('Random', 'DPP')[row],
