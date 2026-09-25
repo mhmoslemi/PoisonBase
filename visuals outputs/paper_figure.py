@@ -187,13 +187,13 @@ def main():
                    help='draw Random / DPP row labels inside the figure '
                         '(default: leave them to the LaTeX caption)')
     p.add_argument('--label_pt', type=float, default=6.0)
-    p.add_argument('--similarity_pt', type=float, default=4.0,
+    p.add_argument('--similarity_pt', type=float, default=4.3,
                    help='font size of the cosine number below each base')
-    p.add_argument('--similarity_height_pt', type=float, default=6.0,
+    p.add_argument('--similarity_height_pt', type=float, default=7.0,
                    help='vertical space reserved below each base')
-    p.add_argument('--average_pt', type=float, default=5.0,
+    p.add_argument('--average_pt', type=float, default=5.2,
                    help='font size of the displayed-row average at the right')
-    p.add_argument('--average_width_pt', type=float, default=31.0,
+    p.add_argument('--average_width_pt', type=float, default=36.0,
                    help='horizontal space reserved for the row average')
     p.add_argument('--save_dir', default=None,
                    help='output directory (default: <repo_root>/out2)')
@@ -318,15 +318,30 @@ def render(a, dst_train, dst_test, mean, std, panels, name, similarities):
                     (y - sim_h / 2.0) / fig_h,
                     '%.2f' % similarities[(int(tid), int(j))],
                     ha='center', va='center', fontsize=a.similarity_pt,
-                    color='#333333',
+                    color='#4D4D4D',
                 )
             row_mean = sum(similarities[(int(tid), int(j))] for j in idxs) / len(idxs)
+            average_left = x0 + m * cell + (m - 1) * gap
+            separator_x = average_left + 3.0 * PT
+            average_center = separator_x + (avg_w - 3.0 * PT) / 2.0
+            fig.add_artist(plt.Line2D(
+                [separator_x / a.width, separator_x / a.width],
+                [(y + 0.10 * cell) / fig_h, (y + 0.90 * cell) / fig_h],
+                transform=fig.transFigure, color='#B8B8B8', linewidth=0.45,
+            ))
             fig.text(
-                (x0 + m * cell + (m - 1) * gap + 2.0 * PT) / a.width,
-                (y + cell / 2.0) / fig_h,
-                'avg %.2f' % row_mean,
-                ha='left', va='center', fontsize=a.average_pt,
-                color='#222222',
+                average_center / a.width,
+                (y + 0.70 * cell) / fig_h,
+                'Mean cosine',
+                ha='center', va='center', fontsize=3.8,
+                color='#555555',
+            )
+            fig.text(
+                average_center / a.width,
+                (y + 0.30 * cell) / fig_h,
+                '%.3f' % row_mean,
+                ha='center', va='center', fontsize=a.average_pt,
+                color='#111111', fontweight='semibold',
             )
             if a.labels:
                 fig.text((x0 - 0.35 * PT * a.label_pt) / a.width,
