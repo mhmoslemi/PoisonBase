@@ -69,8 +69,8 @@ def displayed_similarities(a, FU, channel, num_classes, im_size, dst_train,
                            dst_test, panels):
     """Cosine similarity of each displayed base to its test target.
 
-    Features come from one already-trained ConvNetBN checkpoint. This function
-    only loads that checkpoint; it never trains a model.
+    Values are averaged over the saved ConvNetBN surrogate checkpoints. This
+    function only loads existing checkpoints; it never trains a model.
     """
     import torch.nn.functional as F
 
@@ -82,34 +82,45 @@ def displayed_similarities(a, FU, channel, num_classes, im_size, dst_train,
         'ConvNetBN_%dep_lr%g_bs%d_seed%d'
         % (a.surrogate_epochs, a.surrogate_lr, a.surrogate_bs, a.seed),
     )
-    checkpoint = os.path.join(
-        checkpoint_dir, 'net_%d.pt' % a.similarity_model_id,
-    )
-    if not os.path.exists(checkpoint):
+    checkpoints = [
+        os.path.join(checkpoint_dir, 'net_%d.pt' % model_id)
+        for model_id in range(a.num_surrogates)
+    ]
+    missing = [checkpoint for checkpoint in checkpoints
+               if not os.path.exists(checkpoint)]
+    if missing:
         raise SystemExit(
-            'trained ConvNetBN checkpoint not found: %s\n'
+            'trained ConvNetBN checkpoint(s) not found:\n%s\n'
             'Point --cache_dir at the existing surrogate cache; this script '
-            'will not train it.' % checkpoint
+            'will not train them.' % '\n'.join(missing)
         )
 
-    net = FU.build_network(
-        'ConvNetBN', channel, num_classes, im_size, device,
-        seed=a.seed + 1000 + a.similarity_model_id,
-    )
-    net.load_state_dict(torch.load(checkpoint, map_location=device))
-    net.eval()
-    embed = FU.embed_of(net)
-    values = {}
-    for tid, r_idx, d_idx in panels:
-        target = dst_test[int(tid)][0].unsqueeze(0).to(device)
-        target_feature = F.normalize(embed(target).flatten(1), dim=1)
-        indices = list(r_idx) + list(d_idx)
-        bases = torch.stack([dst_train[int(index)][0] for index in indices]).to(device)
-        base_features = F.normalize(embed(bases).flatten(1), dim=1)
-        cosine = (base_features @ target_feature.T).squeeze(1).cpu().tolist()
-        for index, value in zip(indices, cosine):
-            values[(int(tid), int(index))] = float(value)
-    print('similarity : ConvNetBN features from %s' % checkpoint)
+    sums = {}
+    for model_id, checkpoint in enumerate(checkpoints):
+        net = FU.build_network(
+            'ConvNetBN', channel, num_classes, im_size, device,
+            seed=a.seed + 1000 + model_id,
+        )
+        net.load_state_dict(torch.load(checkpoint, map_location=device))
+        net.eval()
+        embed = FU.embed_of(net)
+        for tid, r_idx, d_idx in panels:
+            target = dst_test[int(tid)][0].unsqueeze(0).to(device)
+            target_feature = F.normalize(embed(target).flatten(1), dim=1)
+            indices = list(dict.fromkeys(list(r_idx) + list(d_idx)))
+            bases = torch.stack(
+                [dst_train[int(index)][0] for index in indices]
+            ).to(device)
+            base_features = F.normalize(embed(bases).flatten(1), dim=1)
+            cosine = (base_features @ target_feature.T).squeeze(1).cpu().tolist()
+            for index, value in zip(indices, cosine):
+                key = (int(tid), int(index))
+                sums[key] = sums.get(key, 0.0) + float(value)
+        del net
+
+    values = {key: total / a.num_surrogates for key, total in sums.items()}
+    print('similarity : mean ConvNetBN cosine across %d saved surrogates in %s'
+          % (a.num_surrogates, checkpoint_dir))
     return values
 
 
@@ -153,8 +164,8 @@ def main():
     p.add_argument('--surrogate_epochs', type=int, default=60)
     p.add_argument('--surrogate_lr', type=float, default=0.1)
     p.add_argument('--surrogate_bs', type=int, default=128)
-    p.add_argument('--similarity_model_id', type=int, default=0,
-                   help='existing ConvNetBN surrogate checkpoint to use')
+    p.add_argument('--num_surrogates', type=int, default=20,
+                   help='number of saved ConvNetBN checkpoints to average')
 
     p.add_argument('--target_id', type=int, default=None, help='single target')
     p.add_argument('--targets', type=int, nargs='*', default=None,
