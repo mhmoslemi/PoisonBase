@@ -289,12 +289,13 @@ def render(a, dst_train, dst_test, mean, std, panels, name, similarities):
     sim_h = a.similarity_height_pt * PT
 
     # solve the cell size from the fixed total width:
-    # The target is square and spans the full panel height, including the
-    # similarity-label bands beneath both base-image rows.
+    # The target is square and spans from the top of the upper image row to
+    # the bottom of the lower image row.  The labels below the lower row are
+    # outside the target's extent.
     cell = (a.width - tgap - (m - 1) * gap - lab_w - avg_w
-            - rgap - 2 * sim_h) / (m + 2.0)
+            - rgap - sim_h) / (m + 2.0)
     panel_h = 2 * cell + rgap + 2 * sim_h
-    tsize = panel_h
+    tsize = panel_h - sim_h
     fig_h = len(panels) * panel_h + (len(panels) - 1) * pgap
     fig = plt.figure(figsize=(a.width, fig_h))
 
@@ -308,7 +309,7 @@ def render(a, dst_train, dst_test, mean, std, panels, name, similarities):
 
     for k, (tid, r_idx, d_idx) in enumerate(panels):
         base_y = fig_h - (k + 1) * panel_h - k * pgap
-        put(dst_test[tid][0], 0.0, base_y, tsize, tsize)
+        put(dst_test[tid][0], 0.0, base_y + sim_h, tsize, tsize)
         x0 = tsize + tgap + lab_w
         for row, idxs in enumerate((r_idx, d_idx)):
             y = base_y + sim_h + (cell + rgap + sim_h if row == 0 else 0.0)
