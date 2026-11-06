@@ -1,0 +1,27 @@
+START {'mode': 'check', 'model': 'ConvNetBN', 'fraction': 0.2, 'repeat': 0, 'part': None, 'cell': None, 'kind': 'plain'} 2.9.1 NVIDIA L40S
+Traceback (most recent call last):
+  File "/scratch/mmoslem3/PoisonBase/experiments/reviewer_sweep/run.py", line 355, in <module>
+    main()
+  File "/scratch/mmoslem3/PoisonBase/experiments/reviewer_sweep/run.py", line 337, in main
+    run_checks()
+  File "/scratch/mmoslem3/PoisonBase/experiments/reviewer_sweep/test_sweep.py", line 110, in run_checks
+    train_asd(net,ctx['train_imgs'],ctx['train_labs'],
+  File "/scratch/mmoslem3/PoisonBase/experiments/reviewer_sweep/defenses.py", line 176, in train_asd
+    score = losses(net, x, y, sce=True, augmented=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmoslem3/ENV/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/mmoslem3/PoisonBase/experiments/reviewer_sweep/defenses.py", line 51, in losses
+    z = net(augment(x[i:i+bs]) if augmented else x[i:i+bs])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmoslem3/ENV/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmoslem3/ENV/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/mmoslem3/PoisonBase/networks.py", line 46, in forward
+    out = out.view(out.size(0), -1)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: view size is not compatible with input tensor's size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.
