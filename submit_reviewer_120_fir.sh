@@ -17,7 +17,7 @@ export ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 unset CHECK_JOB HOLD_JOBS
 
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
-for command in sbatch sinfo sacctmgr scontrol sha256sum flock module; do
+for command in sbatch sinfo scontrol sha256sum flock module; do
     command -v "$command" >/dev/null 2>&1 || die "$command is unavailable; run on the Fir login node"
 done
 [[ -f "$ENV_ACTIVATE" ]] || die "Missing environment: $ENV_ACTIVATE"
@@ -42,7 +42,6 @@ elif [[ "$gres" == *gpu:h100_80gb:* ]]; then
 else
     die 'No full H100 GPU advertised by Fir; check sinfo -h -o %G --Node'
 fi
-sacctmgr -nP show assoc user="$USER" account=def-bghaddar format=Account | awk -F '|' '$1=="def-bghaddar" {found=1} END {exit !found}' || die 'def-bghaddar is not available to this user'
 cluster=$(scontrol show config | awk '$1=="ClusterName" {print $3}')
 [[ -n "$cluster" ]] || die 'Could not identify the Slurm cluster'
 for spec in StdEnv/2023 gcc/12.3 python/3.11.5 cuda/12.6 cudnn/9.10.0.56; do

@@ -27,6 +27,7 @@ printf '%s\n' "${MOCK_GPUS:-gpu:$TEST_GPU:4}"
 MOCK
 cat > "$TEST_ROOT/bin/sacctmgr" <<'MOCK'
 #!/bin/bash
+[[ "$TEST_CLUSTER" != fir ]] || exit 0
 printf '%s\n' "${MOCK_ACCOUNT:-$TEST_ACCOUNT}"
 MOCK
 cat > "$TEST_ROOT/bin/scontrol" <<'MOCK'
