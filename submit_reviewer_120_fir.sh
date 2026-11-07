@@ -8,6 +8,10 @@ SOURCE_ROOT=$(CDPATH= cd -- "$SOURCE_ROOT" && pwd -P)
 ASSETS="$SCRIPT_DIR/sbatch/reviewer_20261106"
 export REVIEW_ROOT="$SOURCE_ROOT/reviewer_20261106_fir"
 export REVIEW_BATCH="$REVIEW_ROOT/sbatch"
+if [[ -s "$REVIEW_BATCH/arrays_layout.txt" ]]; then
+    printf "Fir already uses separate array tasks. Ledger: %s\n" "$REVIEW_BATCH/submissions.tsv"
+    exit 0
+fi
 export REVIEW_CODE="$ASSETS/code"
 export REVIEW_MANIFEST="$ASSETS/manifest.tsv"
 export REVIEW_JOB_SCRIPT="$REVIEW_BATCH/job.sh"
