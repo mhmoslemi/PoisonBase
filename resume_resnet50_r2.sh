@@ -30,9 +30,13 @@ export REVIEW_DATA="$SLURM_TMPDIR/data"
 # net_0.pt through net_5.pt already exist. Parts 1--3 skip net_5 and train
 # only the missing net_6.pt through net_19.pt.
 for part in 1 2 3; do
+    before=$(find "$POOL" -maxdepth 1 -type f -name 'net_*.pt' -printf '.' | wc -c)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting part $part/3; $before/20 checkpoints complete"
     srun --ntasks=1 --cpus-per-task=1 python \
         "$REVIEW_CODE/experiments/reviewer_sweep/run.py" \
         pretrain --model ResNet20BN --fraction 0.5 --repeat 2 --part "$part"
+    after=$(find "$POOL" -maxdepth 1 -type f -name 'net_*.pt' -printf '.' | wc -c)
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Finished part $part/3; $after/20 checkpoints complete"
 done
 
 count=$(find "$POOL" -maxdepth 1 -type f -name 'net_*.pt' -printf '.' | wc -c)
