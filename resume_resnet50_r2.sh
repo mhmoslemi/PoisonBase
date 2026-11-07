@@ -17,6 +17,7 @@ source "${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
 export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
 export PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 export REVIEW_ROOT REVIEW_CODE
+export RESUME_POOL="$POOL"
 export PYTHONPATH="$REVIEW_CODE/experiments/reviewer_sweep:$REVIEW_CODE${PYTHONPATH:+:$PYTHONPATH}"
 export HF_HOME="$REVIEW_ROOT/reviewer_20261106_result/downloads/hf"
 export TORCH_HOME="$REVIEW_ROOT/reviewer_20261106_result/downloads/torch"
@@ -33,8 +34,7 @@ for part in 1 2 3; do
     before=$(find "$POOL" -maxdepth 1 -type f -name 'net_*.pt' -printf '.' | wc -c)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting part $part/3; $before/20 checkpoints complete"
     srun --ntasks=1 --cpus-per-task=1 python \
-        "$REVIEW_CODE/experiments/reviewer_sweep/run.py" \
-        pretrain --model ResNet20BN --fraction 0.5 --repeat 2 --part "$part"
+        "$ROOT/resume_resnet50_r2_progress.py" --part "$part"
     after=$(find "$POOL" -maxdepth 1 -type f -name 'net_*.pt' -printf '.' | wc -c)
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Finished part $part/3; $after/20 checkpoints complete"
 done
