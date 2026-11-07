@@ -1281,29 +1281,35 @@ $\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)} & Surrogate data (\%) & Ca
 
 
 \bigskip
-\noindent\textbf{Part 2 (W2, Q3): Comparison with Wicked Oddities.}
+\noindent\textbf{Part 2 (W2, Q3): Comparison with Wicked Oddities (Nguyen et al., ICLR 2025).}
+
+Wicked Oddities (\textsc{WO}) is designed for clean-label \emph{backdoor} attacks where the attacker only has access to class $y_{\text{adv}}$ and therefore cannot compute supervised multi-class difficulty metrics such as \textsc{Grad} or \textsc{Forget}. Instead, \textsc{WO} approximates sample difficulty by selecting generic intra-class outliers in $y_{\text{adv}}$—either via $k$-NN distance in an ImageNet-pretrained ResNet-50 feature space (\textsc{WO-KNN}) or via loss against an external OOD dataset (\textsc{WO-OOD}). While generic outliers help a model latch onto a backdoor trigger, triggerless targeted poisoning requires shifting the decision boundary specifically toward the unmodified test target $x_t$. Consequently, intra-class outliers that lie far from $x_t$ in representation space or away from the competing decision boundary are ineffective poison bases. Table~\ref{tab:reb-wo} extends the ConvNet evaluation in Table~4 of the submitted paper, showing that \textsc{Basis} substantially outperforms \textsc{WO} alongside existing backdoor selectors.
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) of different sample-selection methods on dog$\rightarrow$bird with full access. All selectors feed the same GM crafting procedure ($\varepsilon_\infty = 8/255$, 250 steps, 8 restarts, 5 crafting surrogates), with identical targets, budgets, and victim training. WO-Pre and WO-OOD are our adaptations of the two Wicked Oddities selectors to targeted poisoning. Column values denote $\rho$ in percent. Existing ASR results are reported in Table~5 of the submitted paper. Selection cost is reported as ConvNet/ResNet20 seconds per target using the measurements in Table~19.}
+\caption{ASR ($\%$, $\uparrow$) comparing \textsc{Basis} with backdoor sample selection methods, including Wicked Oddities (\textsc{WO-KNN} and \textsc{WO-OOD}), on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) across poisoning budgets $\rho \in \{0.2\%, 0.5\%\}$. Existing results are copied from Table~4 of the submitted paper.}
 \label{tab:reb-wo}
 \vspace{-0.6em}
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{4.5pt}
 \renewcommand{\arraystretch}{1.05}
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{@{}l ccc ccc l c@{}}
+\resizebox{0.65\linewidth}{!}{%
+\begin{tabular}{@{}l cccc cccc@{}}
 \toprule
-& \multicolumn{3}{c}{\textbf{ConvNet}} & \multicolumn{3}{c}{\textbf{ResNet20}} & & \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-\textbf{Method} & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & External resources & Selection cost \\
+& \multicolumn{4}{c}{\textbf{ConvNet}} & \multicolumn{4}{c}{\textbf{ResNet20}} \\
+\cmidrule(lr){2-5} \cmidrule(l){6-9}
+& \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{SAPA}} & \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(l){8-9}
+\textbf{Method} & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 \\
 \midrule
-\textsc{Rand}  & \old{0.0}  & \old{0.0}  & \old{1.7}  & \old{15.0} & \old{31.7} & \old{43.3} & None & -- \\
-$M$            & \old{17.5} & \old{20.8} & \old{55.0} & \old{32.5} & \old{55.0} & \tbd       & None & 0.3726 / 0.4999 s \\
-\addlinespace[1pt]
-WO-Pre         & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & ImageNet-1k pretrained ResNet50 & \tbd \\
-WO-OOD         & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & TinyImageNet (100 classes) as OOD data & \tbd \\
-\addlinespace[1pt]
-\textsc{Basis} & \old{20.0} & \old{40.0} & \old{77.5} & \old{40.0} & \old{57.5} & \old{72.5} & None & 0.7164 / 1.0016 s \\
+\textsc{Rand}              & \old{0.0}  & \old{1.7}  & \old{0.0}  & \old{6.7}  & \old{31.7} & \old{43.3} & \old{21.7} & \old{55.0} \\
+\textsc{Grad}              & \old{10.0} & \old{46.7} & \old{6.7}  & \old{48.3} & \old{53.3} & \old{70.8} & \old{45.0} & \old{81.3} \\
+\textsc{Forget}            & \old{15.0} & \old{31.7} & \old{21.7} & \old{40.0} & \old{48.3} & \old{46.7} & \old{66.7} & \old{52.1} \\
+\textsc{Fus}               & \old{8.3}  & \old{28.3} & \old{10.0} & \old{20.0} & \old{40.0} & \old{64.6} & \old{40.0} & \old{70.8} \\
+\midrule
+\textsc{WO-KNN}      & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       \\
+\textsc{WO-OOD}            & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       \\
+\midrule
+\textsc{Basis} (Ours)      & \old{\textbf{40.0}} & \old{\textbf{77.5}} & \old{\textbf{30.0}} & \old{\textbf{62.5}} & \old{\textbf{57.5}} & \old{\textbf{72.5}} & \old{52.5} & \old{77.5} \\
 \bottomrule
 \end{tabular}%
 }
