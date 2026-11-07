@@ -1,0 +1,33 @@
+job=2168638 node=rack04-11 targets=8954 821 1547 4427
+[2026-11-07 01:29:51] === run start: CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b0.005_eps8_seed42_K20_ce5_tgt70 on cuda [0] ===
+[2026-11-07 01:29:51] args: {"FORCE": false, "attack": "gradmatch", "base": "random", "base_dist": "l2", "base_topr": null, "budget": 0.005, "cache_dir": "/tmp/PoisonBase_missing_random_b005/cache", "class_pair": "dog-bird", "clean_baseline": false, "craft_alpha": 0.0039216, "craft_aug": true, "craft_batch": 256, "craft_ensemble": 5, "craft_lowmem": false, "craft_schedule": false, "craft_steps": 750, "data_path": "/tmp/PoisonBase_missing_random_b005/data", "dataset": "CIFAR10", "distance_margin_coef": null, "dsa_strategy": "color_crop_cutout_flip_scale_rotate", "epsilon": 0.0313725, "fast_gradmatch": false, "fc_mode": "sample", "fc_restarts": 1, "fus_alpha": 0.5, "fus_iters": 10, "fus_proxy_restarts": 0, "fus_proxy_steps": 0, "fus_search_decay": [40], "fus_search_epochs": 50, "gpus": "all", "jacobian_batch_size": 64, "jacobian_weight": 1.0, "keep_pinned_targets": true, "lambda_margin": 1.0, "model": "ConvNetBN", "no_resume": false, "num_poisons": 500, "num_surrogates": 20, "num_targets": 4, "num_victims": 1, "out_dir": "/tmp/PoisonBase_missing_random_b005/ours_result", "pair_order": "poison-target", "parallel_pretrain": true, "parallel_targets": true, "precompute_id": null, "precompute_only": false, "precompute_part": "both", "rank_on_victims": true, "recompute_deltas": false, "require_correct_target": false, "restarts": 8, "seed": 42, "sel_K": 20, "sel_alpha": 1.0, "sel_criterion": null, "sel_dpp": false, "sel_filter": false, "sel_metric_epoch": 10, "sel_mmr": false, "sel_mode": null, "sel_model": null, "sel_mu": 1.0, "sel_pca": false, "sel_pool": 3.0, "selector_metric_dir": null, "sharp_mode": "worst", "sharp_samples": 20, "sharp_sigma": 0.05, "steal_timeout": 7200.0, "surrogate_aug": false, "surrogate_bs": 128, "surrogate_decay": [35, 45], "surrogate_epochs": 60, "surrogate_lr": 0.1, "surrogate_wd": 0.0, "target_idx_file": "/tmp/PoisonBase_missing_random_b005/target_sets/missing_random_b005.json", "target_select": 70, "use_jacobian_score": false, "victim_aug": false, "victim_bs": 125, "victim_decay": [35, 45], "victim_epochs": 0, "victim_lr": 0.1, "victim_model": null, "victim_wd": 0.0}
+[2026-11-07 01:29:51] Jacobian score: disabled
+[2026-11-07 01:29:51] N_total=50000 budget=0.005 -> N_p=250 poisons, y_adv=5(dog) target_class=2(bird)
+[2026-11-07 01:29:51] === selection/crafting surrogates (20 x ConvNetBN, trained on the full real set) ===
+[2026-11-07 01:29:51]   crafting on 5/20 surrogates
+[2026-11-07 01:29:52]   chosen 4 targets (file, fixed across victim architectures), p_adv range 0.0000..0.0000
+[2026-11-07 01:29:52]   targets: [8954, 821, 1547, 4427]
+[2026-11-07 01:29:52] === target 8954 (1/4) ===
+[2026-11-07 01:29:52]   target 8954: selector overhead 0.027 s, CUDA peak 738.2 MiB (incremental 0.1 MiB)
+[2026-11-07 01:41:48]   target 8954: crafted 250 poisons in 717 s, obj=0.33659, CUDA peak=5065.4 MiB (incremental 4324.4 MiB)
+[2026-11-07 01:41:48]   target 8954: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-11-07 01:41:48]   [t8954 v1/1] fail (pred=bird) CTA=0.0829
+[2026-11-07 01:41:49] === target 821 (2/4) ===
+[2026-11-07 01:41:49]   target 821: selector overhead 0.001 s, CUDA peak 746.3 MiB (incremental 0.1 MiB)
+[2026-11-07 01:53:45]   target 821: crafted 250 poisons in 716 s, obj=0.32028, CUDA peak=5069.8 MiB (incremental 4320.7 MiB)
+[2026-11-07 01:53:45]   target 821: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-11-07 01:53:45]   [t821 v1/1] fail (pred=horse) CTA=0.0849
+[2026-11-07 01:53:45] === target 1547 (3/4) ===
+[2026-11-07 01:53:45]   target 1547: selector overhead 0.001 s, CUDA peak 746.3 MiB (incremental 0.1 MiB)
+[2026-11-07 02:05:41]   target 1547: crafted 250 poisons in 716 s, obj=0.42650, CUDA peak=5068.2 MiB (incremental 4319.1 MiB)
+[2026-11-07 02:05:41]   target 1547: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-11-07 02:05:41]   [t1547 v1/1] fail (pred=truck) CTA=0.1097
+[2026-11-07 02:05:41] === target 4427 (4/4) ===
+[2026-11-07 02:05:41]   target 4427: selector overhead 0.001 s, CUDA peak 746.3 MiB (incremental 0.1 MiB)
+[2026-11-07 02:17:37]   target 4427: crafted 250 poisons in 716 s, obj=0.43171, CUDA peak=5068.0 MiB (incremental 4318.9 MiB)
+[2026-11-07 02:17:37]   target 4427: realized linf = 0.03137 (8.00/255), budget = 8.00/255
+[2026-11-07 02:17:37]   [t4427 v1/1] fail (pred=bird) CTA=0.1022
+[2026-11-07 02:17:37]   selector resources: 4 target(s), 0.0 total target-seconds, max CUDA allocated 746.3 MiB (incremental 0.1 MiB)
+[2026-11-07 02:17:37] ==== CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b0.005_eps8_seed42_K20_ce5_tgt70 : ASR = 0.0% +/- 0.0% | CTA = 0.0949 (baseline n/a) ====
+[2026-11-07 02:17:37]   target-prediction tally ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']: [0, 0, 2, 0, 0, 0, 0, 1, 0, 1]
+saved four perturbations in /scratch/mmoslem3/PoisonBase/ours_result/CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b0.005_eps8_seed42_K20_ce5_tgt70/poison_cache

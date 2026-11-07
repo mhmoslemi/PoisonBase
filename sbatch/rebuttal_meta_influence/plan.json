@@ -1,0 +1,854 @@
+{
+  "protocol": {
+    "version": 1,
+    "seed": 42,
+    "y_adv": 5,
+    "surrogates": 20,
+    "ensemble": "mean of per-surrogate scores; meta weights clipped and normalized over all 5000 candidates before averaging",
+    "meta": {
+      "step_size": 1,
+      "candidate_batch": 64
+    },
+    "influence": {
+      "ridge": 0.1,
+      "scale": 10,
+      "max_scale": 1280,
+      "depth": 10000,
+      "hessian_batch": 32,
+      "candidate_batch": 64,
+      "samples": 1
+    },
+    "victim": {
+      "epochs": 50,
+      "batch_size": 125,
+      "learning_rate": 0.1,
+      "decay": [
+        40
+      ],
+      "momentum": 0.9,
+      "weight_decay": 0,
+      "augmentation": false
+    },
+    "crafting": {
+      "ensemble": 5,
+      "steps": 250,
+      "restarts": 8,
+      "fc_restarts": 1,
+      "fc_mode": "sample",
+      "epsilon": 0.0313725,
+      "alpha": 0.0039216,
+      "augmentation": "color_crop_cutout_flip_scale_rotate",
+      "sharp_mode": "worst",
+      "sharp_sigma": 0.05
+    },
+    "sources": {
+      "meta": "https://github.com/uber-research/learning-to-reweight-examples/blob/master/models/reweight_model.py",
+      "influence_solver": "https://github.com/kohpangwei/influence-release/blob/master/influence/genericNeuralNet.py",
+      "influence_selection": "https://github.com/kohpangwei/influence-release/blob/master/influence/dataset_poisoning.py#L39"
+    }
+  },
+  "targets": {
+    "ConvNetBN": {
+      "bp": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "gm": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ]
+    },
+    "ResNet20BN": {
+      "bp": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421
+      ],
+      "gm": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ]
+    }
+  },
+  "tasks": [
+    {
+      "id": "score_meta_conv",
+      "stage": "score",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335,
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_conv_1",
+      "stage": "score",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705
+      ],
+      "time": "02:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_conv_2",
+      "stage": "score",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "targets": [
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "time": "02:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_conv_3",
+      "stage": "score",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730
+      ],
+      "time": "02:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_conv_4",
+      "stage": "score",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "targets": [
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_meta_res",
+      "stage": "score",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "targets": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421,
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "02:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_1",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        3495,
+        2903
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_2",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        6697,
+        2315
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_3",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        6899,
+        2312
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_4",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        6353,
+        4421
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_5",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        5118,
+        8740
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_6",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        5324,
+        4630
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_7",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        833,
+        2065
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "score_if_res_8",
+      "stage": "score",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "targets": [
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": []
+    },
+    {
+      "id": "eval_meta_conv_fc_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "fc",
+      "budget": 0.002,
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_conv"
+      ]
+    },
+    {
+      "id": "eval_meta_conv_fc_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "fc",
+      "budget": 0.005,
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_conv"
+      ]
+    },
+    {
+      "id": "eval_meta_conv_gradmatch_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_conv"
+      ]
+    },
+    {
+      "id": "eval_meta_conv_gradmatch_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_conv"
+      ]
+    },
+    {
+      "id": "eval_meta_conv_sapa_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_conv"
+      ]
+    },
+    {
+      "id": "eval_meta_conv_sapa_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_conv"
+      ]
+    },
+    {
+      "id": "eval_meta_res_fc_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "fc",
+      "budget": 0.002,
+      "targets": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_res"
+      ]
+    },
+    {
+      "id": "eval_meta_res_fc_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "fc",
+      "budget": 0.005,
+      "targets": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_meta_res"
+      ]
+    },
+    {
+      "id": "eval_meta_res_gradmatch_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "02:30:00",
+      "dependencies": [
+        "score_meta_res"
+      ]
+    },
+    {
+      "id": "eval_meta_res_gradmatch_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [
+        "score_meta_res"
+      ]
+    },
+    {
+      "id": "eval_meta_res_sapa_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "02:30:00",
+      "dependencies": [
+        "score_meta_res"
+      ]
+    },
+    {
+      "id": "eval_meta_res_sapa_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [
+        "score_meta_res"
+      ]
+    },
+    {
+      "id": "eval_influence_conv_fc_b002",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "attack": "fc",
+      "budget": 0.002,
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_conv_1",
+        "score_if_conv_2"
+      ]
+    },
+    {
+      "id": "eval_influence_conv_fc_b005",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "attack": "fc",
+      "budget": 0.005,
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_conv_1",
+        "score_if_conv_2"
+      ]
+    },
+    {
+      "id": "eval_influence_conv_gradmatch_b002",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_conv_3",
+        "score_if_conv_4"
+      ]
+    },
+    {
+      "id": "eval_influence_conv_gradmatch_b005",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_conv_3",
+        "score_if_conv_4"
+      ]
+    },
+    {
+      "id": "eval_influence_conv_sapa_b002",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_conv_3",
+        "score_if_conv_4"
+      ]
+    },
+    {
+      "id": "eval_influence_conv_sapa_b005",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_conv_3",
+        "score_if_conv_4"
+      ]
+    },
+    {
+      "id": "eval_influence_res_fc_b002",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "attack": "fc",
+      "budget": 0.002,
+      "targets": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_res_1",
+        "score_if_res_2",
+        "score_if_res_3",
+        "score_if_res_4"
+      ]
+    },
+    {
+      "id": "eval_influence_res_fc_b005",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "attack": "fc",
+      "budget": 0.005,
+      "targets": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421
+      ],
+      "time": "02:00:00",
+      "dependencies": [
+        "score_if_res_1",
+        "score_if_res_2",
+        "score_if_res_3",
+        "score_if_res_4"
+      ]
+    },
+    {
+      "id": "eval_influence_res_gradmatch_b002",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "02:30:00",
+      "dependencies": [
+        "score_if_res_5",
+        "score_if_res_6",
+        "score_if_res_7",
+        "score_if_res_8"
+      ]
+    },
+    {
+      "id": "eval_influence_res_gradmatch_b005",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [
+        "score_if_res_5",
+        "score_if_res_6",
+        "score_if_res_7",
+        "score_if_res_8"
+      ]
+    },
+    {
+      "id": "eval_influence_res_sapa_b002",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "02:30:00",
+      "dependencies": [
+        "score_if_res_5",
+        "score_if_res_6",
+        "score_if_res_7",
+        "score_if_res_8"
+      ]
+    },
+    {
+      "id": "eval_influence_res_sapa_b005",
+      "stage": "evaluate",
+      "method": "influence",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [
+        "score_if_res_5",
+        "score_if_res_6",
+        "score_if_res_7",
+        "score_if_res_8"
+      ]
+    }
+  ]
+}

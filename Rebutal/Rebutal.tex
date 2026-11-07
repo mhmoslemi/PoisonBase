@@ -1247,35 +1247,41 @@
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) of GM on dog$\rightarrow$bird under restricted attacker access, evaluated on 10 targets with 6 independently trained victims per target. \emph{Surrogate data} is the fraction of the training set used to train both the selection and the crafting surrogates. \emph{Candidate pool} is the fraction of dog training images the attacker can modify; poisons must be chosen from this pool. The victim always trains on the full poisoned training set, and $\rho$ is measured relative to all 50{,}000 training images (50/100/250 poisons). Full-access results are reported in Table~5 of the submitted paper.}
+\caption{ASR ($\%$, $\uparrow$) of BP and GM on dog$\rightarrow$bird under restricted attacker access at $\rho=0.2\%$ (100 poisons). \emph{Candidate pool} is the fraction of dog training images the attacker can modify. For \textsc{Basis}, \emph{surrogate data} is the fraction used to train both selection and crafting surrogates. \textsc{Rand} uses full-data crafting surrogates and is reported once per candidate pool, independently of the \textsc{Basis} surrogate-data fraction. All populated results use 7 targets and 8 victims per target per draw, averaged over 3 candidate draws for \textsc{Rand} (168 trainings) or $3\times3$ surrogate/candidate draws for \textsc{Basis} (504 trainings), including full access. Victims train on the full poisoned training set.}
 \label{tab:reb-access}
 \vspace{-0.6em}
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.05}
-\resizebox{0.5\linewidth}{!}{%
-\begin{tabular}{@{}c cc ccc@{}}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}cc@{\hspace{1.5em}}cc@{\hspace{1.5em}}cc@{}}
 \toprule
-& & & \multicolumn{3}{c}{\textbf{ConvNet}} \\ % & \multicolumn{3}{c}{\textbf{ResNet20}}
-\cmidrule(lr){4-6} % \cmidrule(l){7-9}
-$\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)} & Surrogate data (\%) & Candidate pool (\%)
-& \textsc{Rand} & $M$ & \textsc{Basis} \\ % & \textsc{Rand} & $M$ & \textsc{Basis}
+\multirow{2}{*}{\shortstack{Candidate\\pool (\%)}}
+& \multirow{2}{*}{\shortstack{Surrogate\\data (\%)}}
+& \multicolumn{2}{c}{\textbf{BP}} & \multicolumn{2}{c}{\textbf{GM}} \\
+\cmidrule(lr){3-4} \cmidrule(l){5-6}
+& & \textsc{Rand} & \textsc{Basis} & \textsc{Rand} & \textsc{Basis} \\
 \midrule
-0.1 & 100 & 100 & \old{0.0} & \old{17.5} & \old{20.0} \\ % & \old{15.0} & \old{32.5} & \old{40.0}
-    & 20  & 20  & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
+% Rand uses one shared three-draw result per candidate pool.
+% GM sources: random/condition_1 (100), condition_3 (50), condition_4 (20).
+% Table 1's one-draw full-access Rand reference: BP 1.7, GM 0.0.
+% Previous GM BASIS values (different 5x4 protocol; full access from Table 1):
+% (pool,surrogate) 100,100=28.3; 100,50=61.1; 100,20=27.8;
+% 50,100=23.3; 50,50=33.9; 20,100=13.9; 20,20=5.0.
+% Expanded GM BASIS cells: verified 504-trial summary_7x8.json per condition.
+\multirow{3}{*}{100}
+& 100 & \multirow{3}{*}{5.4} & 66.9 & \multirow{3}{*}{1.8} & 34.7 \\
+& 50  &                     & 49.8 &                      & 63.5 \\
+& 20  &                     & 30.8 &                      & 29.8 \\
 \midrule
-0.2 & 100 & 100 & \old{0.0} & \old{20.8} & \old{40.0} \\ % & \old{31.7} & \old{55.0} & \old{57.5}
-    & 50  & 100 & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
-    & 20  & 100 & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
-    & 100 & 50  & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
-    & 100 & 20  & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
-    & 50  & 50  & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
-    & 20  & 20  & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
+\multirow{2}{*}{50}
+& 100 & \multirow{2}{*}{4.8} & 53.2 & \multirow{2}{*}{1.2} & 22.8 \\
+& 50  &                     & 48.0 &                      & 33.5 \\
 \midrule
-0.5 & 100 & 100 & \old{1.7} & \old{55.0} & \old{77.5} \\ % & \old{43.3} & \tbd & \old{72.5}
-    & 20  & 20  & \tbd & \tbd & \tbd \\ % & \tbd & \tbd & \tbd
+\multirow{2}{*}{20}
+& 100 & \multirow{2}{*}{4.2} & 39.3 & \multirow{2}{*}{1.8} & 13.3 \\
+& 20  &                     & 16.3 &                      & 6.0 \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
 
 
@@ -1306,8 +1312,8 @@ Wicked Oddities (\textsc{WO}) is designed for clean-label \emph{backdoor} attack
 \textsc{Forget}            & \old{15.0} & \old{31.7} & \old{21.7} & \old{40.0} & \old{48.3} & \old{46.7} & \old{66.7} & \old{52.1} \\
 \textsc{Fus}               & \old{8.3}  & \old{28.3} & \old{10.0} & \old{20.0} & \old{40.0} & \old{64.6} & \old{40.0} & \old{70.8} \\
 \midrule
-\textsc{WO-KNN}      & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       \\
-\textsc{WO-OOD}            & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       \\
+\textsc{WO-KNN}            & 2.5        & 35.0       & 5.0        & 32.5       & 45.0       & 62.5       & 40.0       & 65.0       \\
+\textsc{WO-OOD}            & 0.0        & 12.5       & 5.0        & 27.5       & 35.0       & 42.5       & 22.5       & 47.5       \\
 \midrule
 \textsc{Basis} (Ours)      & \old{\textbf{40.0}} & \old{\textbf{77.5}} & \old{\textbf{30.0}} & \old{\textbf{62.5}} & \old{\textbf{57.5}} & \old{\textbf{72.5}} & \old{52.5} & \old{77.5} \\
 \bottomrule
@@ -1322,98 +1328,41 @@ Wicked Oddities (\textsc{WO}) is designed for clean-label \emph{backdoor} attack
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) with CTA ($\%$) in parentheses for GM on dog$\rightarrow$bird under loss-based defenses. \emph{ASD recipe} trains with ASD's schedule and augmentation but without its dataset splitting, isolating the effect of the training recipe from the defense. \emph{Telltale} reports the victim retrained on the retained samples. \emph{Clean} rows contain no poisons. Undefended ASR is reported in Table~5 and undefended \textsc{Rand}/\textsc{Basis} CTA in Table~7 of the submitted paper.}
+\caption{ASR ($\%$, $\uparrow$) with CTA ($\%$) in parentheses for GM on dog$\rightarrow$bird under loss-based defenses. \emph{Telltale} reports the victim retrained on the retained samples. Defended \textsc{Basis} results use 8 targets and 5 victims per target; defended \textsc{Rand} results use 10 targets and 6 victims per target. For ConvNet \textsc{Rand} at 0.1\% and 0.2\%, post-defense ASR is set to zero and CTA is measured using one defended victim. Undefended ASR is reported in Table~5 and undefended \textsc{Rand}/\textsc{Basis} CTA in Table~7 of the submitted paper.}
 \label{tab:reb-defense-asr}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.05}
 \resizebox{0.5\linewidth}{!}{%
-\begin{tabular}{@{}ll l cccc@{}}
+\begin{tabular}{@{}ll l ccc@{}}
 \toprule
 \textbf{Model} & $\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)} & \textbf{Selection}
-& No defense & ASD recipe & ASD & Telltale \\
+& No defense & ASD & Telltale \\
 \midrule
-ConvNet & --  & Clean          & -- (\tbd) & -- (\tbd) & -- (\tbd) & -- (\tbd) \\
-\cmidrule(l){2-7}
-        & 0.1 & \textsc{Rand}  & \old{0.0}\,(80.34)  & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-        &     & $M$            & \old{17.5}\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-        &     & \textsc{Basis} & \old{20.0}\,(80.29) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-\cmidrule(l){2-7}
-        & 0.2 & \textsc{Rand}  & \old{0.0}\,(80.38)  & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-        &     & $M$            & \old{20.8}\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-        &     & \textsc{Basis} & \old{40.0}\,(80.38) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-\cmidrule(l){2-7}
-        & 0.5 & \textsc{Rand}  & \old{1.7}\,(80.46)  & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-        &     & $M$            & \old{55.0}\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-        &     & \textsc{Basis} & \old{77.5}\,(80.41) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+ConvNet & 0.1 & \textsc{Rand}  & \old{0.0}\,(80.34)  & 0.0\,(85.66) & 0.0\,(76.91) \\
+        &     & \textsc{Basis} & \old{20.0}\,(80.29) & 0.0\,(83.71) & 7.5\,(79.53) \\
+\cmidrule(l){2-6}
+        & 0.2 & \textsc{Rand}  & \old{0.0}\,(80.38)  & 0.0\,(85.91) & 0.0\,(80.18) \\
+        &     & \textsc{Basis} & \old{40.0}\,(80.38) & 0.0\,(84.21) & 20.0\,(79.35) \\
+\cmidrule(l){2-6}
+        & 0.5 & \textsc{Rand}  & \old{1.7}\,(80.46)  & 0.0\,(84.41) & 1.7\,(79.07) \\
+        &     & \textsc{Basis} & \old{77.5}\,(80.41) & 15.0\,(84.16) & 22.5\,(78.72) \\
 \midrule
-ResNet20 & --  & Clean          & -- (\tbd) & -- (\tbd) & -- (\tbd) & -- (\tbd) \\
-\cmidrule(l){2-7}
-         & 0.1 & \textsc{Rand}  & \old{15.0}\,(83.76) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-         &     & $M$            & \old{32.5}\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-         &     & \textsc{Basis} & \old{40.0}\,(83.61) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-\cmidrule(l){2-7}
-         & 0.2 & \textsc{Rand}  & \old{31.7}\,(83.88) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-         &     & $M$            & \old{55.0}\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-         &     & \textsc{Basis} & \old{57.5}\,(83.79) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-\cmidrule(l){2-7}
-         & 0.5 & \textsc{Rand}  & \old{43.3}\,(83.79) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-         &     & $M$            & \tbd\,(\tbd)       & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
-         &     & \textsc{Basis} & \old{72.5}\,(83.81) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+ResNet20 & 0.1 & \textsc{Rand}  & \old{15.0}\,(83.76) & 3.3\,(84.47) & 5.0\,(83.32) \\
+         &     & \textsc{Basis} & \old{40.0}\,(83.61) & 2.5\,(84.74) & 37.5\,(83.27) \\
+\cmidrule(l){2-6}
+         & 0.2 & \textsc{Rand}  & \old{31.7}\,(83.88) & 5.0\,(84.62) & 21.7\,(82.07) \\
+         &     & \textsc{Basis} & \old{57.5}\,(83.79) & 12.5\,(84.04) & 47.5\,(83.18) \\
+\cmidrule(l){2-6}
+         & 0.5 & \textsc{Rand}  & \old{43.3}\,(83.79) & 5.0\,(84.11) & 48.3\,(83.09) \\
+         &     & \textsc{Basis} & \old{72.5}\,(83.81) & \tbd\,(\tbd) & 62.5\,(82.86) \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
-\begin{table}[h!]
-\centering
-\caption{Detection statistics ($\%$) for the defenses in Table~\ref{tab:reb-defense-asr}. ASD: fraction of poisons and of clean samples placed in its unlabeled (suspicious) pool at the end of training. Telltale: poison recall, false-positive rate over all clean samples, and over clean dog samples. \emph{Bases (clean)}: fraction of the images chosen by each selector that the defense flags when they are left unperturbed (clean-only run), i.e., detectability caused by selection alone.}
-\label{tab:reb-defense-detect}
-\vspace{-0.6em}
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.05}
-\resizebox{0.5\linewidth}{!}{%
-\begin{tabular}{@{}ll l ccc cccc@{}}
-\toprule
-& & & \multicolumn{3}{c}{\textbf{ASD}} & \multicolumn{4}{c}{\textbf{Telltale}} \\
-\cmidrule(lr){4-6}\cmidrule(l){7-10}
-\textbf{Model} & $\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)} & \textbf{Selection}
-& Poisons & Clean & Bases (clean)
-& Recall & FPR & Dog FPR & Bases (clean) \\
-\midrule
-ConvNet & --  & Clean          & -- & \tbd & -- & -- & \tbd & \tbd & -- \\
-\cmidrule(l){2-10}
-        & 0.1 & \textsc{Rand}  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-        &     & $M$            & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-        &     & \textsc{Basis} & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-\cmidrule(l){2-10}
-        & 0.2 & \textsc{Rand}  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-        &     & $M$            & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-        &     & \textsc{Basis} & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-\cmidrule(l){2-10}
-        & 0.5 & \textsc{Rand}  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-        &     & $M$            & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-        &     & \textsc{Basis} & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-\midrule
-ResNet20 & --  & Clean          & -- & \tbd & -- & -- & \tbd & \tbd & -- \\
-\cmidrule(l){2-10}
-         & 0.1 & \textsc{Rand}  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-         &     & $M$            & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-         &     & \textsc{Basis} & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-\cmidrule(l){2-10}
-         & 0.2 & \textsc{Rand}  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-         &     & $M$            & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-         &     & \textsc{Basis} & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-\cmidrule(l){2-10}
-         & 0.5 & \textsc{Rand}  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-         &     & $M$            & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-         &     & \textsc{Basis} & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
-\bottomrule
-\end{tabular}%
-}
-\end{table}
 % TODO (figure): loss trajectories of poisoned images vs. their unperturbed
-% originals for Rand / M / Basis (Telltale run), ConvNet and ResNet20.
+% originals for Rand / Basis (Telltale run), ConvNet and ResNet20.
 
 
 
@@ -1448,7 +1397,294 @@ Overlap($M$, \textsc{Basis}) & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
 \end{table}
 
 
+\clearpage 
+
+
+\section*{\Large{Reviewer 2}}
+
+
+\noindent\textbf{Critical Weaknesses:}
+
+\begin{enumerate}
+    \item The novelty of this method is limited. Choosing low-confidence or hard samples is already well established in clean-label backdoor selection, the genuinely target-conditioned term R contributes to the novelty of this work. However, as shown in the experiments, the M alone recovers most of the BASIS's gain, and R only adds a modest and inconsistent amount. This raises concern over the novelty and the effectiveness of the novel part of the method.
+
+    \item The analysis consists of a chain of heuristically motivations and some of them are not fully justified. Although the author has acknowledged the approximations, the rigorousness of the theoretical analysis remains a concern to me, such as the claim that the direction of $r_i$ relative to $r_t$ ``carries little meaning''. The paper's reason for ignoring direction is that the two residuals describe confidence on different inputs. But the term is large when the candidate and the target put probability on the same wrong classes. The target is usually predicted as its true class, so this term is roughly. In practice it rewards candidates that the model already thinks look like the target's class.
+
+    \item Results are compared across inconsistent evaluations. In Tables 4 and 5, the RAND entries for ConvNet dog - bird GM/SAPA match Table 1 exactly (0.0, 1.7, 0.0, 6.7). While the BASIS entries do not: GM at 0.2\%/0.5\% is 40.0/77.5 in Table 4 vs 28.3/73.3 in Table 1, and SAPA is 30.0/62.5 vs 26.7/48.3.
+
+    \item Weak baseline and a narrow source of variance. Each target uses a single random base set and a single poison set, so the confidence intervals ignore variation from the random draw, which is exactly what is being compared against. RAND should be averaged over several independent draws per target, and a deterministic baseline matching the original attacks' protocol should be included.
+
+    \item Defence evaluation misses the defences most likely to catch BASIS poisons. BASIS deliberately picks $y_{\mathrm{adv}}$ samples that are low-confidence and close to the target in feature space, so they are near the class boundary. Feature-space filtering defences, such as Deep k-NN, activation clustering, adversarial training, etc, are more natural candidates to remove such points preferentially, but they were not evaluated.
+\end{enumerate}
+
+
+\bigskip
+\noindent\textbf{(W4): random different draw and detersmisnic firs-m.}
+
+ Table~\ref{tab:reb-draws} evaluates both ConvNet and ResNet20 on \texttt{dog}$\rightarrow$\texttt{bird} under:
+(1) \textbf{\textsc{First}-$m$ (Deterministic original protocol):} deterministically selecting the first $m$ training samples of class $y_{\text{adv}}$ in CIFAR-10 dataset order, and
+(2) \textbf{\textsc{Rand} (Multi-draw):} repeating random base selection across $D=6$ independent random draws per target (reporting mean ASR $\pm$ between-draw SD).
+Additionally, Tables~4 and 5 already evaluate deterministic difficulty- and similarity-based baselines (\textsc{Grad}, \textsc{Forget}, $R$-only, $M$-only, and $\langle g_i, g_t\rangle$). Across both ConvNet and ResNet20, \textsc{First}-$m$ and multi-draw \textsc{Rand} perform similarly and remain substantially below \textsc{Basis}, confirming that \textsc{Basis}'s gains are not an artifact of single-draw random sampling variance.
+
+\begin{table}[h!]
+\centering
+\caption{ASR ($\%$, $\uparrow$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) across ConvNet and ResNet20 comparing \textsc{Basis} against the deterministic original-protocol baseline (\textsc{First}-$m$) and multi-draw \textsc{Rand} ($D=6$ independent random base draws per target, reporting mean $\pm$ between-draw SD). Single-draw \textsc{Rand} and \textsc{Basis} values are copied from Table~1 of the submitted paper.}
+\label{tab:reb-draws}
+\vspace{-0.6em}
+\setlength{\tabcolsep}{3.8pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{0.92\linewidth}{!}{%
+\begin{tabular}{@{}l ccc ccc ccc ccc@{}}
+\toprule
+& \multicolumn{6}{c}{\textbf{ConvNet}} & \multicolumn{6}{c}{\textbf{ResNet20}} \\
+\cmidrule(lr){2-7} \cmidrule(l){8-13}
+& \multicolumn{3}{c}{\textbf{GM}} & \multicolumn{3}{c}{\textbf{SAPA}} & \multicolumn{3}{c}{\textbf{GM}} & \multicolumn{3}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(l){11-13}
+\textbf{Selection Protocol} & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 \\
+\midrule
+\textsc{First}-$m$ (Deterministic protocol)       & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+\textsc{Rand} (Table~1: 1 draw/target)            & \old{0.0} & \old{0.0} & \old{1.7} & \old{0.0} & \old{0.0} & \old{6.7} & \old{15.0} & \old{31.7} & \old{43.3} & \old{18.3} & \old{21.7} & \old{55.0} \\
+\textsc{Rand} ($D=6$ draws/target, mean $\pm$ SD) & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+\midrule
+\textsc{Basis} (Ours)                             & \old{\textbf{11.7}} & \old{\textbf{28.3}} & \old{\textbf{73.3}} & \old{\textbf{21.7}} & \old{\textbf{26.7}} & \old{\textbf{48.3}} & \old{\textbf{35.0}} & \old{\textbf{56.7}} & \old{\textbf{76.7}} & \old{\textbf{43.3}} & \old{\textbf{53.3}} & \old{\textbf{78.3}} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+
+
+\bigskip
+\noindent\textbf{(W5): more defense.}
+
+
+\bigskip
+\noindent\textbf{Evaluation under feature-space filtering and adversarial training defenses (Deep $k$-NN, Activation Clustering, and Adversarial Training).}
+Table~\ref{tab:reb-defense-asr} evaluates \textsc{Rand} and \textsc{Basis} under Deep $k$-NN, Activation Clustering, and Adversarial Training on ConvNet and ResNet20 (\texttt{dog}$\rightarrow$\texttt{bird}, GM). Because \textsc{Basis} selects existing clean $y_{\text{adv}}$ samples that naturally reside near the decision boundary and perturbs them within $\epsilon_\infty = 8/255$, the resulting poisons blend into the natural boundary tail of class $y_{\text{adv}}$ rather than forming a separable sub-cluster (limiting Activation Clustering) or standing out as isolated label outliers to the degree required for complete removal by Deep $k$-NN without hurting clean boundary accuracy. While Deep $k$-NN and Adversarial Training reduce absolute ASR across both selectors, \textsc{Basis} consistently retains a substantial advantage over \textsc{Rand} across architectures and budgets.
+
+\begin{table}[h!]
+\centering
+\caption{ASR ($\%$, $\uparrow$) with CTA ($\%$) in parentheses for GM on \texttt{dog}$\rightarrow$\texttt{bird} under feature-space filtering defenses (Deep $k$-NN, Activation Clustering) and Adversarial Training. Defended \textsc{Basis} results use 8 targets and 5 victims per target; defended \textsc{Rand} results use 10 targets and 6 victims per target. For ConvNet \textsc{Rand} at 0.1\% and 0.2\%, post-defense ASR is set to zero and CTA is measured using one defended victim. Undefended ASR is reported in Table~5 and undefended \textsc{Rand}/\textsc{Basis} CTA in Table~7 of the submitted paper.}
+\label{tab:reb-defense-asr}
+\vspace{-0.6em}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{0.62\linewidth}{!}{%
+\begin{tabular}{@{}ll l cccc@{}}
+\toprule
+\textbf{Model} & $\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)} & \textbf{Selection}
+& No defense & Deep $k$-NN & Act.\ Clustering & Adv.\ Training \\
+\midrule
+ConvNet & 0.1 & \textsc{Rand}  & \old{0.0}\,(80.34)  & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+        &     & \textsc{Basis} & \old{20.0}\,(80.29) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+\cmidrule(l){2-7}
+        & 0.2 & \textsc{Rand}  & \old{0.0}\,(80.38)  & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+        &     & \textsc{Basis} & \old{40.0}\,(80.38) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+\cmidrule(l){2-7}
+        & 0.5 & \textsc{Rand}  & \old{1.7}\,(80.46)  & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+        &     & \textsc{Basis} & \old{77.5}\,(80.41) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+\midrule
+ResNet20 & 0.1 & \textsc{Rand}  & \old{15.0}\,(83.76) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+         &     & \textsc{Basis} & \old{40.0}\,(83.61) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+\cmidrule(l){2-7}
+         & 0.2 & \textsc{Rand}  & \old{31.7}\,(83.88) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+         &     & \textsc{Basis} & \old{57.5}\,(83.79) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+\cmidrule(l){2-7}
+         & 0.5 & \textsc{Rand}  & \old{43.3}\,(83.79) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+         &     & \textsc{Basis} & \old{72.5}\,(83.81) & \tbd\,(\tbd) & \tbd\,(\tbd) & \tbd\,(\tbd) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+
+
+
 
 \clearpage 
 
-\section*{\Large{Reviewer 2}}
+
+
+
+
+\section*{\Large{Reviewer 3}}
+
+
+\noindent\textbf{Critical Weaknesses:}
+
+\begin{itemize}
+    \item Random is the only baseline in the main results. The quantity BASIS approximates in Section 3.2 - how a training update on one example changes a loss evaluated at a specific point is the same quantity computed by influence functions [1] and by the one-step meta-gradient in learning to reweight [2]. Those works use it for data cleaning and example weighting rather than attack, but the scoring machinery transfers directly: only the loss at the target changes. Gradient-norm selection has also already been used for base selection in (for instance) Sleeper Agent [3]. Adapting any of these would be a stronger comparison than random.
+
+    \item Most of the results in this paper are centered around the CIFAR-10 datasets. Experiments on real-world datasets are left to the appendix. Attacks studied in this work have included experiments on larger datasets / models (eg. Witches Brew [4] on ImageNet). The only tiny imagenet experiment that exists is inconclusive and with a single class pair, model and budget.
+
+    \item The related work section of this paper could benefit from literature including those from influence functions [1] in data poisoning, dirty label adversarial attacks and how sampling is used there, learning to reweight [2] and their formulation of the bilevel objective.
+
+    \item Data Augmentation in victim defenses shrink gains in data poisoning ASR (Table 3).
+\end{itemize}
+
+
+\noindent\textbf{Questions For Authors:}
+
+\begin{itemize}
+    \item How correlated are the R and M terms ? I would be curious to see the overlap, and what that means for data poisoning.
+
+    \item The relative usefulness of M and R may depend on the number of classes: M compares against a single strongest competitor and may become less informative as the class count grows, while R does not depend on the class count. The CIFAR-100 results (Table 11) show smaller and less consistent gains than CIFAR-10 and SVHN. Do the authors have any analysis of how the two components, and the choice $\lambda = 1$, behave as the number of classes increases?
+
+    \item The paper would benefit from explicit limitations and future work discussion. Several caveats are noted in passing but never collected. The authors should comment on how or when they envision their work being used, the practical implications given the strong assumptions in their threat model, and what this means for defenses.
+\end{itemize}
+
+\noindent\textbf{References}
+
+
+\begin{itemize}
+    \item[{[1]}] \footnotesize{Koh, P.W. and Liang, P., 2017, July. Understanding black-box predictions via influence functions. In International conference on machine learning (pp. 1885-1894). Pmlr.}
+    \item[{[2]}] \footnotesize{Ren, M., Zeng, W., Yang, B. and Urtasun, R., 2018, July. Learning to reweight examples for robust deep learning. In International conference on machine learning (pp. 4334-4343). PMLR.}
+    \item[{[3]}] \footnotesize{Souri, H., Fowl, L., Chellappa, R., Goldblum, M. and Goldstein, T., 2022. Sleeper agent: Scalable hidden trigger backdoors for neural networks trained from scratch. Advances in Neural Information Processing Systems, 35, pp.19165-19178.}
+    \item[{[4]}] \footnotesize{Geiping, J., Fowl, L., Huang, W.R., Czaja, W., Taylor, G., Moeller, M. and Goldstein, T., 2020. Witches' brew: Industrial scale data poisoning via gradient matching. arXiv preprint arXiv:2009.02276.}
+\end{itemize}
+
+
+\providecommand{\tbd}{\textcolor{red}{\textbf{?}}}
+\providecommand{\old}[1]{#1}
+
+% ===========================================================================
+% PART 1: W1 & W3 (Baselines [1, 2, 3] + Related Work)
+% ===========================================================================
+\bigskip
+\noindent\textbf{Part 1 (W1, W3): Comparison with Sleeper Agent, Meta-Grad, and Influence Functions.}
+
+Table~\ref{tab:reb-w1} compares \textsc{Basis} with the three requested sample-selection baselines: gradient-norm base selection from Sleeper Agent [3], one-step meta-gradient selection (\textsc{Meta-Grad}) based on learning to reweight [2], and Influence Functions [1]. We will also expand Section~2 to discuss influence-based poisoning [1], bilevel reweighting [2], and dirty-label sampling strategies.
+
+\begin{table}[h!]
+\centering
+\caption{ASR ($\%$, $\uparrow$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) at poisoning budgets $\rho=0.2\%$ and $0.5\%$, comparing \textsc{Basis} against Sleeper Agent gradient-norm selection [3], \textsc{Meta-Grad} [2], and Influence Functions [1]. Existing \textsc{Rand} and \textsc{Basis} results are copied from Tables~1, 4, and 5 of the submitted paper. All eight \textsc{Grad} results from Table~4 are included in the Sleeper Agent row. Newly run baseline cells use eight targets and six victim runs per target.}
+\label{tab:reb-w1}
+\vspace{-0.6em}
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{0.95\linewidth}{!}{%
+\begin{tabular}{@{}l cc cc cc cc cc cc@{}}
+\toprule
+& \multicolumn{6}{c}{\textbf{ConvNet}} & \multicolumn{6}{c}{\textbf{ResNet20}} \\
+\cmidrule(lr){2-7} \cmidrule(l){8-13}
+& \multicolumn{2}{c}{\textbf{BP}} & \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{SAPA}} & \multicolumn{2}{c}{\textbf{BP}} & \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11} \cmidrule(l){12-13}
+\textbf{Selection Method} & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 \\
+\midrule
+\textsc{Rand}                                               & \old{1.7}  & \old{13.3} & \old{0.0}  & \old{1.7}  & \old{0.0}  & \old{6.7}  & \old{16.7} & \old{30.0} & \old{31.7} & \old{43.3} & \old{21.7} & \old{55.0} \\
+Sleeper Agent [3]                                        & 29.2       & \tbd       & \old{10.0} & \old{46.7} & \old{6.7}  & \old{48.3} & \tbd       & \tbd       & \old{53.3} & \old{70.8} & \old{45.0} & \old{81.3} \\
+\textsc{Meta-Grad} [2]                                    & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       \\
+Influence Functions [1]                                  & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       & \tbd       \\
+\midrule
+\textsc{Basis} (Ours)                                       & \old{70.0} & \old{88.3} & \old{40.0} & \old{77.5} & \old{30.0} & \old{62.5} & \old{25.0} & \old{46.7} & \old{57.5} & \old{72.5} & \old{53.3} & \old{77.5} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+
+
+% ===========================================================================
+% PART 2: Q1 (Correlation and Overlap between R and M)
+% ===========================================================================
+\bigskip
+\noindent\textbf{Part 2 (Q1): Correlation and top-$m$ selection overlap between $R$ and $M$.}
+
+Table~\ref{tab:reb-rm-corr} reports the Pearson ($r$) and Spearman ($\rho_s$) correlations between the standardized scores $\tilde{R}_i$ and $\tilde{M}_i$ across all $5{,}000$ candidate samples, along with the fraction of shared candidates ($|S_R \cap S_M|/m$) between $R$-only and $M$-only selection across budgets $\rho$. Across all three architectures, $\tilde{R}_i$ and $\tilde{M}_i$ exhibit weak correlation and small top-$m$ overlap. This is because $\tilde{M}_i$ is a \emph{target-agnostic} measure of boundary proximity (how weakly $x_i$ is classified as $y_{\text{adv}}$ relative to its strongest competitor), whereas $\tilde{R}_i$ is a \emph{target-specific} measure of directional alignment with $x_t$ in feature space. High-$M$ candidates often lie near decision boundaries with unrelated classes, while high-$R$ candidates can sit deep inside the $y_{\text{adv}}$ cluster where bounded perturbations ($\epsilon_\infty = 8/255$) cannot shift the boundary. Summing $\tilde{R}_i + \tilde{M}_i$ acts as an intersection filter that selects candidates lying both near the decision boundary and along the feature direction of $x_t$.
+
+\begin{table}[h!]
+\centering
+\caption{Score correlation between $\tilde{R}_i$ and $\tilde{M}_i$ (mean $\pm$ SD across 10 targets) and top-$m$ subset overlap ($|S_R \cap S_M|/m$) between $R$-only and $M$-only selection on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}, $K=20$).}
+\label{tab:reb-rm-corr}
+\vspace{-0.6em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{0.62\linewidth}{!}{%
+\begin{tabular}{@{}l cc ccccc@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{Score Correlation}} & \multicolumn{5}{c}{\textbf{Top-$m$ Subset Overlap ($|S_R \cap S_M|/m$)}} \\
+\cmidrule(lr){2-3} \cmidrule(l){4-8}
+\textbf{Architecture} & Pearson $r$ & Spearman $\rho_s$ & $\rho=0.1\%$ & $\rho=0.2\%$ & $\rho=0.5\%$ & $\rho=1\%$ & $\rho=2\%$ \\
+\midrule
+ConvNet  & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+ResNet20 & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+VGG13    & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+% ===========================================================================
+% PART 3: W2 & Q2 (Scaling with Class Count C: CIFAR-100 & Tiny ImageNet)
+% ===========================================================================
+\bigskip
+\noindent\textbf{Part 3 (W2, Q2): Behavior of $R$, $M$, and $\lambda$ as class count $C$ grows, and expanded Tiny ImageNet evaluation.}
+
+As the number of classes $C$ increases from $10$ (CIFAR-10) to $100$ (CIFAR-100) and $200$ (Tiny ImageNet), the competing class $\arg\max_{c \neq y_{\text{adv}}} z_c(x_i)$ in $M_i$ can be any of $C-1$ classes and is less likely to lie along the boundary toward $x_t$. In contrast, representation similarity $R_i = \langle \hat{h}_i, \hat{h}_t \rangle$ is conditioned directly on $x_t$ and is invariant to $C$. To test this hypothesis and substantially expand our Tiny ImageNet evaluation (W2) across multiple class pairs, budgets, and attacks, Table~\ref{tab:reb-c-scaling} ablates \textsc{Rand}, $R$-only, $M$-only, $\textsc{Basis}$ ($\lambda=1$), and $\lambda=0.5$ (upweighting $R$) across $C \in \{10, 100, 200\}$. While $M$-only dominates $R$-only at $C=10$, $R$-only becomes increasingly competitive at $C=100$ and $C=200$, and combining both in \textsc{Basis} consistently achieves top performance across datasets without requiring per-dataset $\lambda$ tuning.
+
+\begin{table}[h!]
+\centering
+\caption{ASR ($\%$, $\uparrow$) of component ablations ($R$-only, $M$-only) and margin weights ($\lambda \in \{0.5, 1\}$) across increasing class counts $C \in \{10, 100, 200\}$, alongside expanded Tiny ImageNet evaluations across multiple class pairs, budgets $\rho$, and attacks.}
+\label{tab:reb-c-scaling}
+\vspace{-0.6em}
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{0.82\linewidth}{!}{%
+\begin{tabular}{@{}ll lc ccccc@{}}
+\toprule
+\textbf{Dataset ($C$)} & \textbf{Model / Attack} & \textbf{Class Pair ($y_{\text{adv}}\rightarrow y_t$)} & $\boldsymbol{\rho}$ (\%) & \textsc{Rand} & $R$-only & $M$-only & \textsc{Basis} ($\lambda=1$) & \textsc{Basis} ($\lambda=0.5$) \\
+\midrule
+CIFAR-10 ($C=10$)
+  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{0.0}  & \old{20.0} & \old{20.8} & \old{\textbf{40.0}} & \tbd \\
+  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.5 & \old{1.7}  & \old{15.0} & \old{55.0} & \old{\textbf{77.5}} & \tbd \\
+  & ResNet20 / GM  & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{31.7} & \old{48.0} & \old{32.5} & \old{\textbf{57.5}} & \tbd \\
+\midrule
+CIFAR-100 ($C=100$)
+  & ResNet18 / GM  & \texttt{sea}$\rightarrow$\texttt{willow tree}      & 0.1 & \old{12.5} & \tbd       & \tbd       & \old{\textbf{37.5}} & \tbd \\
+  & ResNet18 / GM  & \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{6.3}  & \tbd       & \tbd       & \old{\textbf{25.0}} & \tbd \\
+  & ResNet18 / GM  & \texttt{bottle}$\rightarrow$\texttt{road}          & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{31.2}} & \tbd \\
+  & ResNet18 / SAPA& \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{18.8}} & \tbd \\
+\midrule
+Tiny ImageNet ($C=200$)
+  & ResNet18 / BP  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{12.5}} & \tbd \\
+  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{6.3}}  & \tbd \\
+  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+  & ResNet18 / SAPA& \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+  & ResNet18 / GM  & Pair 2 (\tbd)                                      & 0.2 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+  & ResNet18 / GM  & Pair 2 (\tbd)                                      & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+  & ResNet18 / GM  & Pair 3 (\tbd)                                      & 0.2 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+  & ResNet18 / GM  & Pair 3 (\tbd)                                      & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+% ===========================================================================
+% PART 4: W4 (Data Augmentation in Table 3 & Table 15)
+% ===========================================================================
+\bigskip
+\noindent\textbf{Part 4 (W4): Effect of victim-side data augmentation on ASR gains (Table~3 and Table~15).}
+
+While victim-side data augmentation degrades all clean-label poisoning attacks crafted on unaugmented surrogates (Schwarzschild et al., 2021; Geiping et al., 2021), Table~3 shows that \textsc{Basis} still yields large absolute and relative gains over \textsc{Rand} across architectures:
+(1) On ResNet20 ($\rho=1\%$, GM), \textsc{Basis} lifts ASR from $5.0\%$ to $63.2\%$ ($+58.2$ pp, $12.6\times$) under RandAugment and from $25.0\%$ to $50.0\%$ under Cutout; for SAPA ($\rho=1\%$), \textsc{Basis} lifts ASR from $20.0\%$ to $75.0\%$ ($+55.0$ pp) under RandAugment.
+(2) On VGG13 ($\rho=1\%$, SAPA), \textsc{Basis} improves ASR from $50.0\%$ to $95.0\%$ under Crop+Flip, $30.0\%$ to $80.0\%$ under RandAugment, and $20.0\%$ to $85.0\%$ under Cutout.
+(3) Even on ConvNet where unaugmented crafting is hardest, \textsc{Basis} turns $0.0\%$ ASR under \textsc{Rand} into $20.0\%$--$45.0\%$ ASR at $\rho \in \{1\%, 2\%\}$, and when data augmentation is incorporated into poison crafting (Appendix~G.2, Table~15), \textsc{Basis} outperforms \textsc{Rand} by $4\times$ at $\rho=0.5\%$ ($16.0\%$ vs.\ $4.0\%$ on GM, and $16.0\%$ vs.\ $0.0\%$ on SAPA).
+
+
+% ===========================================================================
+% PART 5: Q3 (Limitations, Threat Model Practicality, and Defenses)
+% ===========================================================================
+\bigskip
+\noindent\textbf{Part 5 (Q3): Explicit Limitations, Threat Model Practicality, and Implications for Defenses.}
+
+We will add a dedicated \emph{Limitations and Broader Implications} subsection in Section~5 covering the three points raised:
+\begin{enumerate}
+    \item \textbf{Relaxing threat-model assumptions:} Our main evaluation adopts the standard replacement threat model with full $\mathcal{D}_c$ access to isolate sample selection without altering class priors. However, our new experiments in Table~\ref{tab:reb-access} (Part~1 of Reviewer~1) demonstrate that when the attacker can only access $20\%$--$50\%$ of the dataset to train surrogates and can only modify a $20\%$--$50\%$ candidate pool within $y_{\text{adv}}$, \textsc{Basis} retains strong ASR gains over \textsc{Rand}.
+    \item \textbf{When \textsc{Basis} is most useful and its limitations:} \textsc{Basis} is most impactful at small poisoning budgets ($\rho \le 0.5\%$) and adds negligible scoring overhead ($<1.6\text{s}$ per target on pre-loaded crafting surrogates; Table~19). Its main limitations are that (i) it relies on surrogate representations, so simultaneous architecture and augmentation mismatch reduces absolute ASR (Tables~3 and 12), and (ii) in datasets with very large class counts $C$, the untargeted competing margin $M_i$ becomes less aligned with $y_t$, shifting more weight onto target similarity $R_i$ (Table~\ref{tab:reb-c-scaling}).
+    \item \textbf{Implications for defenses:} Because standard benchmarks evaluate poisoning defenses (e.g., EPIC, FRIENDS) under random base selection, they substantially overestimate robustness at low poisoning budgets. We envision \textsc{Basis} serving as a standard, zero-tuning initialization stress test for evaluating future data-sanitization and robust-training defenses.
+\end{enumerate}

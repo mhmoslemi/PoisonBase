@@ -1,0 +1,3646 @@
+{
+  "version": "reviewer2-w4-v1",
+  "account": "aip-bghaddar",
+  "targets": {
+    "ConvNetBN": [
+      843,
+      1257,
+      8252,
+      8730,
+      8055,
+      5859,
+      8954,
+      821,
+      1547,
+      4427
+    ],
+    "ResNet20BN": [
+      5118,
+      8740,
+      5324,
+      4630,
+      833,
+      2065,
+      7056,
+      9059,
+      6707,
+      9874
+    ]
+  },
+  "protocol": {
+    "seed": 42,
+    "y_adv": 5,
+    "y_target": 2,
+    "total_training_images": 50000,
+    "candidate_images": 5000,
+    "targets_per_cell": 10,
+    "victims_per_target": 6,
+    "random_draws": 6,
+    "new_random_draws": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "random_base_seed": "42*100003 + target + draw*100000000",
+    "craft_seed": "42*100003 + target, independent of selection method and draw",
+    "victim_seed": "42*100000 + target*100 + victim",
+    "surrogate": {
+      "epochs": 60,
+      "learning_rate": 0.1,
+      "batch_size": 128,
+      "seed": 42,
+      "available_pool": 20,
+      "craft_ensemble": 5
+    },
+    "crafting": {
+      "steps": 250,
+      "restarts": 8,
+      "epsilon": 0.0313725,
+      "alpha": 0.0039216,
+      "batch": 256,
+      "augmentation": "color_crop_cutout_flip_scale_rotate",
+      "sharp_mode": "worst",
+      "sharp_sigma": 0.05
+    },
+    "victim": {
+      "epochs": 50,
+      "learning_rate": 0.1,
+      "batch_size": 125,
+      "momentum": 0.9,
+      "weight_decay": 0,
+      "decay": [
+        40
+      ],
+      "augmentation": false
+    },
+    "baseline_note": "Draw 0 is reused from original per-victim records for all 12 cells. Nine raw CSV grids are frozen directly; three ConvNet GM grids are extracted from results/raw.txt with source line numbers. No published aggregate or unrelated 750-step run is substituted."
+  },
+  "cells": [
+    {
+      "id": "conv_gm_b001",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.001,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821,
+        1547,
+        4427
+      ],
+      "baseline": {
+        "reported_asr_percent": 0,
+        "trials": 60,
+        "successes": 0,
+        "source": "Original per-victim records in results/raw.txt",
+        "csv": "baselines/conv_gm_b001.csv",
+        "source_run": "CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b0.001_eps8_seed42_ce5_tgt70",
+        "provenance": {
+          "source_file": "results/raw.txt",
+          "first_line": 5541,
+          "last_line": 5651,
+          "log": "baselines/conv_gm_b001.log"
+        }
+      }
+    },
+    {
+      "id": "conv_gm_b002",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821,
+        1547,
+        4427
+      ],
+      "baseline": {
+        "reported_asr_percent": 0,
+        "trials": 60,
+        "successes": 0,
+        "source": "Original per-victim records in results/raw.txt",
+        "csv": "baselines/conv_gm_b002.csv",
+        "source_run": "CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b0.002_eps8_seed42_ce5_tgt70",
+        "provenance": {
+          "source_file": "results/raw.txt",
+          "first_line": 5429,
+          "last_line": 5539,
+          "log": "baselines/conv_gm_b002.log"
+        }
+      }
+    },
+    {
+      "id": "conv_gm_b005",
+      "model": "ConvNetBN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821,
+        1547,
+        4427
+      ],
+      "baseline": {
+        "reported_asr_percent": 1.7,
+        "trials": 60,
+        "successes": 1,
+        "source": "Original per-victim records in results/raw.txt",
+        "csv": "baselines/conv_gm_b005.csv",
+        "source_run": "CIFAR10_ConvNetBN_gradmatch_random_dog-bird_b0.005_eps8_seed42_ce5_tgt70",
+        "provenance": {
+          "source_file": "results/raw.txt",
+          "first_line": 5317,
+          "last_line": 5427,
+          "log": "baselines/conv_gm_b005.log"
+        }
+      }
+    },
+    {
+      "id": "conv_sapa_b001",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.001,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821,
+        1547,
+        4427
+      ],
+      "baseline": {
+        "reported_asr_percent": 0,
+        "trials": 60,
+        "successes": 0,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/conv_sapa_b001.csv",
+        "source_run": "CIFAR10_ConvNetBN_sapa_random_dog-bird_b0.001_eps8_seed42_worst0.05_ce5_tgt70"
+      }
+    },
+    {
+      "id": "conv_sapa_b002",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821,
+        1547,
+        4427
+      ],
+      "baseline": {
+        "reported_asr_percent": 0,
+        "trials": 60,
+        "successes": 0,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/conv_sapa_b002.csv",
+        "source_run": "CIFAR10_ConvNetBN_sapa_random_dog-bird_b0.002_eps8_seed42_worst0.05_ce5_tgt70"
+      }
+    },
+    {
+      "id": "conv_sapa_b005",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821,
+        1547,
+        4427
+      ],
+      "baseline": {
+        "reported_asr_percent": 6.7,
+        "trials": 60,
+        "successes": 4,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/conv_sapa_b005.csv",
+        "source_run": "CIFAR10_ConvNetBN_sapa_random_dog-bird_b0.005_eps8_seed42_worst0.05_ce5_tgt70"
+      }
+    },
+    {
+      "id": "res_gm_b001",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.001,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059,
+        6707,
+        9874
+      ],
+      "baseline": {
+        "reported_asr_percent": 15,
+        "trials": 60,
+        "successes": 9,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/res_gm_b001.csv",
+        "source_run": "CIFAR10_ResNet20BN_gradmatch_random_dog-bird_b0.001_eps8_seed42_ce5_tgt14"
+      }
+    },
+    {
+      "id": "res_gm_b002",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059,
+        6707,
+        9874
+      ],
+      "baseline": {
+        "reported_asr_percent": 31.7,
+        "trials": 60,
+        "successes": 19,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/res_gm_b002.csv",
+        "source_run": "CIFAR10_ResNet20BN_gradmatch_random_dog-bird_b0.002_eps8_seed42_ce5_tgt14"
+      }
+    },
+    {
+      "id": "res_gm_b005",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059,
+        6707,
+        9874
+      ],
+      "baseline": {
+        "reported_asr_percent": 43.3,
+        "trials": 60,
+        "successes": 26,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/res_gm_b005.csv",
+        "source_run": "CIFAR10_ResNet20BN_gradmatch_random_dog-bird_b0.005_eps8_seed42_ce5_tgt14"
+      }
+    },
+    {
+      "id": "res_sapa_b001",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.001,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059,
+        6707,
+        9874
+      ],
+      "baseline": {
+        "reported_asr_percent": 18.3,
+        "trials": 60,
+        "successes": 11,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/res_sapa_b001.csv",
+        "source_run": "CIFAR10_ResNet20BN_sapa_random_dog-bird_b0.001_eps8_seed42_worst0.05_ce5_tgt14"
+      }
+    },
+    {
+      "id": "res_sapa_b002",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059,
+        6707,
+        9874
+      ],
+      "baseline": {
+        "reported_asr_percent": 21.7,
+        "trials": 60,
+        "successes": 13,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/res_sapa_b002.csv",
+        "source_run": "CIFAR10_ResNet20BN_sapa_random_dog-bird_b0.002_eps8_seed42_worst0.05_ce5_tgt14"
+      }
+    },
+    {
+      "id": "res_sapa_b005",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059,
+        6707,
+        9874
+      ],
+      "baseline": {
+        "reported_asr_percent": 55,
+        "trials": 60,
+        "successes": 33,
+        "source": "Table 1 of the submitted PDF",
+        "csv": "baselines/res_sapa_b005.csv",
+        "source_run": "CIFAR10_ResNet20BN_sapa_random_dog-bird_b0.005_eps8_seed42_worst0.05_ce5_tgt14"
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "first_conv_gm_b001",
+      "cell": "conv_gm_b001",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 843
+        },
+        {
+          "draw": 0,
+          "target": 1257
+        },
+        {
+          "draw": 0,
+          "target": 8252
+        },
+        {
+          "draw": 0,
+          "target": 8730
+        },
+        {
+          "draw": 0,
+          "target": 8055
+        },
+        {
+          "draw": 0,
+          "target": 5859
+        },
+        {
+          "draw": 0,
+          "target": 8954
+        },
+        {
+          "draw": 0,
+          "target": 821
+        },
+        {
+          "draw": 0,
+          "target": 1547
+        },
+        {
+          "draw": 0,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_gm_b001_1",
+      "cell": "conv_gm_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 843
+        },
+        {
+          "draw": 1,
+          "target": 1257
+        },
+        {
+          "draw": 1,
+          "target": 8252
+        },
+        {
+          "draw": 1,
+          "target": 8730
+        },
+        {
+          "draw": 1,
+          "target": 8055
+        },
+        {
+          "draw": 1,
+          "target": 5859
+        },
+        {
+          "draw": 1,
+          "target": 8954
+        },
+        {
+          "draw": 1,
+          "target": 821
+        },
+        {
+          "draw": 1,
+          "target": 1547
+        },
+        {
+          "draw": 1,
+          "target": 4427
+        },
+        {
+          "draw": 2,
+          "target": 843
+        },
+        {
+          "draw": 2,
+          "target": 1257
+        },
+        {
+          "draw": 2,
+          "target": 8252
+        },
+        {
+          "draw": 2,
+          "target": 8730
+        },
+        {
+          "draw": 2,
+          "target": 8055
+        },
+        {
+          "draw": 2,
+          "target": 5859
+        },
+        {
+          "draw": 2,
+          "target": 8954
+        },
+        {
+          "draw": 2,
+          "target": 821
+        },
+        {
+          "draw": 2,
+          "target": 1547
+        },
+        {
+          "draw": 2,
+          "target": 4427
+        },
+        {
+          "draw": 3,
+          "target": 843
+        },
+        {
+          "draw": 3,
+          "target": 1257
+        },
+        {
+          "draw": 3,
+          "target": 8252
+        },
+        {
+          "draw": 3,
+          "target": 8730
+        },
+        {
+          "draw": 3,
+          "target": 8055
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_gm_b001_2",
+      "cell": "conv_gm_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 5859
+        },
+        {
+          "draw": 3,
+          "target": 8954
+        },
+        {
+          "draw": 3,
+          "target": 821
+        },
+        {
+          "draw": 3,
+          "target": 1547
+        },
+        {
+          "draw": 3,
+          "target": 4427
+        },
+        {
+          "draw": 4,
+          "target": 843
+        },
+        {
+          "draw": 4,
+          "target": 1257
+        },
+        {
+          "draw": 4,
+          "target": 8252
+        },
+        {
+          "draw": 4,
+          "target": 8730
+        },
+        {
+          "draw": 4,
+          "target": 8055
+        },
+        {
+          "draw": 4,
+          "target": 5859
+        },
+        {
+          "draw": 4,
+          "target": 8954
+        },
+        {
+          "draw": 4,
+          "target": 821
+        },
+        {
+          "draw": 4,
+          "target": 1547
+        },
+        {
+          "draw": 4,
+          "target": 4427
+        },
+        {
+          "draw": 5,
+          "target": 843
+        },
+        {
+          "draw": 5,
+          "target": 1257
+        },
+        {
+          "draw": 5,
+          "target": 8252
+        },
+        {
+          "draw": 5,
+          "target": 8730
+        },
+        {
+          "draw": 5,
+          "target": 8055
+        },
+        {
+          "draw": 5,
+          "target": 5859
+        },
+        {
+          "draw": 5,
+          "target": 8954
+        },
+        {
+          "draw": 5,
+          "target": 821
+        },
+        {
+          "draw": 5,
+          "target": 1547
+        },
+        {
+          "draw": 5,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "first_conv_gm_b002",
+      "cell": "conv_gm_b002",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 843
+        },
+        {
+          "draw": 0,
+          "target": 1257
+        },
+        {
+          "draw": 0,
+          "target": 8252
+        },
+        {
+          "draw": 0,
+          "target": 8730
+        },
+        {
+          "draw": 0,
+          "target": 8055
+        },
+        {
+          "draw": 0,
+          "target": 5859
+        },
+        {
+          "draw": 0,
+          "target": 8954
+        },
+        {
+          "draw": 0,
+          "target": 821
+        },
+        {
+          "draw": 0,
+          "target": 1547
+        },
+        {
+          "draw": 0,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_gm_b002_1",
+      "cell": "conv_gm_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 843
+        },
+        {
+          "draw": 1,
+          "target": 1257
+        },
+        {
+          "draw": 1,
+          "target": 8252
+        },
+        {
+          "draw": 1,
+          "target": 8730
+        },
+        {
+          "draw": 1,
+          "target": 8055
+        },
+        {
+          "draw": 1,
+          "target": 5859
+        },
+        {
+          "draw": 1,
+          "target": 8954
+        },
+        {
+          "draw": 1,
+          "target": 821
+        },
+        {
+          "draw": 1,
+          "target": 1547
+        },
+        {
+          "draw": 1,
+          "target": 4427
+        },
+        {
+          "draw": 2,
+          "target": 843
+        },
+        {
+          "draw": 2,
+          "target": 1257
+        },
+        {
+          "draw": 2,
+          "target": 8252
+        },
+        {
+          "draw": 2,
+          "target": 8730
+        },
+        {
+          "draw": 2,
+          "target": 8055
+        },
+        {
+          "draw": 2,
+          "target": 5859
+        },
+        {
+          "draw": 2,
+          "target": 8954
+        },
+        {
+          "draw": 2,
+          "target": 821
+        },
+        {
+          "draw": 2,
+          "target": 1547
+        },
+        {
+          "draw": 2,
+          "target": 4427
+        },
+        {
+          "draw": 3,
+          "target": 843
+        },
+        {
+          "draw": 3,
+          "target": 1257
+        },
+        {
+          "draw": 3,
+          "target": 8252
+        },
+        {
+          "draw": 3,
+          "target": 8730
+        },
+        {
+          "draw": 3,
+          "target": 8055
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_gm_b002_2",
+      "cell": "conv_gm_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 5859
+        },
+        {
+          "draw": 3,
+          "target": 8954
+        },
+        {
+          "draw": 3,
+          "target": 821
+        },
+        {
+          "draw": 3,
+          "target": 1547
+        },
+        {
+          "draw": 3,
+          "target": 4427
+        },
+        {
+          "draw": 4,
+          "target": 843
+        },
+        {
+          "draw": 4,
+          "target": 1257
+        },
+        {
+          "draw": 4,
+          "target": 8252
+        },
+        {
+          "draw": 4,
+          "target": 8730
+        },
+        {
+          "draw": 4,
+          "target": 8055
+        },
+        {
+          "draw": 4,
+          "target": 5859
+        },
+        {
+          "draw": 4,
+          "target": 8954
+        },
+        {
+          "draw": 4,
+          "target": 821
+        },
+        {
+          "draw": 4,
+          "target": 1547
+        },
+        {
+          "draw": 4,
+          "target": 4427
+        },
+        {
+          "draw": 5,
+          "target": 843
+        },
+        {
+          "draw": 5,
+          "target": 1257
+        },
+        {
+          "draw": 5,
+          "target": 8252
+        },
+        {
+          "draw": 5,
+          "target": 8730
+        },
+        {
+          "draw": 5,
+          "target": 8055
+        },
+        {
+          "draw": 5,
+          "target": 5859
+        },
+        {
+          "draw": 5,
+          "target": 8954
+        },
+        {
+          "draw": 5,
+          "target": 821
+        },
+        {
+          "draw": 5,
+          "target": 1547
+        },
+        {
+          "draw": 5,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "first_conv_gm_b005",
+      "cell": "conv_gm_b005",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 843
+        },
+        {
+          "draw": 0,
+          "target": 1257
+        },
+        {
+          "draw": 0,
+          "target": 8252
+        },
+        {
+          "draw": 0,
+          "target": 8730
+        },
+        {
+          "draw": 0,
+          "target": 8055
+        },
+        {
+          "draw": 0,
+          "target": 5859
+        },
+        {
+          "draw": 0,
+          "target": 8954
+        },
+        {
+          "draw": 0,
+          "target": 821
+        },
+        {
+          "draw": 0,
+          "target": 1547
+        },
+        {
+          "draw": 0,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_gm_b005_1",
+      "cell": "conv_gm_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 843
+        },
+        {
+          "draw": 1,
+          "target": 1257
+        },
+        {
+          "draw": 1,
+          "target": 8252
+        },
+        {
+          "draw": 1,
+          "target": 8730
+        },
+        {
+          "draw": 1,
+          "target": 8055
+        },
+        {
+          "draw": 1,
+          "target": 5859
+        },
+        {
+          "draw": 1,
+          "target": 8954
+        },
+        {
+          "draw": 1,
+          "target": 821
+        },
+        {
+          "draw": 1,
+          "target": 1547
+        },
+        {
+          "draw": 1,
+          "target": 4427
+        },
+        {
+          "draw": 2,
+          "target": 843
+        },
+        {
+          "draw": 2,
+          "target": 1257
+        },
+        {
+          "draw": 2,
+          "target": 8252
+        },
+        {
+          "draw": 2,
+          "target": 8730
+        },
+        {
+          "draw": 2,
+          "target": 8055
+        },
+        {
+          "draw": 2,
+          "target": 5859
+        },
+        {
+          "draw": 2,
+          "target": 8954
+        },
+        {
+          "draw": 2,
+          "target": 821
+        },
+        {
+          "draw": 2,
+          "target": 1547
+        },
+        {
+          "draw": 2,
+          "target": 4427
+        },
+        {
+          "draw": 3,
+          "target": 843
+        },
+        {
+          "draw": 3,
+          "target": 1257
+        },
+        {
+          "draw": 3,
+          "target": 8252
+        },
+        {
+          "draw": 3,
+          "target": 8730
+        },
+        {
+          "draw": 3,
+          "target": 8055
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_gm_b005_2",
+      "cell": "conv_gm_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 5859
+        },
+        {
+          "draw": 3,
+          "target": 8954
+        },
+        {
+          "draw": 3,
+          "target": 821
+        },
+        {
+          "draw": 3,
+          "target": 1547
+        },
+        {
+          "draw": 3,
+          "target": 4427
+        },
+        {
+          "draw": 4,
+          "target": 843
+        },
+        {
+          "draw": 4,
+          "target": 1257
+        },
+        {
+          "draw": 4,
+          "target": 8252
+        },
+        {
+          "draw": 4,
+          "target": 8730
+        },
+        {
+          "draw": 4,
+          "target": 8055
+        },
+        {
+          "draw": 4,
+          "target": 5859
+        },
+        {
+          "draw": 4,
+          "target": 8954
+        },
+        {
+          "draw": 4,
+          "target": 821
+        },
+        {
+          "draw": 4,
+          "target": 1547
+        },
+        {
+          "draw": 4,
+          "target": 4427
+        },
+        {
+          "draw": 5,
+          "target": 843
+        },
+        {
+          "draw": 5,
+          "target": 1257
+        },
+        {
+          "draw": 5,
+          "target": 8252
+        },
+        {
+          "draw": 5,
+          "target": 8730
+        },
+        {
+          "draw": 5,
+          "target": 8055
+        },
+        {
+          "draw": 5,
+          "target": 5859
+        },
+        {
+          "draw": 5,
+          "target": 8954
+        },
+        {
+          "draw": 5,
+          "target": 821
+        },
+        {
+          "draw": 5,
+          "target": 1547
+        },
+        {
+          "draw": 5,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "first_conv_sapa_b001",
+      "cell": "conv_sapa_b001",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 843
+        },
+        {
+          "draw": 0,
+          "target": 1257
+        },
+        {
+          "draw": 0,
+          "target": 8252
+        },
+        {
+          "draw": 0,
+          "target": 8730
+        },
+        {
+          "draw": 0,
+          "target": 8055
+        },
+        {
+          "draw": 0,
+          "target": 5859
+        },
+        {
+          "draw": 0,
+          "target": 8954
+        },
+        {
+          "draw": 0,
+          "target": 821
+        },
+        {
+          "draw": 0,
+          "target": 1547
+        },
+        {
+          "draw": 0,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_sapa_b001_1",
+      "cell": "conv_sapa_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 843
+        },
+        {
+          "draw": 1,
+          "target": 1257
+        },
+        {
+          "draw": 1,
+          "target": 8252
+        },
+        {
+          "draw": 1,
+          "target": 8730
+        },
+        {
+          "draw": 1,
+          "target": 8055
+        },
+        {
+          "draw": 1,
+          "target": 5859
+        },
+        {
+          "draw": 1,
+          "target": 8954
+        },
+        {
+          "draw": 1,
+          "target": 821
+        },
+        {
+          "draw": 1,
+          "target": 1547
+        },
+        {
+          "draw": 1,
+          "target": 4427
+        },
+        {
+          "draw": 2,
+          "target": 843
+        },
+        {
+          "draw": 2,
+          "target": 1257
+        },
+        {
+          "draw": 2,
+          "target": 8252
+        },
+        {
+          "draw": 2,
+          "target": 8730
+        },
+        {
+          "draw": 2,
+          "target": 8055
+        },
+        {
+          "draw": 2,
+          "target": 5859
+        },
+        {
+          "draw": 2,
+          "target": 8954
+        },
+        {
+          "draw": 2,
+          "target": 821
+        },
+        {
+          "draw": 2,
+          "target": 1547
+        },
+        {
+          "draw": 2,
+          "target": 4427
+        },
+        {
+          "draw": 3,
+          "target": 843
+        },
+        {
+          "draw": 3,
+          "target": 1257
+        },
+        {
+          "draw": 3,
+          "target": 8252
+        },
+        {
+          "draw": 3,
+          "target": 8730
+        },
+        {
+          "draw": 3,
+          "target": 8055
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_sapa_b001_2",
+      "cell": "conv_sapa_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 5859
+        },
+        {
+          "draw": 3,
+          "target": 8954
+        },
+        {
+          "draw": 3,
+          "target": 821
+        },
+        {
+          "draw": 3,
+          "target": 1547
+        },
+        {
+          "draw": 3,
+          "target": 4427
+        },
+        {
+          "draw": 4,
+          "target": 843
+        },
+        {
+          "draw": 4,
+          "target": 1257
+        },
+        {
+          "draw": 4,
+          "target": 8252
+        },
+        {
+          "draw": 4,
+          "target": 8730
+        },
+        {
+          "draw": 4,
+          "target": 8055
+        },
+        {
+          "draw": 4,
+          "target": 5859
+        },
+        {
+          "draw": 4,
+          "target": 8954
+        },
+        {
+          "draw": 4,
+          "target": 821
+        },
+        {
+          "draw": 4,
+          "target": 1547
+        },
+        {
+          "draw": 4,
+          "target": 4427
+        },
+        {
+          "draw": 5,
+          "target": 843
+        },
+        {
+          "draw": 5,
+          "target": 1257
+        },
+        {
+          "draw": 5,
+          "target": 8252
+        },
+        {
+          "draw": 5,
+          "target": 8730
+        },
+        {
+          "draw": 5,
+          "target": 8055
+        },
+        {
+          "draw": 5,
+          "target": 5859
+        },
+        {
+          "draw": 5,
+          "target": 8954
+        },
+        {
+          "draw": 5,
+          "target": 821
+        },
+        {
+          "draw": 5,
+          "target": 1547
+        },
+        {
+          "draw": 5,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "first_conv_sapa_b002",
+      "cell": "conv_sapa_b002",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 843
+        },
+        {
+          "draw": 0,
+          "target": 1257
+        },
+        {
+          "draw": 0,
+          "target": 8252
+        },
+        {
+          "draw": 0,
+          "target": 8730
+        },
+        {
+          "draw": 0,
+          "target": 8055
+        },
+        {
+          "draw": 0,
+          "target": 5859
+        },
+        {
+          "draw": 0,
+          "target": 8954
+        },
+        {
+          "draw": 0,
+          "target": 821
+        },
+        {
+          "draw": 0,
+          "target": 1547
+        },
+        {
+          "draw": 0,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_sapa_b002_1",
+      "cell": "conv_sapa_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 843
+        },
+        {
+          "draw": 1,
+          "target": 1257
+        },
+        {
+          "draw": 1,
+          "target": 8252
+        },
+        {
+          "draw": 1,
+          "target": 8730
+        },
+        {
+          "draw": 1,
+          "target": 8055
+        },
+        {
+          "draw": 1,
+          "target": 5859
+        },
+        {
+          "draw": 1,
+          "target": 8954
+        },
+        {
+          "draw": 1,
+          "target": 821
+        },
+        {
+          "draw": 1,
+          "target": 1547
+        },
+        {
+          "draw": 1,
+          "target": 4427
+        },
+        {
+          "draw": 2,
+          "target": 843
+        },
+        {
+          "draw": 2,
+          "target": 1257
+        },
+        {
+          "draw": 2,
+          "target": 8252
+        },
+        {
+          "draw": 2,
+          "target": 8730
+        },
+        {
+          "draw": 2,
+          "target": 8055
+        },
+        {
+          "draw": 2,
+          "target": 5859
+        },
+        {
+          "draw": 2,
+          "target": 8954
+        },
+        {
+          "draw": 2,
+          "target": 821
+        },
+        {
+          "draw": 2,
+          "target": 1547
+        },
+        {
+          "draw": 2,
+          "target": 4427
+        },
+        {
+          "draw": 3,
+          "target": 843
+        },
+        {
+          "draw": 3,
+          "target": 1257
+        },
+        {
+          "draw": 3,
+          "target": 8252
+        },
+        {
+          "draw": 3,
+          "target": 8730
+        },
+        {
+          "draw": 3,
+          "target": 8055
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_sapa_b002_2",
+      "cell": "conv_sapa_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 5859
+        },
+        {
+          "draw": 3,
+          "target": 8954
+        },
+        {
+          "draw": 3,
+          "target": 821
+        },
+        {
+          "draw": 3,
+          "target": 1547
+        },
+        {
+          "draw": 3,
+          "target": 4427
+        },
+        {
+          "draw": 4,
+          "target": 843
+        },
+        {
+          "draw": 4,
+          "target": 1257
+        },
+        {
+          "draw": 4,
+          "target": 8252
+        },
+        {
+          "draw": 4,
+          "target": 8730
+        },
+        {
+          "draw": 4,
+          "target": 8055
+        },
+        {
+          "draw": 4,
+          "target": 5859
+        },
+        {
+          "draw": 4,
+          "target": 8954
+        },
+        {
+          "draw": 4,
+          "target": 821
+        },
+        {
+          "draw": 4,
+          "target": 1547
+        },
+        {
+          "draw": 4,
+          "target": 4427
+        },
+        {
+          "draw": 5,
+          "target": 843
+        },
+        {
+          "draw": 5,
+          "target": 1257
+        },
+        {
+          "draw": 5,
+          "target": 8252
+        },
+        {
+          "draw": 5,
+          "target": 8730
+        },
+        {
+          "draw": 5,
+          "target": 8055
+        },
+        {
+          "draw": 5,
+          "target": 5859
+        },
+        {
+          "draw": 5,
+          "target": 8954
+        },
+        {
+          "draw": 5,
+          "target": 821
+        },
+        {
+          "draw": 5,
+          "target": 1547
+        },
+        {
+          "draw": 5,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "first_conv_sapa_b005",
+      "cell": "conv_sapa_b005",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 843
+        },
+        {
+          "draw": 0,
+          "target": 1257
+        },
+        {
+          "draw": 0,
+          "target": 8252
+        },
+        {
+          "draw": 0,
+          "target": 8730
+        },
+        {
+          "draw": 0,
+          "target": 8055
+        },
+        {
+          "draw": 0,
+          "target": 5859
+        },
+        {
+          "draw": 0,
+          "target": 8954
+        },
+        {
+          "draw": 0,
+          "target": 821
+        },
+        {
+          "draw": 0,
+          "target": 1547
+        },
+        {
+          "draw": 0,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_sapa_b005_1",
+      "cell": "conv_sapa_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 843
+        },
+        {
+          "draw": 1,
+          "target": 1257
+        },
+        {
+          "draw": 1,
+          "target": 8252
+        },
+        {
+          "draw": 1,
+          "target": 8730
+        },
+        {
+          "draw": 1,
+          "target": 8055
+        },
+        {
+          "draw": 1,
+          "target": 5859
+        },
+        {
+          "draw": 1,
+          "target": 8954
+        },
+        {
+          "draw": 1,
+          "target": 821
+        },
+        {
+          "draw": 1,
+          "target": 1547
+        },
+        {
+          "draw": 1,
+          "target": 4427
+        },
+        {
+          "draw": 2,
+          "target": 843
+        },
+        {
+          "draw": 2,
+          "target": 1257
+        },
+        {
+          "draw": 2,
+          "target": 8252
+        },
+        {
+          "draw": 2,
+          "target": 8730
+        },
+        {
+          "draw": 2,
+          "target": 8055
+        },
+        {
+          "draw": 2,
+          "target": 5859
+        },
+        {
+          "draw": 2,
+          "target": 8954
+        },
+        {
+          "draw": 2,
+          "target": 821
+        },
+        {
+          "draw": 2,
+          "target": 1547
+        },
+        {
+          "draw": 2,
+          "target": 4427
+        },
+        {
+          "draw": 3,
+          "target": 843
+        },
+        {
+          "draw": 3,
+          "target": 1257
+        },
+        {
+          "draw": 3,
+          "target": 8252
+        },
+        {
+          "draw": 3,
+          "target": 8730
+        },
+        {
+          "draw": 3,
+          "target": 8055
+        }
+      ]
+    },
+    {
+      "id": "rand_conv_sapa_b005_2",
+      "cell": "conv_sapa_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 5859
+        },
+        {
+          "draw": 3,
+          "target": 8954
+        },
+        {
+          "draw": 3,
+          "target": 821
+        },
+        {
+          "draw": 3,
+          "target": 1547
+        },
+        {
+          "draw": 3,
+          "target": 4427
+        },
+        {
+          "draw": 4,
+          "target": 843
+        },
+        {
+          "draw": 4,
+          "target": 1257
+        },
+        {
+          "draw": 4,
+          "target": 8252
+        },
+        {
+          "draw": 4,
+          "target": 8730
+        },
+        {
+          "draw": 4,
+          "target": 8055
+        },
+        {
+          "draw": 4,
+          "target": 5859
+        },
+        {
+          "draw": 4,
+          "target": 8954
+        },
+        {
+          "draw": 4,
+          "target": 821
+        },
+        {
+          "draw": 4,
+          "target": 1547
+        },
+        {
+          "draw": 4,
+          "target": 4427
+        },
+        {
+          "draw": 5,
+          "target": 843
+        },
+        {
+          "draw": 5,
+          "target": 1257
+        },
+        {
+          "draw": 5,
+          "target": 8252
+        },
+        {
+          "draw": 5,
+          "target": 8730
+        },
+        {
+          "draw": 5,
+          "target": 8055
+        },
+        {
+          "draw": 5,
+          "target": 5859
+        },
+        {
+          "draw": 5,
+          "target": 8954
+        },
+        {
+          "draw": 5,
+          "target": 821
+        },
+        {
+          "draw": 5,
+          "target": 1547
+        },
+        {
+          "draw": 5,
+          "target": 4427
+        }
+      ]
+    },
+    {
+      "id": "first_res_gm_b001",
+      "cell": "res_gm_b001",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 5118
+        },
+        {
+          "draw": 0,
+          "target": 8740
+        },
+        {
+          "draw": 0,
+          "target": 5324
+        },
+        {
+          "draw": 0,
+          "target": 4630
+        },
+        {
+          "draw": 0,
+          "target": 833
+        },
+        {
+          "draw": 0,
+          "target": 2065
+        },
+        {
+          "draw": 0,
+          "target": 7056
+        },
+        {
+          "draw": 0,
+          "target": 9059
+        },
+        {
+          "draw": 0,
+          "target": 6707
+        },
+        {
+          "draw": 0,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b001_1",
+      "cell": "res_gm_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 5118
+        },
+        {
+          "draw": 1,
+          "target": 8740
+        },
+        {
+          "draw": 1,
+          "target": 5324
+        },
+        {
+          "draw": 1,
+          "target": 4630
+        },
+        {
+          "draw": 1,
+          "target": 833
+        },
+        {
+          "draw": 1,
+          "target": 2065
+        },
+        {
+          "draw": 1,
+          "target": 7056
+        },
+        {
+          "draw": 1,
+          "target": 9059
+        },
+        {
+          "draw": 1,
+          "target": 6707
+        },
+        {
+          "draw": 1,
+          "target": 9874
+        },
+        {
+          "draw": 2,
+          "target": 5118
+        },
+        {
+          "draw": 2,
+          "target": 8740
+        },
+        {
+          "draw": 2,
+          "target": 5324
+        },
+        {
+          "draw": 2,
+          "target": 4630
+        },
+        {
+          "draw": 2,
+          "target": 833
+        },
+        {
+          "draw": 2,
+          "target": 2065
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b001_2",
+      "cell": "res_gm_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 2,
+          "target": 7056
+        },
+        {
+          "draw": 2,
+          "target": 9059
+        },
+        {
+          "draw": 2,
+          "target": 6707
+        },
+        {
+          "draw": 2,
+          "target": 9874
+        },
+        {
+          "draw": 3,
+          "target": 5118
+        },
+        {
+          "draw": 3,
+          "target": 8740
+        },
+        {
+          "draw": 3,
+          "target": 5324
+        },
+        {
+          "draw": 3,
+          "target": 4630
+        },
+        {
+          "draw": 3,
+          "target": 833
+        },
+        {
+          "draw": 3,
+          "target": 2065
+        },
+        {
+          "draw": 3,
+          "target": 7056
+        },
+        {
+          "draw": 3,
+          "target": 9059
+        },
+        {
+          "draw": 3,
+          "target": 6707
+        },
+        {
+          "draw": 3,
+          "target": 9874
+        },
+        {
+          "draw": 4,
+          "target": 5118
+        },
+        {
+          "draw": 4,
+          "target": 8740
+        },
+        {
+          "draw": 4,
+          "target": 5324
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b001_3",
+      "cell": "res_gm_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 4,
+          "target": 4630
+        },
+        {
+          "draw": 4,
+          "target": 833
+        },
+        {
+          "draw": 4,
+          "target": 2065
+        },
+        {
+          "draw": 4,
+          "target": 7056
+        },
+        {
+          "draw": 4,
+          "target": 9059
+        },
+        {
+          "draw": 4,
+          "target": 6707
+        },
+        {
+          "draw": 4,
+          "target": 9874
+        },
+        {
+          "draw": 5,
+          "target": 5118
+        },
+        {
+          "draw": 5,
+          "target": 8740
+        },
+        {
+          "draw": 5,
+          "target": 5324
+        },
+        {
+          "draw": 5,
+          "target": 4630
+        },
+        {
+          "draw": 5,
+          "target": 833
+        },
+        {
+          "draw": 5,
+          "target": 2065
+        },
+        {
+          "draw": 5,
+          "target": 7056
+        },
+        {
+          "draw": 5,
+          "target": 9059
+        },
+        {
+          "draw": 5,
+          "target": 6707
+        },
+        {
+          "draw": 5,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "first_res_gm_b002",
+      "cell": "res_gm_b002",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 5118
+        },
+        {
+          "draw": 0,
+          "target": 8740
+        },
+        {
+          "draw": 0,
+          "target": 5324
+        },
+        {
+          "draw": 0,
+          "target": 4630
+        },
+        {
+          "draw": 0,
+          "target": 833
+        },
+        {
+          "draw": 0,
+          "target": 2065
+        },
+        {
+          "draw": 0,
+          "target": 7056
+        },
+        {
+          "draw": 0,
+          "target": 9059
+        },
+        {
+          "draw": 0,
+          "target": 6707
+        },
+        {
+          "draw": 0,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b002_1",
+      "cell": "res_gm_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 5118
+        },
+        {
+          "draw": 1,
+          "target": 8740
+        },
+        {
+          "draw": 1,
+          "target": 5324
+        },
+        {
+          "draw": 1,
+          "target": 4630
+        },
+        {
+          "draw": 1,
+          "target": 833
+        },
+        {
+          "draw": 1,
+          "target": 2065
+        },
+        {
+          "draw": 1,
+          "target": 7056
+        },
+        {
+          "draw": 1,
+          "target": 9059
+        },
+        {
+          "draw": 1,
+          "target": 6707
+        },
+        {
+          "draw": 1,
+          "target": 9874
+        },
+        {
+          "draw": 2,
+          "target": 5118
+        },
+        {
+          "draw": 2,
+          "target": 8740
+        },
+        {
+          "draw": 2,
+          "target": 5324
+        },
+        {
+          "draw": 2,
+          "target": 4630
+        },
+        {
+          "draw": 2,
+          "target": 833
+        },
+        {
+          "draw": 2,
+          "target": 2065
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b002_2",
+      "cell": "res_gm_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 2,
+          "target": 7056
+        },
+        {
+          "draw": 2,
+          "target": 9059
+        },
+        {
+          "draw": 2,
+          "target": 6707
+        },
+        {
+          "draw": 2,
+          "target": 9874
+        },
+        {
+          "draw": 3,
+          "target": 5118
+        },
+        {
+          "draw": 3,
+          "target": 8740
+        },
+        {
+          "draw": 3,
+          "target": 5324
+        },
+        {
+          "draw": 3,
+          "target": 4630
+        },
+        {
+          "draw": 3,
+          "target": 833
+        },
+        {
+          "draw": 3,
+          "target": 2065
+        },
+        {
+          "draw": 3,
+          "target": 7056
+        },
+        {
+          "draw": 3,
+          "target": 9059
+        },
+        {
+          "draw": 3,
+          "target": 6707
+        },
+        {
+          "draw": 3,
+          "target": 9874
+        },
+        {
+          "draw": 4,
+          "target": 5118
+        },
+        {
+          "draw": 4,
+          "target": 8740
+        },
+        {
+          "draw": 4,
+          "target": 5324
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b002_3",
+      "cell": "res_gm_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 4,
+          "target": 4630
+        },
+        {
+          "draw": 4,
+          "target": 833
+        },
+        {
+          "draw": 4,
+          "target": 2065
+        },
+        {
+          "draw": 4,
+          "target": 7056
+        },
+        {
+          "draw": 4,
+          "target": 9059
+        },
+        {
+          "draw": 4,
+          "target": 6707
+        },
+        {
+          "draw": 4,
+          "target": 9874
+        },
+        {
+          "draw": 5,
+          "target": 5118
+        },
+        {
+          "draw": 5,
+          "target": 8740
+        },
+        {
+          "draw": 5,
+          "target": 5324
+        },
+        {
+          "draw": 5,
+          "target": 4630
+        },
+        {
+          "draw": 5,
+          "target": 833
+        },
+        {
+          "draw": 5,
+          "target": 2065
+        },
+        {
+          "draw": 5,
+          "target": 7056
+        },
+        {
+          "draw": 5,
+          "target": 9059
+        },
+        {
+          "draw": 5,
+          "target": 6707
+        },
+        {
+          "draw": 5,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "first_res_gm_b005",
+      "cell": "res_gm_b005",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 5118
+        },
+        {
+          "draw": 0,
+          "target": 8740
+        },
+        {
+          "draw": 0,
+          "target": 5324
+        },
+        {
+          "draw": 0,
+          "target": 4630
+        },
+        {
+          "draw": 0,
+          "target": 833
+        },
+        {
+          "draw": 0,
+          "target": 2065
+        },
+        {
+          "draw": 0,
+          "target": 7056
+        },
+        {
+          "draw": 0,
+          "target": 9059
+        },
+        {
+          "draw": 0,
+          "target": 6707
+        },
+        {
+          "draw": 0,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b005_1",
+      "cell": "res_gm_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 5118
+        },
+        {
+          "draw": 1,
+          "target": 8740
+        },
+        {
+          "draw": 1,
+          "target": 5324
+        },
+        {
+          "draw": 1,
+          "target": 4630
+        },
+        {
+          "draw": 1,
+          "target": 833
+        },
+        {
+          "draw": 1,
+          "target": 2065
+        },
+        {
+          "draw": 1,
+          "target": 7056
+        },
+        {
+          "draw": 1,
+          "target": 9059
+        },
+        {
+          "draw": 1,
+          "target": 6707
+        },
+        {
+          "draw": 1,
+          "target": 9874
+        },
+        {
+          "draw": 2,
+          "target": 5118
+        },
+        {
+          "draw": 2,
+          "target": 8740
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b005_2",
+      "cell": "res_gm_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 2,
+          "target": 5324
+        },
+        {
+          "draw": 2,
+          "target": 4630
+        },
+        {
+          "draw": 2,
+          "target": 833
+        },
+        {
+          "draw": 2,
+          "target": 2065
+        },
+        {
+          "draw": 2,
+          "target": 7056
+        },
+        {
+          "draw": 2,
+          "target": 9059
+        },
+        {
+          "draw": 2,
+          "target": 6707
+        },
+        {
+          "draw": 2,
+          "target": 9874
+        },
+        {
+          "draw": 3,
+          "target": 5118
+        },
+        {
+          "draw": 3,
+          "target": 8740
+        },
+        {
+          "draw": 3,
+          "target": 5324
+        },
+        {
+          "draw": 3,
+          "target": 4630
+        },
+        {
+          "draw": 3,
+          "target": 833
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b005_3",
+      "cell": "res_gm_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 2065
+        },
+        {
+          "draw": 3,
+          "target": 7056
+        },
+        {
+          "draw": 3,
+          "target": 9059
+        },
+        {
+          "draw": 3,
+          "target": 6707
+        },
+        {
+          "draw": 3,
+          "target": 9874
+        },
+        {
+          "draw": 4,
+          "target": 5118
+        },
+        {
+          "draw": 4,
+          "target": 8740
+        },
+        {
+          "draw": 4,
+          "target": 5324
+        },
+        {
+          "draw": 4,
+          "target": 4630
+        },
+        {
+          "draw": 4,
+          "target": 833
+        },
+        {
+          "draw": 4,
+          "target": 2065
+        },
+        {
+          "draw": 4,
+          "target": 7056
+        }
+      ]
+    },
+    {
+      "id": "rand_res_gm_b005_4",
+      "cell": "res_gm_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 4,
+          "target": 9059
+        },
+        {
+          "draw": 4,
+          "target": 6707
+        },
+        {
+          "draw": 4,
+          "target": 9874
+        },
+        {
+          "draw": 5,
+          "target": 5118
+        },
+        {
+          "draw": 5,
+          "target": 8740
+        },
+        {
+          "draw": 5,
+          "target": 5324
+        },
+        {
+          "draw": 5,
+          "target": 4630
+        },
+        {
+          "draw": 5,
+          "target": 833
+        },
+        {
+          "draw": 5,
+          "target": 2065
+        },
+        {
+          "draw": 5,
+          "target": 7056
+        },
+        {
+          "draw": 5,
+          "target": 9059
+        },
+        {
+          "draw": 5,
+          "target": 6707
+        },
+        {
+          "draw": 5,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "first_res_sapa_b001",
+      "cell": "res_sapa_b001",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 5118
+        },
+        {
+          "draw": 0,
+          "target": 8740
+        },
+        {
+          "draw": 0,
+          "target": 5324
+        },
+        {
+          "draw": 0,
+          "target": 4630
+        },
+        {
+          "draw": 0,
+          "target": 833
+        },
+        {
+          "draw": 0,
+          "target": 2065
+        },
+        {
+          "draw": 0,
+          "target": 7056
+        },
+        {
+          "draw": 0,
+          "target": 9059
+        },
+        {
+          "draw": 0,
+          "target": 6707
+        },
+        {
+          "draw": 0,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b001_1",
+      "cell": "res_sapa_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 5118
+        },
+        {
+          "draw": 1,
+          "target": 8740
+        },
+        {
+          "draw": 1,
+          "target": 5324
+        },
+        {
+          "draw": 1,
+          "target": 4630
+        },
+        {
+          "draw": 1,
+          "target": 833
+        },
+        {
+          "draw": 1,
+          "target": 2065
+        },
+        {
+          "draw": 1,
+          "target": 7056
+        },
+        {
+          "draw": 1,
+          "target": 9059
+        },
+        {
+          "draw": 1,
+          "target": 6707
+        },
+        {
+          "draw": 1,
+          "target": 9874
+        },
+        {
+          "draw": 2,
+          "target": 5118
+        },
+        {
+          "draw": 2,
+          "target": 8740
+        },
+        {
+          "draw": 2,
+          "target": 5324
+        },
+        {
+          "draw": 2,
+          "target": 4630
+        },
+        {
+          "draw": 2,
+          "target": 833
+        },
+        {
+          "draw": 2,
+          "target": 2065
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b001_2",
+      "cell": "res_sapa_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 2,
+          "target": 7056
+        },
+        {
+          "draw": 2,
+          "target": 9059
+        },
+        {
+          "draw": 2,
+          "target": 6707
+        },
+        {
+          "draw": 2,
+          "target": 9874
+        },
+        {
+          "draw": 3,
+          "target": 5118
+        },
+        {
+          "draw": 3,
+          "target": 8740
+        },
+        {
+          "draw": 3,
+          "target": 5324
+        },
+        {
+          "draw": 3,
+          "target": 4630
+        },
+        {
+          "draw": 3,
+          "target": 833
+        },
+        {
+          "draw": 3,
+          "target": 2065
+        },
+        {
+          "draw": 3,
+          "target": 7056
+        },
+        {
+          "draw": 3,
+          "target": 9059
+        },
+        {
+          "draw": 3,
+          "target": 6707
+        },
+        {
+          "draw": 3,
+          "target": 9874
+        },
+        {
+          "draw": 4,
+          "target": 5118
+        },
+        {
+          "draw": 4,
+          "target": 8740
+        },
+        {
+          "draw": 4,
+          "target": 5324
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b001_3",
+      "cell": "res_sapa_b001",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 4,
+          "target": 4630
+        },
+        {
+          "draw": 4,
+          "target": 833
+        },
+        {
+          "draw": 4,
+          "target": 2065
+        },
+        {
+          "draw": 4,
+          "target": 7056
+        },
+        {
+          "draw": 4,
+          "target": 9059
+        },
+        {
+          "draw": 4,
+          "target": 6707
+        },
+        {
+          "draw": 4,
+          "target": 9874
+        },
+        {
+          "draw": 5,
+          "target": 5118
+        },
+        {
+          "draw": 5,
+          "target": 8740
+        },
+        {
+          "draw": 5,
+          "target": 5324
+        },
+        {
+          "draw": 5,
+          "target": 4630
+        },
+        {
+          "draw": 5,
+          "target": 833
+        },
+        {
+          "draw": 5,
+          "target": 2065
+        },
+        {
+          "draw": 5,
+          "target": 7056
+        },
+        {
+          "draw": 5,
+          "target": 9059
+        },
+        {
+          "draw": 5,
+          "target": 6707
+        },
+        {
+          "draw": 5,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "first_res_sapa_b002",
+      "cell": "res_sapa_b002",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 5118
+        },
+        {
+          "draw": 0,
+          "target": 8740
+        },
+        {
+          "draw": 0,
+          "target": 5324
+        },
+        {
+          "draw": 0,
+          "target": 4630
+        },
+        {
+          "draw": 0,
+          "target": 833
+        },
+        {
+          "draw": 0,
+          "target": 2065
+        },
+        {
+          "draw": 0,
+          "target": 7056
+        },
+        {
+          "draw": 0,
+          "target": 9059
+        },
+        {
+          "draw": 0,
+          "target": 6707
+        },
+        {
+          "draw": 0,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b002_1",
+      "cell": "res_sapa_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 5118
+        },
+        {
+          "draw": 1,
+          "target": 8740
+        },
+        {
+          "draw": 1,
+          "target": 5324
+        },
+        {
+          "draw": 1,
+          "target": 4630
+        },
+        {
+          "draw": 1,
+          "target": 833
+        },
+        {
+          "draw": 1,
+          "target": 2065
+        },
+        {
+          "draw": 1,
+          "target": 7056
+        },
+        {
+          "draw": 1,
+          "target": 9059
+        },
+        {
+          "draw": 1,
+          "target": 6707
+        },
+        {
+          "draw": 1,
+          "target": 9874
+        },
+        {
+          "draw": 2,
+          "target": 5118
+        },
+        {
+          "draw": 2,
+          "target": 8740
+        },
+        {
+          "draw": 2,
+          "target": 5324
+        },
+        {
+          "draw": 2,
+          "target": 4630
+        },
+        {
+          "draw": 2,
+          "target": 833
+        },
+        {
+          "draw": 2,
+          "target": 2065
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b002_2",
+      "cell": "res_sapa_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 2,
+          "target": 7056
+        },
+        {
+          "draw": 2,
+          "target": 9059
+        },
+        {
+          "draw": 2,
+          "target": 6707
+        },
+        {
+          "draw": 2,
+          "target": 9874
+        },
+        {
+          "draw": 3,
+          "target": 5118
+        },
+        {
+          "draw": 3,
+          "target": 8740
+        },
+        {
+          "draw": 3,
+          "target": 5324
+        },
+        {
+          "draw": 3,
+          "target": 4630
+        },
+        {
+          "draw": 3,
+          "target": 833
+        },
+        {
+          "draw": 3,
+          "target": 2065
+        },
+        {
+          "draw": 3,
+          "target": 7056
+        },
+        {
+          "draw": 3,
+          "target": 9059
+        },
+        {
+          "draw": 3,
+          "target": 6707
+        },
+        {
+          "draw": 3,
+          "target": 9874
+        },
+        {
+          "draw": 4,
+          "target": 5118
+        },
+        {
+          "draw": 4,
+          "target": 8740
+        },
+        {
+          "draw": 4,
+          "target": 5324
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b002_3",
+      "cell": "res_sapa_b002",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 4,
+          "target": 4630
+        },
+        {
+          "draw": 4,
+          "target": 833
+        },
+        {
+          "draw": 4,
+          "target": 2065
+        },
+        {
+          "draw": 4,
+          "target": 7056
+        },
+        {
+          "draw": 4,
+          "target": 9059
+        },
+        {
+          "draw": 4,
+          "target": 6707
+        },
+        {
+          "draw": 4,
+          "target": 9874
+        },
+        {
+          "draw": 5,
+          "target": 5118
+        },
+        {
+          "draw": 5,
+          "target": 8740
+        },
+        {
+          "draw": 5,
+          "target": 5324
+        },
+        {
+          "draw": 5,
+          "target": 4630
+        },
+        {
+          "draw": 5,
+          "target": 833
+        },
+        {
+          "draw": 5,
+          "target": 2065
+        },
+        {
+          "draw": 5,
+          "target": 7056
+        },
+        {
+          "draw": 5,
+          "target": 9059
+        },
+        {
+          "draw": 5,
+          "target": 6707
+        },
+        {
+          "draw": 5,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "first_res_sapa_b005",
+      "cell": "res_sapa_b005",
+      "method": "first_m",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 0,
+          "target": 5118
+        },
+        {
+          "draw": 0,
+          "target": 8740
+        },
+        {
+          "draw": 0,
+          "target": 5324
+        },
+        {
+          "draw": 0,
+          "target": 4630
+        },
+        {
+          "draw": 0,
+          "target": 833
+        },
+        {
+          "draw": 0,
+          "target": 2065
+        },
+        {
+          "draw": 0,
+          "target": 7056
+        },
+        {
+          "draw": 0,
+          "target": 9059
+        },
+        {
+          "draw": 0,
+          "target": 6707
+        },
+        {
+          "draw": 0,
+          "target": 9874
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b005_1",
+      "cell": "res_sapa_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 1,
+          "target": 5118
+        },
+        {
+          "draw": 1,
+          "target": 8740
+        },
+        {
+          "draw": 1,
+          "target": 5324
+        },
+        {
+          "draw": 1,
+          "target": 4630
+        },
+        {
+          "draw": 1,
+          "target": 833
+        },
+        {
+          "draw": 1,
+          "target": 2065
+        },
+        {
+          "draw": 1,
+          "target": 7056
+        },
+        {
+          "draw": 1,
+          "target": 9059
+        },
+        {
+          "draw": 1,
+          "target": 6707
+        },
+        {
+          "draw": 1,
+          "target": 9874
+        },
+        {
+          "draw": 2,
+          "target": 5118
+        },
+        {
+          "draw": 2,
+          "target": 8740
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b005_2",
+      "cell": "res_sapa_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 2,
+          "target": 5324
+        },
+        {
+          "draw": 2,
+          "target": 4630
+        },
+        {
+          "draw": 2,
+          "target": 833
+        },
+        {
+          "draw": 2,
+          "target": 2065
+        },
+        {
+          "draw": 2,
+          "target": 7056
+        },
+        {
+          "draw": 2,
+          "target": 9059
+        },
+        {
+          "draw": 2,
+          "target": 6707
+        },
+        {
+          "draw": 2,
+          "target": 9874
+        },
+        {
+          "draw": 3,
+          "target": 5118
+        },
+        {
+          "draw": 3,
+          "target": 8740
+        },
+        {
+          "draw": 3,
+          "target": 5324
+        },
+        {
+          "draw": 3,
+          "target": 4630
+        },
+        {
+          "draw": 3,
+          "target": 833
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b005_3",
+      "cell": "res_sapa_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 3,
+          "target": 2065
+        },
+        {
+          "draw": 3,
+          "target": 7056
+        },
+        {
+          "draw": 3,
+          "target": 9059
+        },
+        {
+          "draw": 3,
+          "target": 6707
+        },
+        {
+          "draw": 3,
+          "target": 9874
+        },
+        {
+          "draw": 4,
+          "target": 5118
+        },
+        {
+          "draw": 4,
+          "target": 8740
+        },
+        {
+          "draw": 4,
+          "target": 5324
+        },
+        {
+          "draw": 4,
+          "target": 4630
+        },
+        {
+          "draw": 4,
+          "target": 833
+        },
+        {
+          "draw": 4,
+          "target": 2065
+        },
+        {
+          "draw": 4,
+          "target": 7056
+        }
+      ]
+    },
+    {
+      "id": "rand_res_sapa_b005_4",
+      "cell": "res_sapa_b005",
+      "method": "random",
+      "time": "05:00:00",
+      "units": [
+        {
+          "draw": 4,
+          "target": 9059
+        },
+        {
+          "draw": 4,
+          "target": 6707
+        },
+        {
+          "draw": 4,
+          "target": 9874
+        },
+        {
+          "draw": 5,
+          "target": 5118
+        },
+        {
+          "draw": 5,
+          "target": 8740
+        },
+        {
+          "draw": 5,
+          "target": 5324
+        },
+        {
+          "draw": 5,
+          "target": 4630
+        },
+        {
+          "draw": 5,
+          "target": 833
+        },
+        {
+          "draw": 5,
+          "target": 2065
+        },
+        {
+          "draw": 5,
+          "target": 7056
+        },
+        {
+          "draw": 5,
+          "target": 9059
+        },
+        {
+          "draw": 5,
+          "target": 6707
+        },
+        {
+          "draw": 5,
+          "target": 9874
+        }
+      ]
+    }
+  ]
+}
