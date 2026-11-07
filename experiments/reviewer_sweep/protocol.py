@@ -6,10 +6,17 @@ from pathlib import Path
 
 MODELS = ('ConvNetBN', 'ResNet20BN')
 BUDGETS = (0.001, 0.002, 0.005)
-TARGETS = (843, 1257, 8252, 8730, 8055, 5859, 8954, 821, 1547, 4427)
+TARGETS_BY_MODEL = {
+    'ConvNetBN': (843, 1257, 8252, 8730, 8055, 5859, 8954, 821, 1547, 4427),
+    'ResNet20BN': (5118, 8740, 5324, 4630, 833, 2065, 7056, 9059, 6707, 9874),
+}
 SELECTORS = ('random', 'margin', 'similarity', 'basis', 'wo_pretrained', 'wo_ood')
-REPEATS = (0, 1, 2)
-VERSION = 'reviewer-20261106-v1'
+REPEATS = (0, 1, 2, 3, 4, 5)
+VERSION = 'reviewer-20261106-v2'
+
+
+def targets_for(model):
+    return TARGETS_BY_MODEL[model]
 
 
 def cells():
@@ -85,7 +92,7 @@ def attack_args(model, data_root):
         '--craft_alpha', str(1/255), '--base_dist', 'cosine', '--lambda_margin', '1',
         '--surrogate_epochs', '60', '--surrogate_bs', '128',
         '--surrogate_decay', '35', '45', '--victim_epochs', '60',
-        '--victim_bs', '128', '--victim_decay', '35', '45', '--num_victims', '3',
+        '--victim_bs', '125', '--victim_decay', '40', '--num_victims', '6',
         '--num_targets', '10', '--gpus', '0', '--no_parallel_targets',
         '--no_parallel_pretrain'])
 
