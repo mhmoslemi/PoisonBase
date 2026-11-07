@@ -15,25 +15,27 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import final_update as fu
-from protocol import (MODELS, TARGETS, REPEATS, VERSION, cells, attack_cell,
-                      attack_args, subsets, atomic_json, fingerprint)
+from protocol import (MODELS, REPEATS, VERSION, cells, attack_cell, attack_args,
+                      targets_for, subsets, atomic_json, fingerprint)
 from defenses import (save_torch, losses, train_asd, train_trajectory,
                       detect_telltale, augment)
 
-OUT = ROOT/'reviewer_20261106_result'
+OUT = ROOT/'reviewer_20261106_v2_result'
 
 
 def context(model):
     args = attack_args(model, os.environ.get('REVIEW_DATA', ROOT/'data'))
     ctx = fu.build_context(args, torch.device('cuda:0'))
+    targets = targets_for(model)
     assert len(ctx['train_labs']) == 50000
-    assert all(int(ctx['test_labs'][t]) == 2 for t in TARGETS)
+    assert all(int(ctx['test_labs'][t]) == 2 for t in targets)
     labels = ctx['test_labs'].cpu().numpy()
     gen = np.random.default_rng(71307)
-    val = np.concatenate([gen.permutation(np.setdiff1d(np.flatnonzero(labels==c), TARGETS))[:100]
+    val = np.concatenate([gen.permutation(np.setdiff1d(np.flatnonzero(labels==c), targets))[:100]
                           for c in range(10)])
     ctx['val_idx'] = torch.tensor(val, device=ctx['device'])
-    ctx['eval_idx'] = torch.tensor(np.setdiff1d(np.arange(len(labels)), val),device=ctx['device'])
+    ctx['eval_idx'] = torch.arange(len(labels), device=ctx['device'])
+    ctx['targets'] = targets
     return args, ctx
 
 
@@ -89,12 +91,13 @@ def accuracy(net,ctx):
 def metrics(net,ctx):
     net.eval()
     with torch.no_grad():
-        pred=net(ctx['test_imgs'][list(TARGETS)]).argmax(1).cpu().tolist()
-    return dict(clean_accuracy=accuracy(net,ctx),target_predictions=dict(zip(map(str,TARGETS),pred)))
+        pred=net(ctx['test_imgs'][list(ctx['targets'])]).argmax(1).cpu().tolist()
+    return dict(clean_accuracy=accuracy(net,ctx),
+                target_predictions=dict(zip(map(str,ctx['targets']),pred)))
 
 
 def ordinary(net,ctx):
-    return fu.train_from_scratch(net,ctx['train_imgs'],ctx['train_labs'],60,.1,128,[35,45],ctx['device'])
+    return fu.train_from_scratch(net,ctx['train_imgs'],ctx['train_labs'],60,.1,125,[40],ctx['device'])
 
 
 def asd_supervised(net,ctx,directory):
@@ -148,7 +151,7 @@ def control(model,repeat,kind):
         del net
         net=build(model,ctx,4200000+repeat)
         fu.train_from_scratch(net,ctx['train_imgs'][kept],ctx['train_labs'][kept],
-                             60,.1,128,[35,45],ctx['device'])
+                             60,.1,125,[40],ctx['device'])
     result=metrics(net,ctx)
     result.update(extra)
     result.update(seconds=time.monotonic()-start,version=VERSION,model=model,kind=kind,repeat=repeat)
@@ -156,8 +159,9 @@ def control(model,repeat,kind):
 
 
 def get_poison(cell,repeat,tidx,args,ctx,nets):
-    restricted=cell['fraction']!=1 or cell['pool']!=1
-    poison_repeat=repeat if restricted else 0
+    # One fixed attacker-visible subset and poison set per table cell, shared
+    # across the five independently seeded victims.
+    poison_repeat=0
     directory=OUT/'cells'/f"{cell['id']:03d}"/'poisons'/f'r{poison_repeat}'
     path=directory/f'target_{tidx}.pt'
     directory.mkdir(parents=True,exist_ok=True)
@@ -217,13 +221,15 @@ def run_cell(cell_id,part):
     cell=cells()[cell_id]; base=attack_cell(cell)
     args,ctx=context(cell['model'])
     args.budget=cell['budget']
-    targets=TARGETS[part*2:(part+1)*2] if cell['defense']=='none' else TARGETS[part:part+1]
+    all_targets=targets_for(cell['model'])
+    targets=all_targets[part*2:(part+1)*2] if cell['defense']=='none' else all_targets[part:part+1]
     assert targets
     folder=OUT/'cells'/f'{cell_id:03d}'
     folder.mkdir(parents=True,exist_ok=True)
-    atomic_json(folder/'protocol.json',dict(version=VERSION,cell=cell,targets=TARGETS,
-                repeats=REPEATS,victim_epochs=60,craft_steps=250,craft_ensemble=5,
-                selection_ensemble=20,epsilon=8/255,validation_size=1000,cta_size=9000))
+    atomic_json(folder/'protocol.json',dict(version=VERSION,cell=cell,targets=all_targets,
+                repeats=REPEATS,victim_epochs=60,victim_batch_size=125,
+                victim_decay=[40],craft_steps=250,craft_ensemble=5,
+                selection_ensemble=20,epsilon=8/255,validation_size=1000,cta_size=10000))
     with (folder/f'part_{part}.lock').open('w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         nets=None
@@ -232,9 +238,9 @@ def run_cell(cell_id,part):
             if not pending:
                 continue
             if cell['defense']=='none':
-                if nets is None or cell['fraction']!=1:
+                if nets is None:
                     del nets
-                    nets=load_pool(cell['model'],cell['fraction'],repeat,ctx)
+                    nets=load_pool(cell['model'],cell['fraction'],0,ctx)
             trusted,_,_=subsets(ctx['train_labs'].cpu().numpy(),0)
             for tidx in pending:
                 directory=folder/f't{tidx}_r{repeat}'; directory.mkdir(parents=True,exist_ok=True)
@@ -251,7 +257,8 @@ def run_cell(cell_id,part):
                 pmask=np.zeros(50000,dtype=bool); pmask[poison['indices'].numpy()]=True
                 begin=time.monotonic(); info={}
                 try:
-                    net=build(cell['model'],ctx,4200000+repeat)
+                    victim_seed=42*100000+tidx*100+repeat
+                    net=build(cell['model'],ctx,victim_seed)
                     if cell['defense']=='none':
                         ordinary(net,ctx)
                     elif cell['defense']=='asd':
@@ -265,7 +272,7 @@ def run_cell(cell_id,part):
                         info['assignments']=assignments
                         defended_metrics=metrics(net,ctx)
                         del net
-                        net=build(cell['model'],ctx,4200000+repeat)
+                        net=build(cell['model'],ctx,victim_seed)
                         asd_supervised(net,ctx,directory/'supervised_control')
                         info['matched_supervised_control']=metrics(net,ctx)
                         # Keep final output describing ASD, not the auxiliary control.
@@ -283,9 +290,9 @@ def run_cell(cell_id,part):
                         kept=torch.tensor(np.flatnonzero(~suspicious),device=ctx['device'])
                         assert len(kept)>128
                         del net
-                        net=build(cell['model'],ctx,4200000+repeat)
+                        net=build(cell['model'],ctx,victim_seed)
                         fu.train_from_scratch(net,ctx['train_imgs'][kept],ctx['train_labs'][kept],
-                                             60,.1,128,[35,45],ctx['device'])
+                                             60,.1,125,[40],ctx['device'])
                     measured=info.pop('defended_metrics') if cell['defense']=='asd' else metrics(net,ctx)
                     control_kind='asd' if cell['defense']=='asd' else 'plain'
                     control_path=OUT/'controls'/cell['model']/f'{control_kind}_r{repeat}'/'result.json'

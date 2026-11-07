@@ -8,7 +8,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from protocol import cells, attack_cell, subsets, atomic_json, MODELS, TARGETS
+from protocol import (cells, attack_cell, subsets, atomic_json, MODELS, REPEATS,
+                      targets_for)
 from defenses import (sce_loss, interleave, split_asd, meta_parameters,
                       mixmatch_epoch, train_asd, train_trajectory, detect_telltale,
                       global_normalize, suspect_clusters)
@@ -25,7 +26,7 @@ def unit_checks():
         assert attack_cell(c)['defense']=='none'
     labels=np.repeat(np.arange(10),5000)
     prior=None
-    for r in range(3):
+    for r in REPEATS:
         trusted,visible,candidates=subsets(labels,r)
         assert len(trusted)==100 and len(np.unique(trusted))==100
         assert len(visible[.2])==10000 and len(visible[.5])==25000
@@ -82,25 +83,27 @@ def run_checks():
     measurements={}
     for model in MODELS:
         args,ctx=context(model)
+        targets=targets_for(model)
         assert ctx['train_imgs'].shape==(50000,3,32,32)
-        assert len(ctx['val_idx'])==1000 and not set(TARGETS)&set(ctx['val_idx'].cpu().tolist())
+        assert len(ctx['val_idx'])==1000 and len(ctx['eval_idx'])==10000
+        assert not set(targets)&set(ctx['val_idx'].cpu().tolist())
         trusted,_,candidates=subsets(ctx['train_labs'].cpu().numpy(),0)
         nets=load_pool(model,1.,0,ctx)
         begin=time.monotonic()
         candidate=torch.tensor(candidates[.2],device=ctx['device'])
         labels=torch.full_like(ctx['train_labs'],-1); labels[candidate]=5
-        selected=fu.select_base_ours(nets,ctx['train_imgs'],labels,ctx['test_imgs'][TARGETS[0]],
+        selected=fu.select_base_ours(nets,ctx['train_imgs'],labels,ctx['test_imgs'][targets[0]],
             5,50,1.,ctx['device'],base_dist='cosine',distance_margin_coef=.5)
         assert set(selected.cpu().tolist())<=set(candidate.cpu().tolist())
         score_seconds=time.monotonic()-begin
         begin=time.monotonic()
         base,adv,_=fu.craft_selected_bases(args,ctx,nets[:5],selected,
-                                         ctx['test_imgs'][TARGETS[0]],5,steps=3,restarts=1)
+                                         ctx['test_imgs'][targets[0]],5,steps=3,restarts=1)
         assert torch.isfinite(adv).all() and float((adv-base).abs().max())<=8/255+1e-6
         del nets,base,adv
         net=build(model,ctx,4200000)
         begin=time.monotonic()
-        fu.train_from_scratch(net,ctx['train_imgs'],ctx['train_labs'],2,.1,128,[],ctx['device'])
+        fu.train_from_scratch(net,ctx['train_imgs'],ctx['train_labs'],2,.1,125,[],ctx['device'])
         torch.cuda.synchronize(); epoch_seconds=(time.monotonic()-begin)/2
         meta_parameters(net)
         assert any(p.requires_grad for p in net.classifier.parameters())
