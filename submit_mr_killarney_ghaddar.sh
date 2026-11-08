@@ -27,7 +27,7 @@ while IFS=$'\t' read -r relative bytes dataset hash; do
     [ -s "$DATA_ROOT/$relative" ] || die "missing data: $DATA_ROOT/$relative"
     [ "$(stat -c %s "$DATA_ROOT/$relative")" = "$bytes" ] || die "incomplete data: $DATA_ROOT/$relative"
 done < <(tail -n +2 data.tsv)
-cluster="$(scontrol show config | awk '$1=="ClusterName"{print $3; exit}')"
+cluster="$(scontrol show config | awk '$1=="ClusterName"{print $3}')"
 [ -n "$cluster" ] || die 'cannot identify the Slurm cluster'
 inventory="$(sinfo -h -o '%G' --Node)" || die 'cannot read GPU inventory'
 [[ "${inventory,,}" == *l40* ]] || die 'no L40 GPU found in this cluster inventory'
