@@ -1,0 +1,187 @@
+{
+  "purpose": "Separate Meta-Grad two-selection-surrogate ablation; preserve original 20-surrogate table/results",
+  "results": "rebuttal_meta_k2_result",
+  "score_source": "rebuttal_meta_influence_result",
+  "protocol": {
+    "version": 1,
+    "seed": 42,
+    "y_adv": 5,
+    "surrogates": 2,
+    "ensemble": "mean of per-surrogate scores; meta weights clipped and normalized over all 5000 candidates before averaging",
+    "meta": {
+      "step_size": 1,
+      "candidate_batch": 64
+    },
+    "influence": {
+      "ridge": 0.1,
+      "scale": 10,
+      "max_scale": 1280,
+      "depth": 10000,
+      "hessian_batch": 32,
+      "candidate_batch": 64,
+      "samples": 1
+    },
+    "victim": {
+      "epochs": 50,
+      "batch_size": 125,
+      "learning_rate": 0.1,
+      "decay": [
+        40
+      ],
+      "momentum": 0.9,
+      "weight_decay": 0,
+      "augmentation": false,
+      "runs": 5
+    },
+    "crafting": {
+      "ensemble": 5,
+      "steps": 250,
+      "restarts": 8,
+      "fc_restarts": 1,
+      "fc_mode": "sample",
+      "epsilon": 0.0313725,
+      "alpha": 0.0039216,
+      "augmentation": "color_crop_cutout_flip_scale_rotate",
+      "sharp_mode": "worst",
+      "sharp_sigma": 0.05
+    },
+    "sources": {
+      "meta": "https://github.com/uber-research/learning-to-reweight-examples/blob/master/models/reweight_model.py",
+      "influence_solver": "https://github.com/kohpangwei/influence-release/blob/master/influence/genericNeuralNet.py",
+      "influence_selection": "https://github.com/kohpangwei/influence-release/blob/master/influence/dataset_poisoning.py#L39"
+    },
+    "selection_surrogate_ids": [
+      0,
+      1
+    ],
+    "score_source_hash": "3efe607b5c1043aa1d13207c95067de669d28afa60beef2614419d09d659e49b"
+  },
+  "tasks": [
+    {
+      "id": "eval_meta_k2_conv_fc_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "fc",
+      "budget": 0.005,
+      "targets": [
+        2540,
+        8129,
+        3725,
+        5705,
+        7663,
+        3875,
+        5169,
+        6335
+      ],
+      "time": "03:00:00",
+      "dependencies": [],
+      "source_job": "eval_meta_conv_fc_b005"
+    },
+    {
+      "id": "eval_meta_k2_conv_sapa_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ConvNetBN",
+      "attack": "sapa",
+      "budget": 0.002,
+      "targets": [
+        843,
+        1257,
+        8252,
+        8730,
+        8055,
+        5859,
+        8954,
+        821
+      ],
+      "time": "03:00:00",
+      "dependencies": [],
+      "source_job": "eval_meta_conv_sapa_b002"
+    },
+    {
+      "id": "eval_meta_k2_res_fc_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "fc",
+      "budget": 0.002,
+      "targets": [
+        3495,
+        2903,
+        6697,
+        2315,
+        6899,
+        2312,
+        6353,
+        4421
+      ],
+      "time": "03:00:00",
+      "dependencies": [],
+      "source_job": "eval_meta_res_fc_b002"
+    },
+    {
+      "id": "eval_meta_k2_res_gradmatch_b002",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.002,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [],
+      "source_job": "eval_meta_res_gradmatch_b002"
+    },
+    {
+      "id": "eval_meta_k2_res_gradmatch_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "gradmatch",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [],
+      "source_job": "eval_meta_res_gradmatch_b005"
+    },
+    {
+      "id": "eval_meta_k2_res_sapa_b005",
+      "stage": "evaluate",
+      "method": "meta",
+      "model": "ResNet20BN",
+      "attack": "sapa",
+      "budget": 0.005,
+      "targets": [
+        5118,
+        8740,
+        5324,
+        4630,
+        833,
+        2065,
+        7056,
+        9059
+      ],
+      "time": "03:00:00",
+      "dependencies": [],
+      "source_job": "eval_meta_res_sapa_b005"
+    }
+  ]
+}
