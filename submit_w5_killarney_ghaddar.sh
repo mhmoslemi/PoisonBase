@@ -30,7 +30,7 @@ while IFS=$'\t' read -r relative bytes kind; do
 done < <(tail -n +2 "$BATCH/artifacts.tsv")
 [ "$missing" -eq 0 ] || die "$missing input files missing or incomplete; use the two vulcan_*_files.txt transfer lists"
 
-cluster="$(scontrol show config | awk '$1=="ClusterName"{print $3; exit}')"
+cluster="$(scontrol show config | awk '$1=="ClusterName"{print $3}')"
 [ -n "$cluster" ] || die 'cannot identify the Slurm cluster'
 inventory="$(sinfo -h -o '%G' --Node)" || die 'cannot read GPU inventory'
 [ -n "$inventory" ] || die 'no GPU inventory returned by Slurm'
