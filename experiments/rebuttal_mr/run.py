@@ -80,7 +80,9 @@ def context(cell, data):
     return args, ctx
 
 
-def pool(cell, ctx, cache, count=20):
+def pool(cell, ctx, cache, count=None):
+    if count is None:
+        count = cell['args'].get('sel_K') or cell['args']['num_surrogates']
     nets = []
     for i in range(count):
         path = Path(cache) / cell['pool'] / f'net_{i}.pt'
@@ -101,7 +103,7 @@ def select(cell, ctx, nets, target):
     values = (nets, ctx['train_imgs'], ctx['train_labs'], ctx['test_imgs'][target],
               ctx['y_adv'], round(args['budget'] * len(ctx['train_labs'])),
               args['lambda_margin'], ctx['device'])
-    if args['sel_mode']:
+    if args.get('sel_mode'):
         indices = fu.select_base_ours_div(*values, mode=args['sel_mode'],
                     alpha=args['sel_alpha'], pool=args['sel_pool'], mu=args['sel_mu'], **common)
     else:
