@@ -23,9 +23,13 @@ while IFS=$'\t' read -r relative bytes dataset hash; do
 done < <(tail -n +2 "$BATCH/data.tsv")
 while IFS=$'\t' read -r relative bytes dataset hash; do
     if [ "$DATASET" = all ] || [ "$DATASET" = "$dataset" ]; then
+        source_relative="$relative"
+        case "$dataset" in
+            CIFAR100|TinyImageNet) source_relative="${relative%/*}_new/${relative##*/}" ;;
+        esac
         relative="${relative#cache/surrogates/}"
         mkdir -p "$WORK/surrogates/$(dirname "$relative")"
-        rsync -a "$ROOT/cache/surrogates/$relative" "$WORK/surrogates/$relative"
+        rsync -a "$ROOT/$source_relative" "$WORK/surrogates/$relative"
     fi
 done < <(tail -n +2 "$BATCH/surrogates.tsv")
 cd "$WORK/data"

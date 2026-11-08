@@ -20,8 +20,12 @@ DATA_ROOT="$(cd -- "$DATA_ROOT" && pwd -P)"
 cd "$BATCH"
 sha256sum --check --quiet code.sha256 || die 'prepared code/plan changed'
 while IFS=$'\t' read -r relative bytes dataset hash; do
-    [ -s "$ROOT/$relative" ] || die "missing surrogate: $ROOT/$relative"
-    [ "$(stat -c %s "$ROOT/$relative")" = "$bytes" ] || die "incomplete surrogate: $ROOT/$relative"
+    source_relative="$relative"
+    case "$dataset" in
+        CIFAR100|TinyImageNet) source_relative="${relative%/*}_new/${relative##*/}" ;;
+    esac
+    [ -s "$ROOT/$source_relative" ] || die "missing surrogate: $ROOT/$source_relative"
+    [ "$(stat -c %s "$ROOT/$source_relative")" = "$bytes" ] || die "incomplete surrogate: $ROOT/$source_relative"
 done < <(tail -n +2 surrogates.tsv)
 while IFS=$'\t' read -r relative bytes dataset hash; do
     [ -s "$DATA_ROOT/$relative" ] || die "missing data: $DATA_ROOT/$relative"

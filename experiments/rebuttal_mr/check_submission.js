@@ -13,7 +13,12 @@ fs.cpSync(path.join(root, 'sbatch/rebuttal_mr_killarney'), batch, {recursive: tr
 fs.copyFileSync(path.join(root, 'submit_mr_killarney_ghaddar.sh'), path.join(tmp, 'submit.sh'));
 fs.mkdirSync(path.join(tmp, 'bin'));
 fs.mkdirSync(path.join(tmp, 'project'));
-fs.symlinkSync(path.join(root, 'cache'), path.join(tmp, 'project/cache'));
+const pools = path.join(tmp, 'project/cache/surrogates');
+fs.mkdirSync(pools, {recursive: true});
+for (const pool of new Set(JSON.parse(fs.readFileSync(path.join(batch, 'plan.json'))).cells.map(c => c.pool))) {
+    fs.symlinkSync(path.join(root, 'cache/surrogates', pool),
+        path.join(pools, pool + (pool.startsWith('ConvNet') ? '' : '_new')));
+}
 fs.writeFileSync(path.join(tmp, 'activate'), '');
 fs.writeFileSync(path.join(tmp, 'queue'), '');
 fs.writeFileSync(path.join(tmp, 'counter'), '8000');
@@ -48,6 +53,13 @@ function queue(ids) {
     fs.writeFileSync(path.join(tmp, 'queue'), ids.map(id => id + ' PENDING\n').join(''));
 }
 try {
+    const tinyNew = path.join(pools, 'TinyImageNet_ResNet18BN_60ep_lr0.1_bs128_seed42_new');
+    fs.renameSync(tinyNew, tinyNew.slice(0, -4));
+    const missingNew = spawnSync('sh', [path.join(tmp, 'submit.sh')], {env, encoding: 'utf8'});
+    assert.notEqual(missingNew.status, 0);
+    assert(missingNew.stderr.includes('seed42_new/net_0.pt'));
+    assert(!fs.existsSync(path.join(tmp, 'calls')), 'Missing _new pool must fail before submission');
+    fs.renameSync(tinyNew.slice(0, -4), tinyNew);
     run();
     const initial = calls();
     assert.equal(initial.length, 29);
@@ -93,7 +105,23 @@ try {
     queue([...initial.slice(2).map(c => c.id).filter(id => id !== oldCraft), 8030, 8031]);
     assert(run().includes('SKIP ' + plan.tasks[1].id + ': complete'));
     assert.equal(calls().length, 31);
-    console.log('PASS: 29 jobs, exact resources/dependencies, no duplicate submissions, failed-dependency repair, completed-task skip.');
+    // Exercise staging with mocked module/rsync/srun; no Python or file copies.
+    const realSha = spawnSync('which', ['sha256sum'], {encoding: 'utf8'}).stdout.trim();
+    fs.writeFileSync(path.join(tmp, 'bash_env'), 'module() { :; }\n');
+    command('sha256sum', 'if [ "$PWD" = "$MOCK_BATCH" ]; then exec "$REAL_SHA" "$@"; else cat >/dev/null; fi');
+    command('rsync', '[ -s "$2" ]; printf "%s\\t%s\\n" "$2" "$3" >> "$MOCK_ROOT/staged"');
+    command('srun', 'printf "mocked GPU worker\\n"');
+    const stageEnv = {...env, BASH_ENV: path.join(tmp, 'bash_env'), MOCK_BATCH: batch,
+        REAL_SHA: realSha, SLURM_TMPDIR: path.join(tmp, 'node_tmp')};
+    const staged = spawnSync('bash', [path.join(batch, 'job.sh'), env.SOURCE_ROOT, batch,
+        'preflight', env.ENV_ACTIVATE, env.DATA_ROOT], {env: stageEnv, encoding: 'utf8'});
+    assert.equal(staged.status, 0, staged.stdout + staged.stderr);
+    const sources = fs.readFileSync(path.join(tmp, 'staged'), 'utf8').trim().split('\n').map(s => s.split('\t')[0]);
+    const surrogateSources = sources.filter(s => s.includes('/cache/surrogates/'));
+    assert.equal(surrogateSources.length, 60);
+    assert.equal(surrogateSources.filter(s => s.includes('seed42_new/')).length, 40);
+    assert(surrogateSources.filter(s => !s.includes('seed42_new/')).every(s => s.includes('/ConvNetBN_')));
+    console.log('PASS: 29 jobs, resources/dependencies/resume, required _new pools without fallback, staging 40 ResNets from _new and 20 ConvNets from original.');
 } finally {
     fs.rmSync(tmp, {recursive: true, force: true});
 }

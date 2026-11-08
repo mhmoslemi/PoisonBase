@@ -54,8 +54,19 @@ summaries show finished/expected counts. Nothing edits the rebuttal automaticall
 
 Killarney needs the matching three 20-model surrogate pools and all three datasets.
 The exact 71 input paths on Vulcan are in
-`sbatch/rebuttal_mr_killarney/copy_from_vulcan.txt`. Preserve the `cache/surrogates/`
-paths relative to the checkout. Data defaults to `<checkout>/data`, falling back
+`sbatch/rebuttal_mr_killarney/copy_from_vulcan.txt`. On Killarney, the CIFAR-100 and
+Tiny ImageNet pool directories must have `_new` appended to their names:
+
+```text
+/scratch/mmoslem3/attack_if/cache/surrogates/CIFAR100_ResNet18BN_60ep_lr0.1_bs128_seed42_new/
+/scratch/mmoslem3/attack_if/cache/surrogates/TinyImageNet_ResNet18BN_60ep_lr0.1_bs128_seed42_new/
+```
+
+Each contains `net_0.pt` through `net_19.pt`, copied from the corresponding Vulcan
+directory without the `_new` suffix. The submitter and staging job require these
+new directories; they do not fall back to the old ResNet pools. The ConvNet pool
+keeps its original directory. Staging retains the logical cache names expected by
+the unchanged worker and checksum manifest. Data defaults to `<checkout>/data`, falling back
 to `/home/mmoslem3/scratch/data`; `DATA_ROOT` and `ENV_ACTIVATE` can override those
 locations. The default environment remains `/home/mmoslem3/ENV/bin/activate`.
 
