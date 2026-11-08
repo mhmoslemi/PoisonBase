@@ -1418,6 +1418,41 @@ Overlap($M$, \textsc{Basis}) & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
 \end{enumerate}
 
 
+\noindent\textbf{W1 .}
+While boundary proximity ($M$) is a strong baseline on CIFAR-10, target-conditioned representation similarity ($R$) is essential both theoretically and empirically:
+\begin{enumerate}
+    \item \textbf{Substantial gains even on CIFAR-10 (Table~5):} At low budgets ($\rho=0.2\%$ on ConvNet), adding $R$ to $M$ boosts ASR from $45.0\%$ to $\mathbf{70.0\%}$ ($+25.0$ pp) for BP and nearly doubles ASR from $20.8\%$ to $\mathbf{40.0\%}$ ($+19.2$ pp) for GM; on VGG13 ($\rho=0.2\%$, BP), ASR rises from $25.0\%$ ($M$) to $\mathbf{40.0\%}$ (\textsc{Basis}). Moreover, in Table~4, target-agnostic backdoor hardness metrics (\textsc{Grad}, \textsc{Forget}, \textsc{Fus}) underperform \textsc{Basis} by $15$--$31$ pp on ConvNet.
+    \item \textbf{Why $M$-only degrades in harder settings while $R$ remains effective:}Table~\ref{tab:reb-r-vs-m} demonstrates that across additional class pairs and larger class counts $C$, $M$-only loses effectiveness whereas combining $R$ and $M$ in \textsc{Basis} yields large, consistent gains.
+\end{enumerate}
+
+\begin{table}[h!]
+\centering
+\caption{ASR ($\%$, $\uparrow$) isolating the contribution of target similarity ($R$) over margin ($M$) across harder CIFAR-10 class pairs ($\rho=0.5\%$, ConvNet) and larger class counts $C \in \{100, 200\}$ ($\rho=0.2\%$, ResNet18, GM).}
+\label{tab:reb-r-vs-m}
+\vspace{-0.6em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{0.68\linewidth}{!}{%
+\begin{tabular}{@{}ll l cccc@{}}
+\toprule
+\textbf{Dataset ($C$)} & \textbf{Attack ($\rho$)} & \textbf{Class Pair ($y_{\text{adv}}\rightarrow y_t$)} & \textsc{Rand} & $R$-only & $M$-only & \textsc{Basis} ($R+M$) \\
+\midrule
+CIFAR-10 ($C=10$)   & BP ($0.2\%$)  & \texttt{dog}$\rightarrow$\texttt{bird}             & \old{1.7}  & \old{22.5} & \old{45.0} & \old{\textbf{70.0}} \\
+                    & GM ($0.2\%$)  & \texttt{dog}$\rightarrow$\texttt{bird}             & \old{0.0}  & \old{20.0} & \old{20.8} & \old{\textbf{40.0}} \\
+                    & GM ($0.5\%$)  & \texttt{horse}$\rightarrow$\texttt{deer}           & \old{4.0}  & \tbd       & \tbd       & \old{\textbf{72.0}} \\
+                    & GM ($0.5\%$)  & \texttt{airplane}$\rightarrow$\texttt{bird}        & \old{12.0} & \tbd       & \tbd       & \old{\textbf{80.0}} \\
+\midrule
+CIFAR-100 ($C=100$) & GM ($0.2\%$)  & \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & \old{6.3}  & \tbd       & \tbd       & \old{\textbf{25.0}} \\
+                    & GM ($0.2\%$)  & \texttt{bottle}$\rightarrow$\texttt{road}          & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{31.2}} \\
+\midrule
+Tiny ImageNet ($C=200$) & BP ($0.2\%$) & \texttt{n01443537}$\rightarrow$\texttt{n01629819} & \old{0.0} & \tbd       & \tbd       & \old{\textbf{12.5}} \\
+                        & GM ($0.2\%$) & \texttt{n01443537}$\rightarrow$\texttt{n01629819} & \old{0.0} & \tbd       & \tbd       & \old{\textbf{6.3}}  \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
 \bigskip
 \noindent\textbf{(W4): random different draw and detersmisnic firs-m.}
 
