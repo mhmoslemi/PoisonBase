@@ -211,9 +211,9 @@ Additionally, Tables~4 and 5 already evaluate deterministic difficulty- and simi
 \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(l){11-13}
 \textbf{Selection Protocol} & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 \\
 \midrule
-\textsc{First}-$m$ (Deterministic protocol)       & 0.0 & 1.7 & 5.0 & 1.7 & 0.0 & 10.0 & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+\textsc{First}-$m$ (Deterministic protocol)       & 0.0 & 1.7 & 5.0 & 1.7 & 0.0 & 10.0 & 15.0 & \tbd & 33.3 & 18.3 & 18.3 & 43.3 \\
 \textsc{Rand} (Table~1: 1 draw/target)            & \old{0.0} & \old{0.0} & \old{1.7} & \old{0.0} & \old{0.0} & \old{6.7} & \old{15.0} & \old{31.7} & \old{43.3} & \old{18.3} & \old{21.7} & \old{55.0} \\
-\textsc{Rand} ($D=6$ draws/target, mean $\pm$ SD) & 0.3 $\pm$ 0.7 & 1.1 $\pm$ 1.7 & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd & \tbd \\
+\textsc{Rand} ($D=6$ draws/target, mean $\pm$ SD) & 0.3 $\pm$ 0.7 & 1.1 $\pm$ 1.7 & 5.3 $\pm$ 3.9 & \tbd & 0.8 $\pm$ 0.9 & 5.3 $\pm$ 3.2 & \tbd & \tbd & \tbd & 17.2 $\pm$ 5.9 & \tbd & \tbd \\
 \midrule
 \textsc{Basis} (Ours)                             & \old{\textbf{11.7}} & \old{\textbf{28.3}} & \old{\textbf{73.3}} & \old{\textbf{21.7}} & \old{\textbf{26.7}} & \old{\textbf{48.3}} & \old{\textbf{35.0}} & \old{\textbf{56.7}} & \old{\textbf{76.7}} & \old{\textbf{43.3}} & \old{\textbf{53.3}} & \old{\textbf{78.3}} \\
 \bottomrule
@@ -395,40 +395,36 @@ VGG13    & $0.311 \pm 0.150$ & $0.313 \pm 0.163$ & $0.072 \pm 0.069$ & $0.074 \p
 \bigskip
 \noindent\textbf{Part 3 (W2, Q2): Behavior of $R$, $M$, and $\lambda$ as class count $C$ grows, and expanded Tiny ImageNet evaluation.}
 
-As the number of classes $C$ increases from $10$ (CIFAR-10) to $100$ (CIFAR-100) and $200$ (Tiny ImageNet), the competing class $\arg\max_{c \neq y_{\text{adv}}} z_c(x_i)$ in $M_i$ can be any of $C-1$ classes and is less likely to lie along the boundary toward $x_t$. In contrast, representation similarity $R_i = \langle \hat{h}_i, \hat{h}_t \rangle$ is conditioned directly on $x_t$ and is invariant to $C$. To test this hypothesis and substantially expand our Tiny ImageNet evaluation (W2) across multiple class pairs, budgets, and attacks, Table~\ref{tab:reb-c-scaling} ablates \textsc{Rand}, $R$-only, $M$-only, $\textsc{Basis}$ ($\lambda=1$), and $\lambda=0.5$ (upweighting $R$) across $C \in \{10, 100, 200\}$. While $M$-only dominates $R$-only at $C=10$, $R$-only becomes increasingly competitive at $C=100$ and $C=200$, and combining both in \textsc{Basis} consistently achieves top performance across datasets without requiring per-dataset $\lambda$ tuning.
+As the number of classes $C$ increases from $10$ (CIFAR-10) to $100$ (CIFAR-100) and $200$ (Tiny ImageNet), the competing class $\arg\max_{c \neq y_{\text{adv}}} z_c(x_i)$ in $M_i$ can be any of $C-1$ classes and is less likely to lie along the boundary toward $x_t$. In contrast, representation similarity $R_i = \langle \hat{h}_i, \hat{h}_t \rangle$ is conditioned directly on $x_t$ and is invariant to $C$. To test this hypothesis and substantially expand our Tiny ImageNet evaluation (W2) across multiple class pairs, budgets, and attacks, Table~\ref{tab:reb-c-scaling} ablates \textsc{Rand}, $R$-only, $M$-only, $\textsc{Basis}$ ($\lambda \in \{0.1, 1, 10\}$) across $C \in \{10, 100, 200\}$. While $M$-only dominates $R$-only at $C=10$, $R$-only becomes increasingly competitive at $C=100$ and $C=200$, and combining both in \textsc{Basis} consistently achieves top performance across datasets without requiring per-dataset $\lambda$ tuning.
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) of component ablations ($R$-only, $M$-only) and margin weights ($\lambda \in \{0.5, 1\}$) across increasing class counts $C \in \{10, 100, 200\}$, alongside expanded Tiny ImageNet evaluations across multiple class pairs, budgets $\rho$, and attacks.}
+\caption{ASR ($\%$, $\uparrow$) of component ablations ($R$-only, $M$-only) and margin weights ($\lambda \in \{0.1, 1, 10\}$) across increasing class counts $C \in \{10, 100, 200\}$, alongside expanded Tiny ImageNet evaluations across multiple class pairs, budgets $\rho$, and attacks.}
 \label{tab:reb-c-scaling}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{4.5pt}
 \renewcommand{\arraystretch}{1.05}
 \resizebox{0.82\linewidth}{!}{%
-\begin{tabular}{@{}ll lc ccccc@{}}
+\begin{tabular}{@{}ll lc cccccc@{}}
 \toprule
-\textbf{Dataset ($C$)} & \textbf{Model / Attack} & \textbf{Class Pair ($y_{\text{adv}}\rightarrow y_t$)} & $\boldsymbol{\rho}$ (\%) & \textsc{Rand} & $R$-only & $M$-only & \textsc{Basis} ($\lambda=1$) & \textsc{Basis} ($\lambda=0.5$) \\
+\textbf{Dataset ($C$)} & \textbf{Model / Attack} & \textbf{Class Pair ($y_{\text{adv}}\rightarrow y_t$)} & $\boldsymbol{\rho}$ (\%) & \textsc{Rand} & $R$-only & $M$-only & \textsc{Basis} ($\lambda=1$) & \textsc{Basis} ($\lambda=0.1$) & \textsc{Basis} ($\lambda=10$) \\
 \midrule
 CIFAR-10 ($C=10$)
-  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{0.0}  & \old{20.0} & \old{20.8} & \old{\textbf{40.0}} & \tbd \\
-  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.5 & \old{1.7}  & \old{15.0} & \old{55.0} & \old{\textbf{77.5}} & \tbd \\
-  & ResNet20 / GM  & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{31.7} & \old{48.0} & \old{32.5} & \old{\textbf{57.5}} & \tbd \\
+  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{0.0}  & \old{20.0} & \old{20.8} & \old{\textbf{40.0}} & \tbd & \tbd \\
+  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.5 & \old{1.7}  & \old{15.0} & \old{55.0} & \old{\textbf{77.5}} & \tbd & \tbd \\
+  & ResNet20 / GM  & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{31.7} & \old{48.0} & \old{32.5} & \old{\textbf{57.5}} & \tbd & \tbd \\
 \midrule
 CIFAR-100 ($C=100$)
-  & ResNet18 / GM  & \texttt{sea}$\rightarrow$\texttt{willow tree}      & 0.1 & \old{12.5} & \tbd       & \tbd       & \old{\textbf{37.5}} & \tbd \\
-  & ResNet18 / GM  & \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{6.3}  & 25.0       & \tbd       & \old{\textbf{25.0}} & \tbd \\
-  & ResNet18 / GM  & \texttt{bottle}$\rightarrow$\texttt{road}          & 0.2 & \old{0.0}  & 50.0       & 12.5       & \old{\textbf{31.2}} & \tbd \\
-  & ResNet18 / SAPA& \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{18.8}} & \tbd \\
+  & ResNet18 / GM  & \texttt{sea}$\rightarrow$\texttt{willow tree}      & 0.1 & \old{12.5} & \tbd       & \tbd       & \old{\textbf{37.5}} & \tbd & \tbd \\
+  & ResNet18 / GM  & \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{6.3}  & 25.0       & \tbd       & \old{\textbf{25.0}} & \tbd & \tbd \\
+  & ResNet18 / GM  & \texttt{bottle}$\rightarrow$\texttt{road}          & 0.2 & \old{0.0}  & 50.0       & 12.5       & \old{\textbf{31.2}} & \tbd & \tbd \\
+  & ResNet18 / SAPA& \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{18.8}} & \tbd & \tbd \\
 \midrule
 Tiny ImageNet ($C=200$)
-  & ResNet18 / BP  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{12.5}} & \tbd \\
-  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{6.3}}  & \tbd \\
-  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
-  & ResNet18 / SAPA& \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
-  & ResNet18 / GM  & Pair 2 (\tbd)                                      & 0.2 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
-  & ResNet18 / GM  & Pair 2 (\tbd)                                      & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
-  & ResNet18 / GM  & Pair 3 (\tbd)                                      & 0.2 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
-  & ResNet18 / GM  & Pair 3 (\tbd)                                      & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd \\
+  & ResNet18 / BP  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & 25.0       & 0.0       & \old{\textbf{12.5}} & \tbd & \tbd \\
+  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{6.3}}  & \tbd & \tbd \\
+  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd & \tbd \\
+  & ResNet18 / SAPA& \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd & \tbd \\
 \bottomrule
 \end{tabular}%
 }
