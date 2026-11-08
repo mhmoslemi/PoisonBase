@@ -7,6 +7,7 @@ BATCH="$ROOT/sbatch/rebuttal_w4"
 PLAN="$BATCH/plan.json"
 RESULTS="$ROOT/rebuttal_w4_result"
 ENV_ACTIVATE="${ENV_ACTIVATE:-/home/mmoslem3/ENV/bin/activate}"
+ACCOUNT="${W4_ACCOUNT:-aip-bghaddar}"
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 for program in sbatch squeue jq flock rsync sha256sum; do
     command -v "$program" >/dev/null || die "missing command: $program"
@@ -16,6 +17,13 @@ done
 cd "$BATCH"
 sha256sum --check --quiet code.sha256 || die 'frozen W4 inputs changed'
 [ "$(jq '.tasks|length' "$PLAN")" -eq 44 ] || die 'expected 44 W4 tasks'
+tasks="$(jq -r '.tasks[].id' "$PLAN")"
+if [ "$#" -gt 0 ]; then
+    tasks="$(printf '%s\n' "$@")"
+    for task in "$@"; do
+        jq -e --arg task "$task" 'any(.tasks[]; .id==$task)' "$PLAN" >/dev/null || die "unknown W4 task: $task"
+    done
+fi
 for model in ConvNetBN ResNet20BN; do
     got="$(jq -c '.pairs["dog-bird"].indices' "$ROOT/target_sets/${model}_gradmatch_dog-bird.json")"
     expected="$(jq -c --arg model "$model" '.targets[$model]' "$PLAN")"
@@ -47,7 +55,7 @@ while IFS= read -r task; do
         printf 'SKIP %s: job %s already queued/running\n' "$task" "$last_job"
         continue
     fi
-    number="$(sbatch --parsable --account=aip-bghaddar \
+    number="$(sbatch --parsable --account="$ACCOUNT" \
         --nodes=1 --ntasks=1 --cpus-per-task=1 --mem=6G --gres=gpu:l40s:1 \
         --time=05:00:00 --signal=B:USR1@180 --job-name="w4_$task" \
         --chdir="$ROOT" --output="$BATCH/logs/%x-%j.out" \
@@ -55,8 +63,8 @@ while IFS= read -r task; do
     number="${number%%;*}"
     [[ "$number" =~ ^[0-9]+$ ]] || die "invalid Slurm job ID: $number"
     printf '%s\t%s\t%s\n' "$task" "$number" "$(date -u +%FT%TZ)" >> "$BATCH/submissions.tsv"
-    printf 'SUBMITTED %s: job=%s account=aip-bghaddar time=5h CPU=1 RAM=6G GPU=L40S:1\n' "$task" "$number"
+    printf 'SUBMITTED %s: job=%s account=%s time=5h CPU=1 RAM=6G GPU=L40S:1\n' "$task" "$number" "$ACCOUNT"
     submitted=$((submitted+1))
-done < <(jq -r '.tasks[].id' "$PLAN")
+done <<< "$tasks"
 printf 'Submitted %s jobs (full W4 batch: 12 First-m + 32 Rand = 44).\n' "$submitted"
 printf 'Rerun this script to resume unfinished tasks. Results: %s\n' "$RESULTS"
