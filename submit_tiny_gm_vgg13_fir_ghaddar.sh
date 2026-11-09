@@ -4,6 +4,12 @@
 set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "$0")" && pwd -P)"
 BATCH="$ROOT/sbatch/rebuttal_tiny_gm_vgg13_5x5"
+if [ -f "$ROOT/../tiny_gm_vgg13_fir_runtime/finish_schedule.json" ]; then
+    exec sh "$ROOT/submit_tiny_finish_fir_ghaddar.sh"
+fi
+if [ -f "$BATCH/fir_pairs.json" ]; then
+    exec sh "$ROOT/submit_tiny_pairs_fir_ghaddar.sh"
+fi
 exec 9>"$BATCH/submission_fir.lock"
 flock -n 9 || { echo 'Another Fir submitter is running.' >&2; exit 1; }
 if ! command -v node >/dev/null; then

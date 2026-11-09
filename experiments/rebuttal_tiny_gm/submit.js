@@ -18,6 +18,10 @@ function main(root, site = 'vulcan') {
   const gpu = site === 'fir' ? '--gpus-per-node=h100:1'
     : site === 'killarney' ? '--gres=gpu:1' : '--gres=gpu:l40s:1';
   const batch = path.join(root, 'sbatch/rebuttal_tiny_gm_vgg13_5x5');
+  assert(site !== 'fir' || !fs.existsSync(path.join(path.dirname(root), 'tiny_gm_vgg13_fir_runtime/finish_schedule.json')),
+    'Fir downstream now uses nine-victim jobs: run sh submit_tiny_finish_fir_ghaddar.sh');
+  assert(site !== 'fir' || !fs.existsSync(path.join(batch, 'fir_pairs.json')),
+    'Fir now uses paired jobs: run sh submit_tiny_pairs_fir_ghaddar.sh');
   const call = (name, args, options = {}) => cp.execFileSync(name, args,
     { encoding: 'utf8', cwd: batch, ...options }).trim();
   call('sha256sum', ['--check', '--quiet', 'code.sha256']);
