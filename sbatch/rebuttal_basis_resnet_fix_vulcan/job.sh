@@ -40,6 +40,7 @@ export PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 export XDG_CACHE_HOME="$WORK/cache" HF_HOME="$WORK/cache/hf" TORCH_HOME="$WORK/cache/torch"
 export PYTHONPYCACHEPREFIX="$WORK/pycache" PYTHONPATH="$BATCH/code"
 cd "$ROOT"
+python -u "$BATCH/code/experiments/rebuttal_basis_lambda/check_resnet_craft.py" "$BATCH"
 srun --ntasks=1 --cpus-per-task=1 --unbuffered \
     python -u "$BATCH/code/experiments/rebuttal_mr/run.py" --task "$TASK" \
     --plan "$BATCH/plan.json" --root "$ROOT" --data "$WORK/data" --cache "$WORK/surrogates"

@@ -8,6 +8,8 @@ assert.deepEqual(p.tasks.map(t=>t.replaces_job).sort(),['2182295','2182559']);
 for(const c of p.cells){assert.deepEqual(c.args,old.cells.find(x=>x.id===c.id).args);assert.equal(c.args.num_surrogates,5);assert.equal(c.args.craft_ensemble,5);assert.equal(c.targets.length,8);assert.equal(c.args.num_victims,5);assert(!Object.hasOwn(c.args,'sel_mode'));}
 const w=fs.readFileSync(path.join(root,name,'code/experiments/rebuttal_mr/run.py'),'utf8');
 assert(w.includes("if args.get('sel_mode'):"));assert(w.includes("count = cell['args'].get('sel_K') or cell['args']['num_surrogates']"));
+assert(w.includes("sharp_sigma=args['sharp_sigma'] if args['attack'] == 'sapa' else 0.0"));
+assert(w.includes("sharp_samples=args['sharp_samples'] if args['attack'] == 'sapa' else 20"));
 assert.equal(fs.readFileSync(path.join(root,name,'surrogates.tsv'),'utf8').trim().split('\n').length,6);
 const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'basis-resfix-check-')),batch=path.join(tmp,name);
 fs.mkdirSync(path.dirname(batch),{recursive:true});fs.cpSync(path.join(root,name),batch,{recursive:true,filter:f=>!['logs','submissions_vulcan.tsv','submission_vulcan.lock','cluster_vulcan.txt'].includes(path.basename(f))});

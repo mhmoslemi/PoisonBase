@@ -168,7 +168,8 @@ def poison(cell, ctx, nets, target, directory, identity, require_saved=False):
                 schedule=args['craft_schedule'], lowmem=args['craft_lowmem'],
                 chunk=args['craft_batch'],
                 sharp_mode=args['sharp_mode'] if args['attack'] == 'sapa' else None,
-                sharp_sigma=args['sharp_sigma'], sharp_samples=args['sharp_samples'],
+                sharp_sigma=args['sharp_sigma'] if args['attack'] == 'sapa' else 0.0,
+                sharp_samples=args['sharp_samples'] if args['attack'] == 'sapa' else 20,
                 resume_state=state['state'] if state else None,
                 checkpoint_callback=checkpoint_craft)
         else:

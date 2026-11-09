@@ -47,6 +47,11 @@ while IFS= read -r task; do
         printf 'SKIP %s: complete\n' "$task"
         continue
     fi
+    if [ -f "$ROOT/sbatch/rebuttal_w4_90m/plan.json" ] && \
+        jq -e --arg task "$task" 'any(.tasks[]; .parent_task==$task)' "$ROOT/sbatch/rebuttal_w4_90m/plan.json" >/dev/null; then
+        W4_ACCOUNT="$ACCOUNT" sh "$ROOT/submit_w4_90m_ghaddar.sh" "$task"
+        continue
+    fi
     last_job=''
     if [ -f "$BATCH/submissions.tsv" ]; then
         last_job="$(awk -F '\t' -v task="$task" '$1==task{job=$2} END{print job}' "$BATCH/submissions.tsv")"

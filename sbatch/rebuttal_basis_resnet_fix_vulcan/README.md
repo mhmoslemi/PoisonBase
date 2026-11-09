@@ -15,6 +15,9 @@ Results are isolated in `rebuttal_basis_resnet_fix_result/`. Rerunning this
 submitter skips active/completed retry jobs. This submitter replaces only these
 two cells; use it rather than the old batch submitters for their retries.
 
+The second retry also avoids reading SAPA-only sharpness parameters for ordinary
+GM. Both configurations are checked inside the allocation before training starts.
+
 Mock regression check:
 
 ```sh

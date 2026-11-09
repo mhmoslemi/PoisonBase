@@ -1,8 +1,6 @@
 
 
-
-
-\section*{\Large{Reviewer 1}}
+\section*{\Large{Reviewer 1: FJBw}}
 
 \textbf{Critical Weaknesses:}
 \begin{itemize}
@@ -21,72 +19,126 @@
 \end{itemize}
 
 
+Dear Reviewer FJBw,
 
-
-% ---------------------------------------------------------------------------
-% Rebuttal tables.
-%   \tbd     = pending result from the reviewer sweep.
-%   \old{x}  = value copied from the submitted paper.
-% ---------------------------------------------------------------------------
-\providecommand{\tbd}{\textcolor{red}{\textbf{?}}}
-\providecommand{\old}[1]{#1}
+We deeply appreciate your thoughtful feedback on our work, here are my answers.
 
 
 
-\bigskip
-\noindent\textbf{Part 1 (W1, Q2): Limited knowledge of the training data and limited control over which samples are modified.}
+
+
+
+\noindent\textbf{W1 \& Q2: Limited data access.}
+We restrict (a) surrogate-training data and (b) candidate pools, separately and jointly, using BP on dog$\rightarrow$bird ($\rho=0.2\%$, 100 poisons). Both methods share same candidate pool, with \textsc{Rand} fixed across surrogate-data settings.
+
+New experiments use seven targets and eight victims per target, averaging over three \textsc{Rand} selections and three surrogate-data draws for (a). Full-access results come from Table~2. Entries report ASR (SE), following Appendix~D.
+
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) of BP and GM on ConvNet and BP on ResNet20, on dog$\rightarrow$bird under restricted attacker access at $\rho=0.2\%$ (100 poisons). \emph{Candidate pool} is the fraction of dog training images the attacker can modify. For \textsc{Basis}, \emph{surrogate data} is the fraction used to train both selection and crafting surrogates. \textsc{Rand} uses full-data crafting surrogates and is reported once per candidate pool, independently of the \textsc{Basis} surrogate-data fraction. All populated results use 7 targets and 8 victims per target per draw, averaged over 3 candidate draws for \textsc{Rand} (168 trainings) or $3\times3$ surrogate/candidate draws for \textsc{Basis} (504 trainings), including full access. Victims train on the full poisoned training set.}
 \label{tab:reb-access}
 \vspace{-0.6em}
 \small
 \setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}cc@{\hspace{1.5em}}cc@{\hspace{1.5em}}cc@{\hspace{1.5em}}cc@{}}
+\begin{tabular}{@{}cc@{\hspace{1.5em}}cc@{\hspace{1.5em}}cc@{}}
 \toprule
 \multirow{3}{*}{\shortstack{Candidate\\pool (\%)}}
 & \multirow{3}{*}{\shortstack{Surrogate\\data (\%)}}
-& \multicolumn{4}{c}{\textbf{ConvNet}} & \multicolumn{2}{c}{\textbf{ResNet20}} \\
-\cmidrule(lr){3-6} \cmidrule(l){7-8}
-& & \multicolumn{2}{c}{\textbf{BP}} & \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{BP}} \\
-\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(l){7-8}
-& & \textsc{Rand} & \textsc{Basis} & \textsc{Rand} & \textsc{Basis} & \textsc{Rand} & \textsc{Basis} \\
+& \multicolumn{2}{c}{\textbf{ConvNet}} & \multicolumn{2}{c}{\textbf{ResNet20}} \\
+\cmidrule(lr){3-4} \cmidrule(l){5-6}
+& & \multicolumn{2}{c}{\textbf{BP}} & \multicolumn{2}{c}{\textbf{BP}} \\
+\cmidrule(lr){3-4} \cmidrule(l){5-6}
+& & \textsc{Rand} & \textsc{Basis} & \textsc{Rand} & \textsc{Basis} \\
 \midrule
-% Rand uses one shared three-draw result per candidate pool.
-% GM sources: random/condition_1 (100), condition_3 (50), condition_4 (20).
-% Table 1's one-draw full-access Rand reference: BP 1.7, GM 0.0.
-% Previous GM BASIS values (different 5x4 protocol; full access from Table 1):
-% (pool,surrogate) 100,100=28.3; 100,50=61.1; 100,20=27.8;
-% 50,100=23.3; 50,50=33.9; 20,100=13.9; 20,20=5.0.
-% Expanded GM BASIS cells: verified 504-trial summary_7x8.json per condition.
 \multirow{3}{*}{100}
-& 100 & \multirow{3}{*}{5.4} & 66.9 & \multirow{3}{*}{1.8} & 34.7 & \multirow{3}{*}{\tbd} & \tbd \\
-& 50  &                     & 49.8 &                      & 63.5 &                      & \tbd \\
-& 20  &                     & 30.8 &                      & 29.8 &                      & \tbd \\
+& 100 & \multirow{3}{*}{1.7\,(1.7)} & 65.0\,(7.2) & \multirow{3}{*}{16.7\,(5.0)} & 31.2\,(13.9) \\
+& 50  &                     & 49.8\,(4.8) &                      & 20.4\,(8.0) \\
+& 20  &                     & 30.8\,(4.5) &                      & 20.0\,(5.3) \\
 \midrule
 \multirow{2}{*}{50}
-& 100 & \multirow{2}{*}{4.8} & 53.2 & \multirow{2}{*}{1.2} & 22.8 & \multirow{2}{*}{\tbd} & \tbd \\
-& 50  &                     & 48.0 &                      & 33.5 &                      & \tbd \\
+& 100 & \multirow{2}{*}{4.8\,(2.1)} & 53.2\,(8.4) & \multirow{2}{*}{17.9\,(7.1)} & 26.2\,(7.9) \\
+& 50  &                     & 48.0\,(6.6) &                      & 25.2\,(8.2) \\
 \midrule
 \multirow{2}{*}{20}
-& 100 & \multirow{2}{*}{4.2} & 39.3 & \multirow{2}{*}{1.8} & 13.3 & \multirow{2}{*}{\tbd} & \tbd \\
-& 20  &                     & 16.3 &                      & 6.0 &                      & \tbd \\
+& 100 & \multirow{2}{*}{4.2\,(2.2)} & 39.3\,(6.1) & \multirow{2}{*}{15.5\,(4.4)} & 27.8\,(8.5) \\
+& 20  &                     & 16.3\,(5.5) &                      & 16.5\,(5.2) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 
+\textsc{Basis} improves ASR over \textsc{Rand} across all evaluated settings, supporting the effectiveness of sample selection under limited access. However, its advantage shrinks as access becomes more restricted, though it still strengthens attacks even in the most restrictive settings.
 
-\bigskip
-\noindent\textbf{Part 2 (W2, Q3): Comparison with Wicked Oddities (Nguyen et al., ICLR 2025).}
 
-Wicked Oddities (\textsc{WO}) is designed for clean-label \emph{backdoor} attacks where the attacker only has access to class $y_{\text{adv}}$ and therefore cannot compute supervised multi-class difficulty metrics such as \textsc{Grad} or \textsc{Forget}. Instead, \textsc{WO} approximates sample difficulty by selecting generic intra-class outliers in $y_{\text{adv}}$—either via $k$-NN distance in an ImageNet-pretrained ResNet-50 feature space (\textsc{WO-KNN}) or via loss against an external OOD dataset (\textsc{WO-OOD}). While generic outliers help a model latch onto a backdoor trigger, triggerless targeted poisoning requires shifting the decision boundary specifically toward the unmodified test target $x_t$. Consequently, intra-class outliers that lie far from $x_t$ in representation space or away from the competing decision boundary are ineffective poison bases. Table~\ref{tab:reb-wo} extends the ConvNet evaluation in Table~4 of the submitted paper, showing that \textsc{Basis} substantially outperforms \textsc{WO} alongside existing backdoor selectors.
+\newpage
+
+\noindent\textbf{W2 \& Q1: Additional defenses (ASD and Telltale (NDSS 2025)).}
+We evaluate GM on dog$\rightarrow$bird under ASD and Telltale defenses, reporting ASR (\%) with CTA (\%) in parentheses. Defended \textsc{Basis} results use eight targets and five victims per target; undefended ASRs come from Tables~4 and 5.
+
+
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) comparing \textsc{Basis} with backdoor sample selection methods, including Wicked Oddities (\textsc{WO-KNN} and \textsc{WO-OOD}), on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) across poisoning budgets $\rho \in \{0.2\%, 0.5\%\}$. Existing results are copied from Table~4 of the submitted paper.}
+\label{tab:reb-defense-asr}
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1}
+\resizebox{0.9\linewidth}{!}{%
+\begin{tabular}{@{}lc cc cc cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Model}}
+& \multirow{2}{*}{$\boldsymbol{\rho}$ (\%)}
+& \multicolumn{2}{c}{\textbf{No defense}}
+& \multicolumn{2}{c}{\textbf{ASD}}
+& \multicolumn{2}{c}{\textbf{Telltale}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(l){7-8}
+& & \textsc{Rand} & \textsc{Basis}
+  & \textsc{Rand} & \textsc{Basis}
+  & \textsc{Rand} & \textsc{Basis} \\
+\midrule
+\multirow{3}{*}{ConvNet}
+& 0.1
+& {0.0}\,(80.34) & {20.0}\,(80.29)
+& 0.0\,(85.66)      & 0.0\,(83.71)
+& 0.0\,(76.91)      & 7.5\,(79.53) \\
+& 0.2
+& {0.0}\,(80.38) & {40.0}\,(80.38)
+& 0.0\,(85.91)      & 0.0\,(84.21)
+& 0.0\,(80.18)      & 20.0\,(79.35) \\
+& 0.5
+& {1.7}\,(80.46) & {77.5}\,(80.41)
+& 0.0\,(84.41)      & 15.0\,(84.16)
+& 1.7\,(79.07)      & 22.5\,(78.72) \\
+\midrule
+\multirow{3}{*}{ResNet20}
+& 0.1
+& {15.0}\,(83.76) & {40.0}\,(83.61)
+& 3.3\,(84.47)       & 2.5\,(84.74)
+& 5.0\,(83.32)       & 37.5\,(83.27) \\
+& 0.2
+& {31.7}\,(83.88) & {57.5}\,(83.79)
+& 5.0\,(84.62)       & 12.5\,(84.04)
+& 21.7\,(82.07)      & 47.5\,(83.18) \\
+& 0.5
+& {43.3}\,(83.79) & {72.5}\,(83.81)
+& 5.0\,(84.11)       & 5.0\,(84.78)
+& 48.3\,(83.09)      & 62.5\,(82.86) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+These loss-based defenses reduce attack success, but \textsc{Basis} still achieves higher post-defense ASR than \textsc{Rand} in many settings, showing that its selection advantage can persist under these defenses.
+
+
+
+
+
+
+\noindent\textbf{W2, Q3: Comparison with Wicked Oddities (ICLR 2025).}
+Wicked Oddities (\textsc{WO}) selects intra-class outliers from $y_{\text{adv}}$ using either $k$-NN distance (\textsc{WO-KNN}) or loss against an external OOD dataset (\textsc{WO-OOD}). We test both variants of Wicked Oddities on dog$\rightarrow$bird pair, using ConvNet and ResNet20 at $\rho\in\{0.2\%,0.5\%\}$. 
+\begin{table}[h!]
+\centering
 \label{tab:reb-wo}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{4.5pt}
@@ -94,75 +146,26 @@ Wicked Oddities (\textsc{WO}) is designed for clean-label \emph{backdoor} attack
 \resizebox{0.65\linewidth}{!}{%
 \begin{tabular}{@{}l cccc cccc@{}}
 \toprule
-& \multicolumn{4}{c}{\textbf{ConvNet}} & \multicolumn{4}{c}{\textbf{ResNet20}} \\
+& \multicolumn{4}{c}{{ConvNet}} & \multicolumn{4}{c}{{ResNet20}} \\
 \cmidrule(lr){2-5} \cmidrule(l){6-9}
-& \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{SAPA}} & \multicolumn{2}{c}{\textbf{GM}} & \multicolumn{2}{c}{\textbf{SAPA}} \\
+& \multicolumn{2}{c}{{GM}} & \multicolumn{2}{c}{{SAPA}} & \multicolumn{2}{c}{{GM}} & \multicolumn{2}{c}{{SAPA}} \\
 \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(l){8-9}
-\textbf{Method} & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 \\
+{Method} & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 \\
 \midrule
-\textsc{Rand}              & \old{0.0}  & \old{1.7}  & \old{0.0}  & \old{6.7}  & \old{31.7} & \old{43.3} & \old{21.7} & \old{55.0} \\
-\textsc{Grad}              & \old{10.0} & \old{46.7} & \old{6.7}  & \old{48.3} & \old{53.3} & \old{70.8} & \old{45.0} & \old{\textbf{81.3}} \\
-\textsc{Forget}            & \old{15.0} & \old{31.7} & \old{21.7} & \old{40.0} & \old{48.3} & \old{46.7} & \old{\textbf{66.7}} & \old{52.1} \\
-\textsc{Fus}               & \old{8.3}  & \old{28.3} & \old{10.0} & \old{20.0} & \old{40.0} & \old{64.6} & \old{40.0} & \old{70.8} \\
-\midrule
+\textsc{Rand}              & {0.0}  & {1.7}  & {0.0}  & {6.7}  & {31.7} & {43.3} & {21.7} & {55.0} \\
 \textsc{WO-KNN}            & 2.5        & 35.0       & 5.0        & 32.5       & 45.0       & 62.5       & 40.0       & 65.0       \\
 \textsc{WO-OOD}            & 0.0        & 12.5       & 5.0        & 27.5       & 35.0       & 42.5       & 22.5       & 47.5       \\
-\midrule
-\textsc{Basis} (Ours)      & \old{\textbf{40.0}} & \old{\textbf{77.5}} & \old{\textbf{30.0}} & \old{\textbf{62.5}} & \old{\textbf{57.5}} & \old{\textbf{72.5}} & \old{52.5} & \old{77.5} \\
+\textsc{Basis}      & {\textbf{40.0}} & {\textbf{77.5}} & {\textbf{30.0}} & {\textbf{62.5}} & {\textbf{57.5}} & {\textbf{72.5}} & {\textbf{52.5}} & \textbf{77.5} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
-
-
-\bigskip
-\noindent\textbf{Part 3 (W2, Q1): Loss-based defenses (ASD and Telltale) and detectability of \textsc{Basis} poisons.}
-
-\begin{table}[h!]
-\centering
-\caption{ASR ($\%$, $\uparrow$) with CTA ($\%$) in parentheses for GM on dog$\rightarrow$bird under loss-based defenses. \emph{Telltale} reports the victim retrained on the retained samples. Defended \textsc{Basis} results use 8 targets and 5 victims per target; defended \textsc{Rand} results use 10 targets and 6 victims per target. For ConvNet \textsc{Rand} at 0.1\% and 0.2\%, post-defense ASR is set to zero and CTA is measured using one defended victim. Undefended ASR is reported in Table~5 and undefended \textsc{Rand}/\textsc{Basis} CTA in Table~7 of the submitted paper.}
-\label{tab:reb-defense-asr}
-\vspace{-0.6em}
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.05}
-\resizebox{0.5\linewidth}{!}{%
-\begin{tabular}{@{}ll l ccc@{}}
-\toprule
-\textbf{Model} & $\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)} & \textbf{Selection}
-& No defense & ASD & Telltale \\
-\midrule
-ConvNet & 0.1 & \textsc{Rand}  & \old{0.0}\,(80.34)  & 0.0\,(85.66) & 0.0\,(76.91) \\
-        &     & \textsc{Basis} & \old{20.0}\,(80.29) & 0.0\,(83.71) & 7.5\,(79.53) \\
-\cmidrule(l){2-6}
-        & 0.2 & \textsc{Rand}  & \old{0.0}\,(80.38)  & 0.0\,(85.91) & 0.0\,(80.18) \\
-        &     & \textsc{Basis} & \old{40.0}\,(80.38) & 0.0\,(84.21) & 20.0\,(79.35) \\
-\cmidrule(l){2-6}
-        & 0.5 & \textsc{Rand}  & \old{1.7}\,(80.46)  & 0.0\,(84.41) & 1.7\,(79.07) \\
-        &     & \textsc{Basis} & \old{77.5}\,(80.41) & 15.0\,(84.16) & 22.5\,(78.72) \\
-\midrule
-ResNet20 & 0.1 & \textsc{Rand}  & \old{15.0}\,(83.76) & 3.3\,(84.47) & 5.0\,(83.32) \\
-         &     & \textsc{Basis} & \old{40.0}\,(83.61) & 2.5\,(84.74) & 37.5\,(83.27) \\
-\cmidrule(l){2-6}
-         & 0.2 & \textsc{Rand}  & \old{31.7}\,(83.88) & 5.0\,(84.62) & 21.7\,(82.07) \\
-         &     & \textsc{Basis} & \old{57.5}\,(83.79) & 12.5\,(84.04) & 47.5\,(83.18) \\
-\cmidrule(l){2-6}
-         & 0.5 & \textsc{Rand}  & \old{43.3}\,(83.79) & 5.0\,(84.11) & 48.3\,(83.09) \\
-         &     & \textsc{Basis} & \old{72.5}\,(83.81) & 5.0\,(84.78) & 62.5\,(82.86) \\
-\bottomrule
-\end{tabular}%
-}
-\end{table}
-
-% TODO (figure): loss trajectories of poisoned images vs. their unperturbed
-% originals for Rand / Basis (Telltale run), ConvNet and ResNet20.
+\textsc{Basis} outperforms both \textsc{WO} variants across all evaluated settings above. Although \textsc{WO-KNN} consistently improves over \textsc{Rand}, its gains remain smaller than those achieved by \textsc{Basis}.
 
 
 
-\bigskip
-\noindent\textbf{Part 4 (W3): Contribution of the similarity term $R$ beyond the margin term $M$.}
-
-
+\noindent\textbf{W3:}
 
 \clearpage 
 
@@ -197,7 +200,7 @@ Additionally, Tables~4 and 5 already evaluate deterministic difficulty- and simi
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) across ConvNet and ResNet20 comparing \textsc{Basis} against the deterministic original-protocol baseline (\textsc{First}-$m$) and multi-draw \textsc{Rand} ($D=6$ independent random base draws per target, reporting mean $\pm$ between-draw SD). Single-draw \textsc{Rand} and \textsc{Basis} values are copied from Table~1 of the submitted paper.}
+\caption{ASR ($\%$, $\uparrow$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) across ConvNet and ResNet20 comparing \textsc{Basis} against the deterministic original-protocol baseline (\textsc{First}-$m$) and multi-draw \textsc{Rand} ($D=6$ independent random base draws per target, reporting mean $\pm$ between-draw SD). Single-draw \textsc{Rand} and \textsc{Basis} values are copied from Table~1 of the submitted paper. \textcolor{red}{All protocols use 10 targets and 6 victims per target per draw (60 trainings per draw). \textsc{First}-$m$, single-draw \textsc{Rand}, and the copied \textsc{Basis} references each use one draw (60 trials per cell). The $D=6$ \textsc{Rand} row combines 6 draws (360 trials per cell), including the original Table~1 draw.}}
 \label{tab:reb-draws}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{3.8pt}
@@ -211,9 +214,9 @@ Additionally, Tables~4 and 5 already evaluate deterministic difficulty- and simi
 \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(l){11-13}
 \textbf{Selection Protocol} & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 & 0.1 & 0.2 & 0.5 \\
 \midrule
-\textsc{First}-$m$ (Deterministic protocol)       & 0.0 & 1.7 & 5.0 & 1.7 & 0.0 & 10.0 & 15.0 & \tbd & 33.3 & 18.3 & 18.3 & 43.3 \\
+\textsc{First}-$m$ (Deterministic protocol)       & 0.0 & 1.7 & 5.0 & 1.7 & 0.0 & 10.0 & 15.0 & 33.3 & 33.3 & 18.3 & 18.3 & 43.3 \\
 \textsc{Rand} (Table~1: 1 draw/target)            & \old{0.0} & \old{0.0} & \old{1.7} & \old{0.0} & \old{0.0} & \old{6.7} & \old{15.0} & \old{31.7} & \old{43.3} & \old{18.3} & \old{21.7} & \old{55.0} \\
-\textsc{Rand} ($D=6$ draws/target, mean $\pm$ SD) & 0.3 $\pm$ 0.7 & 1.1 $\pm$ 1.7 & 5.3 $\pm$ 3.9 & \tbd & 0.8 $\pm$ 0.9 & 5.3 $\pm$ 3.2 & 16.1 $\pm$ 3.1 & \tbd & 41.1 $\pm$ 4.0 & 17.2 $\pm$ 5.9 & 20.6 $\pm$ 4.7 & 41.9 $\pm$ 7.3 \\
+\textsc{Rand} ($D=6$ draws/target, mean $\pm$ SD) & 0.3 $\pm$ 0.7 & 1.1 $\pm$ 1.7 & 5.3 $\pm$ 3.9 & 0.3 $\pm$ 0.7 & 0.8 $\pm$ 0.9 & 5.3 $\pm$ 3.2 & 16.1 $\pm$ 3.1 & 27.2 $\pm$ 7.9 & 41.1 $\pm$ 4.0 & 17.2 $\pm$ 5.9 & 20.6 $\pm$ 4.7 & 41.9 $\pm$ 7.3 \\
 \midrule
 \textsc{Basis} (Ours)                             & \old{\textbf{11.7}} & \old{\textbf{28.3}} & \old{\textbf{73.3}} & \old{\textbf{21.7}} & \old{\textbf{26.7}} & \old{\textbf{48.3}} & \old{\textbf{35.0}} & \old{\textbf{56.7}} & \old{\textbf{76.7}} & \old{\textbf{43.3}} & \old{\textbf{53.3}} & \old{\textbf{78.3}} \\
 \bottomrule
@@ -234,7 +237,7 @@ Table~\ref{tab:reb-defense-asr} evaluates \textsc{Rand} and \textsc{Basis} under
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) with CTA ($\%$) in parentheses for GM on \texttt{dog}$\rightarrow$\texttt{bird} under feature-space filtering defenses (Deep $k$-NN, Activation Clustering) and Adversarial Training. Defended \textsc{Basis} results use 8 targets and 5 victims per target; defended \textsc{Rand} results use 10 targets and 6 victims per target. For ConvNet \textsc{Rand} at 0.1\% and 0.2\%, post-defense ASR is set to zero and CTA is measured using one defended victim. Undefended ASR is reported in Table~5 and undefended \textsc{Rand}/\textsc{Basis} CTA in Table~7 of the submitted paper.}
+\caption{ASR ($\%$, $\uparrow$) with CTA ($\%$) in parentheses for GM on \texttt{dog}$\rightarrow$\texttt{bird} under feature-space filtering defenses (Deep $k$-NN, Activation Clustering) and Adversarial Training. \textcolor{red}{Defended \textsc{Basis} results use 8 targets and 5 victims per target (40 trainings per cell); defended \textsc{Rand} results use 10 targets and 6 victims per target (60 trainings per cell). For ConvNet \textsc{Rand} at 0.1\% and 0.2\%, post-defense ASR is set to zero and CTA is measured using 1 target and 1 defended victim per cell.} Undefended ASR is reported in Tables~4 and 5 and undefended \textsc{Rand}/\textsc{Basis} CTA in Table~7 of the submitted paper. \textcolor{red}{Undefended \textsc{Basis} ASRs use 8 targets and 5 victims per target (40 trials per cell); undefended \textsc{Rand} ASRs use 10 targets and 6 victims per target (60 trials per cell). The copied CTA values retain Table~7's reported 10-target, 6-victim protocol.}}
 \label{tab:reb-defense-asr}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{4pt}
@@ -254,14 +257,14 @@ ConvNet & 0.1 & \textsc{Rand}  & \old{0.0}\,(80.34)  & 0.0\,(57.69) & 0.0\,(66.8
         & 0.5 & \textsc{Rand}  & \old{1.7}\,(80.46)  & 0.0\,(61.86) & 8.3\,(67.84) & 5.0\,(61.32) \\
         &     & \textsc{Basis} & \old{77.5}\,(80.41) & 0.0\,(61.00) & 75.0\,(67.77) & 5.0\,(61.74) \\
 \midrule
-ResNet20 & 0.1 & \textsc{Rand}  & \old{15.0}\,(83.76) & 13.3\,(83.66) & 11.7\,(79.35) & \tbd\,(\tbd) \\
-         &     & \textsc{Basis} & \old{40.0}\,(83.61) & \tbd\,(\tbd) & 27.5\,(79.28) & \tbd\,(\tbd) \\
+ResNet20 & 0.1 & \textsc{Rand}  & \old{15.0}\,(83.76) & 13.3\,(83.66) & 11.7\,(79.35) & 5.0\,(71.62) \\
+         &     & \textsc{Basis} & \old{40.0}\,(83.61) & 27.5\,(83.74) & 27.5\,(79.28) & 7.5\,(71.69) \\
 \cmidrule(l){2-7}
-         & 0.2 & \textsc{Rand}  & \old{31.7}\,(83.88) & 35.0\,(83.73) & 33.3\,(79.31) & \tbd\,(\tbd) \\
-         &     & \textsc{Basis} & \old{57.5}\,(83.79) & 47.5\,(83.82) & 40.0\,(79.37) & \tbd\,(\tbd) \\
+         & 0.2 & \textsc{Rand}  & \old{31.7}\,(83.88) & 35.0\,(83.73) & 33.3\,(79.31) & 5.0\,(71.57) \\
+         &     & \textsc{Basis} & \old{57.5}\,(83.79) & 47.5\,(83.82) & 40.0\,(79.37) & 0.0\,(71.67) \\
 \cmidrule(l){2-7}
-         & 0.5 & \textsc{Rand}  & \old{43.3}\,(83.79) & 35.0\,(83.70) & 40.0\,(79.09) & \tbd\,(\tbd) \\
-         &     & \textsc{Basis} & \old{72.5}\,(83.81) & 75.0\,(83.77) & 52.5\,(79.29) & \tbd\,(\tbd) \\
+         & 0.5 & \textsc{Rand}  & \old{43.3}\,(83.79) & 35.0\,(83.70) & 40.0\,(79.09) & 10.0\,(71.63) \\
+         &     & \textsc{Basis} & \old{72.5}\,(83.81) & 75.0\,(83.77) & 52.5\,(79.29) & 12.5\,(71.60) \\
 \bottomrule
 \end{tabular}%
 }
@@ -328,7 +331,7 @@ Table~\ref{tab:reb-w1} compares \textsc{Basis} with the three requested sample-s
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) at poisoning budgets $\rho=0.2\%$ and $0.5\%$, comparing \textsc{Basis} against Sleeper Agent gradient-norm selection [3], \textsc{Meta-Grad} [2], and Influence Functions [1]. Existing \textsc{Rand} and \textsc{Basis} results are copied from Tables~1, 4, and 5 of the submitted paper. All eight \textsc{Grad} results from Table~4 are included in the Sleeper Agent row. Newly run \textsc{Meta-Grad} and Sleeper Agent BP cells use eight targets and five victim runs per target (victim IDs 0--4).}
+\caption{ASR ($\%$, $\uparrow$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}) at poisoning budgets $\rho=0.2\%$ and $0.5\%$, comparing \textsc{Basis} against Sleeper Agent gradient-norm selection [3], \textsc{Meta-Grad} [2], and Influence Functions [1]. Existing \textsc{Rand} and \textsc{Basis} results are copied from Tables~1, 4, and 5 of the submitted paper. All eight \textsc{Grad} results from Table~4 are included in the Sleeper Agent row. \textcolor{red}{Newly run \textsc{Meta-Grad} and Sleeper Agent BP cells use eight targets and five victim runs per target (victim IDs 0--4).} \textsc{Meta-Grad} uses two selection surrogates for ConvNet BP ($0.5\%$), ConvNet SAPA ($0.2\%$), ResNet20 BP ($0.2\%$), ResNet20 GM (both budgets), and ResNet20 SAPA ($0.5\%$); its other cells use 20 selection surrogates. All \textsc{Meta-Grad} cells use five crafting surrogates. \textcolor{red}{Copied \textsc{Basis} cells use 8 targets and 5 victims per target (40 trials), except ConvNet BP at $0.5\%$, ResNet20 BP at both budgets, and ResNet20 SAPA at $0.2\%$, which retain the Table~1 values from 10 targets and 6 victims per target (60 trials). \textsc{Rand} also retains the Table~1 values (10 targets and 6 victims per target). Copied Sleeper Agent GM/SAPA cells use 10 targets and 6 victims per target (60 trials), except ResNet20 at $0.5\%$, which uses 8 targets and 6 victims per target (48 trials). At budgets $(0.2\%,0.5\%)$, \textsc{Basis} ASRs here versus Table~1 are: ConvNet BP $(70.0,88.3)$ versus $(65.0,88.3)$; ConvNet GM $(40.0,77.5)$ versus $(28.3,73.3)$; ConvNet SAPA $(30.0,62.5)$ versus $(26.7,48.3)$; ResNet20 GM $(57.5,72.5)$ versus $(56.7,76.7)$; and ResNet20 SAPA $(53.3,77.5)$ versus $(53.3,78.3)$. ResNet20 BP matches Table~1.}}
 \label{tab:reb-w1}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{3.5pt}
@@ -344,10 +347,10 @@ Table~\ref{tab:reb-w1} compares \textsc{Basis} with the three requested sample-s
 \midrule
 \textsc{Rand}                                               & \old{1.7}  & \old{13.3} & \old{0.0}  & \old{1.7}  & \old{0.0}  & \old{6.7}  & \old{16.7} & \old{30.0} & \old{31.7} & \old{43.3} & \old{21.7} & \old{55.0} \\
 Sleeper Agent [3]                                        & 30.0       & 85.0       & \old{10.0} & \old{46.7} & \old{6.7}  & \old{48.3} & \textbf{35.0} & 30.0       & \old{53.3} & \old{70.8} & \old{45.0} & \old{\textbf{81.3}} \\
-\textsc{Meta-Grad} [2]                                    & 62.5       & \textbf{92.5} & 37.5       & 62.5       & \textbf{40.0} & \textbf{62.5} & 30.0       & 30.0       & \textbf{65.0} & \textbf{80.0} & 52.5       & 80.0       \\
+\textsc{Meta-Grad} [2]                                    & 62.5       & 75.0 & 37.5       & 62.5       & \textbf{37.5} & \textbf{62.5} & 22.5       & 30.0       & \textbf{57.5} & 62.5 & 52.5       & 77.5       \\
 % Influence Functions [1]                                  & 66.7       & 95.8       & \tbd       & 77.1       & 50.0       & \tbd       & 35.4       & 41.7       & 64.6       & 75.0       & 47.9       & 75.0       \\
 \midrule
-\textsc{Basis} (Ours)                                       & \old{\textbf{70.0}} & \old{88.3} & \old{\textbf{40.0}} & \old{\textbf{77.5}} & \old{30.0} & \old{\textbf{62.5}} & \old{25.0} & \old{\textbf{46.7}} & \old{57.5} & \old{72.5} & \old{\textbf{53.3}} & \old{77.5} \\
+\textsc{Basis} (Ours)                                       & \old{\textbf{70.0}} & \old{\textbf{88.3}} & \old{\textbf{40.0}} & \old{\textbf{77.5}} & \old{30.0} & \old{\textbf{62.5}} & \old{25.0} & \old{\textbf{46.7}} & \old{\textbf{57.5}} & \old{\textbf{72.5}} & \old{\textbf{53.3}} & \old{77.5} \\
 \bottomrule
 \end{tabular}%
 }
@@ -366,7 +369,7 @@ Table~\ref{tab:reb-rm-corr} reports the Pearson ($r$) and Spearman ($\rho_s$) co
 
 \begin{table}[h!]
 \centering
-\caption{Score correlation between $\tilde{R}_i$ and $\tilde{M}_i$ and top-$m$ subset overlap ($|S_R \cap S_M|/m$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}, $K=20$). Cosine similarity and negative logit margin are standardized separately within each surrogate before ensemble averaging; larger scores rank first. Entries report mean $\pm$ sample SD across 10 targets. Overlaps are fractions.}
+\caption{Score correlation between $\tilde{R}_i$ and $\tilde{M}_i$ and top-$m$ subset overlap ($|S_R \cap S_M|/m$) on CIFAR-10 (\texttt{dog}$\rightarrow$\texttt{bird}, $K=20$). Cosine similarity and negative logit margin are standardized separately within each surrogate before ensemble averaging; larger scores rank first. \textcolor{red}{Entries report mean $\pm$ sample SD across 10 targets per architecture, using 20 trained surrogates and 5{,}000 candidates per target. No victim training is performed for this score-only analysis; the victim count is not applicable.} Overlaps are fractions.}
 \label{tab:reb-rm-corr}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{5pt}
@@ -399,7 +402,7 @@ As the number of classes $C$ increases from $10$ (CIFAR-10) to $100$ (CIFAR-100)
 
 \begin{table}[h!]
 \centering
-\caption{ASR ($\%$, $\uparrow$) of component ablations ($R$-only, $M$-only) and margin weights ($\lambda \in \{0.1, 1, 10\}$) across increasing class counts $C \in \{10, 100, 200\}$, alongside expanded Tiny ImageNet evaluations across multiple class pairs, budgets $\rho$, and attacks.}
+\caption{ASR ($\%$, $\uparrow$) of component ablations ($R$-only, $M$-only) and margin weights ($\lambda \in \{0.1, 1, 10\}$) across increasing class counts $C \in \{10, 100, 200\}$, alongside expanded Tiny ImageNet evaluations across multiple class pairs, budgets $\rho$, and attacks. The CIFAR-10 component and $\lambda=1$ values are copied from Table~5 of the submitted paper; ConvNet $\lambda=0.1$ and $\lambda=10$ values are copied from Table~17. \textcolor{red}{CIFAR-100 and Tiny ImageNet cells use 4 targets and 4 victims per target (16 trainings per cell). In CIFAR-10, \textsc{Rand} uses 10 targets and 6 victims per target (60 trials); verified copied $R$-only, $M$-only, and $\lambda=1$ cells use 8 targets and 5 victims per target (40 trials), except ConvNet $M$-only at $\rho=0.2\%$, which uses 8 targets and 6 victims per target (48 trials). Newly run ResNet20 $\lambda\in\{0.1,10\}$ cells use 8 targets and 5 victims per target (40 trainings per cell). The exact target/victim counts for the copied ResNet20 $R$-only 48.0\% entry and the ConvNet $\lambda\in\{0.1,10\}$ values from Table~17 could not be verified from matching saved results and are unverified.}}
 \label{tab:reb-c-scaling}
 \vspace{-0.6em}
 \setlength{\tabcolsep}{4.5pt}
@@ -410,23 +413,55 @@ As the number of classes $C$ increases from $10$ (CIFAR-10) to $100$ (CIFAR-100)
 \textbf{Dataset ($C$)} & \textbf{Model / Attack} & \textbf{Class Pair ($y_{\text{adv}}\rightarrow y_t$)} & $\boldsymbol{\rho}$ (\%) & \textsc{Rand} & $R$-only & $M$-only & \textsc{Basis} ($\lambda=1$) & \textsc{Basis} ($\lambda=0.1$) & \textsc{Basis} ($\lambda=10$) \\
 \midrule
 CIFAR-10 ($C=10$)
-  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{0.0}  & \old{20.0} & \old{20.8} & \old{\textbf{40.0}} & \tbd & \tbd \\
-  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.5 & \old{1.7}  & \old{15.0} & \old{55.0} & \old{\textbf{77.5}} & \tbd & \tbd \\
-  & ResNet20 / GM  & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{31.7} & \old{48.0} & \old{32.5} & \old{\textbf{57.5}} & \tbd & \tbd \\
+  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{0.0}  & \old{15.0} & \old{20.8} & \old{\textbf{40.0}} & 15.3 & 30.6 \\
+  & ConvNet / GM   & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.5 & \old{1.7}  & \old{20.0} & \old{55.0} & \old{\textbf{77.5}} & 34.7 & 59.7 \\
+  & ResNet20 / GM  & \texttt{dog}$\rightarrow$\texttt{bird}             & 0.2 & \old{31.7} & \old{48.0} & \old{55.0} & \old{\textbf{57.5}} & 35.0 & 50.0 \\
 \midrule
 CIFAR-100 ($C=100$)
-  & ResNet18 / GM  & \texttt{sea}$\rightarrow$\texttt{willow tree}      & 0.1 & \old{12.5} & \tbd       & \tbd       & \old{\textbf{37.5}} & \tbd & \tbd \\
-  & ResNet18 / GM  & \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{6.3}  & 25.0       & \tbd       & \old{\textbf{25.0}} & \tbd & \tbd \\
-  & ResNet18 / GM  & \texttt{bottle}$\rightarrow$\texttt{road}          & 0.2 & \old{0.0}  & 50.0       & 12.5       & \old{\textbf{31.2}} & \tbd & \tbd \\
-  & ResNet18 / SAPA& \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{18.8}} & \tbd & \tbd \\
+  & ResNet18 / GM  & \texttt{sea}$\rightarrow$\texttt{willow tree}      & 0.1 & \old{12.5} & 31.3       & \textbf{50.0} & \old{37.5} & 43.8 & 31.3 \\
+  & ResNet18 / GM  & \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{6.3}  & 25.0       & 12.5       & \old{25.0} & 18.8 & \textbf{31.3} \\
+  & ResNet18 / GM  & \texttt{bottle}$\rightarrow$\texttt{road}          & 0.2 & \old{0.0}  & \textbf{50.0}       & 12.5       & \old{31.2} & 12.5 & 12.5 \\
+  & ResNet18 / SAPA& \texttt{wardrobe}$\rightarrow$\texttt{lawn mower}  & 0.2 & \old{0.0}  & \textbf{18.8} & 12.5       & \old{\textbf{18.8}} & \textbf{18.8} & 6.3 \\
 \midrule
 Tiny ImageNet ($C=200$)
-  & ResNet18 / BP  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & 25.0       & 0.0       & \old{\textbf{12.5}} & \tbd & \tbd \\
-  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \tbd       & \tbd       & \old{\textbf{6.3}}  & \tbd & \tbd \\
-  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd & \tbd \\
-  & ResNet18 / SAPA& \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \tbd                & \tbd & \tbd \\
+  & ResNet18 / BP  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & \textbf{25.0}       & 0.0       & \old{12.5} & \textbf{25.0} & 18.8 \\
+  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.2 & \old{0.0}  & 6.3       & \textbf{31.3}       & \old{6.3}  & 6.3 & 6.3 \\
+  & ResNet18 / GM  & \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & \textbf{25.0}                & \tbd & \textbf{25.0} \\
+  & ResNet18 / SAPA& \texttt{n01443537}$\rightarrow$\texttt{n01629819}  & 0.5 & \tbd       & \tbd       & \tbd       & 25.0                & 25.0 & \textbf{31.3} \\
 \bottomrule
 \end{tabular}%
 }
+\end{table}
+
+\bigskip
+\begin{table}[h!]
+\centering
+\label{tab:reb-tiny-gm-extra-pairs}
+\vspace{-0.6em}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lc cc cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Class pair}}
+& \multirow{2}{*}{$\boldsymbol{\rho}$ (\%)}
+& \multicolumn{2}{c}{\textbf{ResNet18BN}}
+& \multicolumn{2}{c}{\textbf{VGG11BN}} \\
+\cmidrule(lr){3-4}\cmidrule(l){5-6}
+& & \textsc{Rand} & \textsc{Basis} & \textsc{Rand} & \textsc{Basis} \\
+\midrule
+\multirow{2}{*}{American alligator$\rightarrow$tarantula}
+& 0.1  & \tbd & \tbd & \tbd & \tbd \\
+& 0.05 & \tbd & \tbd & \tbd & \tbd \\
+\midrule
+\multirow{2}{*}{Bullfrog$\rightarrow$dining table}
+& 0.1  & \tbd & \tbd & \tbd & \tbd \\
+& 0.05 & \tbd & \tbd & \tbd & \tbd \\
+\midrule
+\multirow{2}{*}{Bullfrog$\rightarrow$beach wagon}
+& 0.1  & \tbd & \tbd & \tbd & \tbd \\
+& 0.05 & \tbd & \tbd & \tbd & \tbd \\
+\bottomrule
+\end{tabular}
 \end{table}
 
