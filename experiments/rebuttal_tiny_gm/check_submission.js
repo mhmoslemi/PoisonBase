@@ -85,6 +85,36 @@ try {
     assert.equal(calls.at(-1).args.at(-1), plan.tasks[0].id);
     assert.equal(updates.length, 18, 'Craft dependencies were not repaired');
     for (const args of updates) assert(args.includes('Dependency=afterok:' + [calls.at(-1).id, ...calls.slice(1,20).map(c => c.id)].join(':')));
+    if (site === 'fir') {
+      queue += calls.at(-1).id + '|PENDING\n';
+      const oldJobs = calls.slice(1, 5).map(c => c.id);
+      for (const job of oldJobs) queue = queue.replace(job + '|PENDING\n', '');
+      context.process.env.TINY_REPLACE_OLD_JOBS = oldJobs.join(',');
+      context.process.env.TINY_REPLACE_ACCOUNT = 'def-yiweilu';
+      updates.length = 0;
+      context.main(project, site);
+      assert.equal(calls.length, 343, 'Replacement submitted more than four jobs');
+      for (const call of calls.slice(-4)) {
+        assert(call.args.includes('--account=def-yiweilu'));
+        for (const flag of ['--gpus-per-node=h100:1', '--mem=12G', '--cpus-per-task=1', '--time=01:30:00']) assert(call.args.includes(flag));
+        queue += call.id + '|PENDING\n';
+      }
+      assert.equal(updates.length, 18);
+      for (const args of updates) {
+        const dep = args.find(a => a.startsWith('Dependency=')).match(/\d+/g);
+        for (const job of oldJobs) assert(!dep.includes(job));
+        for (const call of calls.slice(-4)) assert(dep.includes(call.id));
+      }
+      context.main(project, site);
+      assert.equal(calls.length, 343, 'Repeated replacement duplicated jobs');
+      delete context.process.env.TINY_REPLACE_OLD_JOBS;
+      delete context.process.env.TINY_REPLACE_ACCOUNT;
+      queue = queue.replace(calls.at(-1).id + '|PENDING\n', '');
+      context.main(project, site);
+      assert.equal(calls.length, 344);
+      assert(calls.at(-1).args.includes('--account=def-yiweilu'), 'Resume lost the Lu account override');
+      console.log('PASS: exactly four Fir replacements on Lu; dependencies, repeat skip and Lu resume.');
+    }
     console.log('PASS:', site, '338 individual jobs, 5x5 trials, resources/dependencies, repeat skip and single-job resume.');
   }
 } finally {

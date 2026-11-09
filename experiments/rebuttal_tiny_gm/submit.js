@@ -64,9 +64,32 @@ function main(root, site = 'vulcan') {
     else fs.writeFileSync(identityFile, identity);
   }
   const latest = new Map();
+  const history = [];
   if (fs.existsSync(ledger)) for (const line of fs.readFileSync(ledger, 'utf8').trim().split('\n')) {
     const [task, job, dep] = line.split('\t');
     latest.set(task, { job, dep });
+    history.push({ task, job });
+  }
+  const overridesFile = path.join(batch, 'account_overrides_' + site + '.json');
+  const overrides = fs.existsSync(overridesFile) ? JSON.parse(fs.readFileSync(overridesFile)) : {};
+  let selected;
+  if (process.env.TINY_REPLACE_OLD_JOBS) {
+    assert.equal(site, 'fir');
+    assert.equal(process.env.TINY_REPLACE_ACCOUNT, 'def-yiweilu');
+    const oldJobs = new Set(process.env.TINY_REPLACE_OLD_JOBS.split(','));
+    assert.equal(oldJobs.size, 4, 'Exactly four old job IDs are required');
+    for (const job of oldJobs) {
+      assert(/^\d+$/.test(job));
+      assert(!active.has(job), 'Cancel job ' + job + ' before running this script');
+      assert(history.some(row => row.job === job), 'Job ' + job + ' is missing from the Fir submission ledger');
+    }
+    selected = new Set(history.filter(row => oldJobs.has(row.job)).map(row => row.task));
+    assert.equal(selected.size, 4);
+    for (const id of selected) {
+      assert.equal(tasks.get(id).stage, 'surrogate', 'Only the four surrogate jobs can be replaced');
+      overrides[id] = process.env.TINY_REPLACE_ACCOUNT;
+    }
+    fs.writeFileSync(overridesFile, JSON.stringify(overrides, null, 2) + '\n');
   }
   const finished = new Set(), locations = new Map();
   for (const task of plan.tasks) {
@@ -92,7 +115,11 @@ function main(root, site = 'vulcan') {
       console.log('ACTIVE', task.id, previous.job);
       continue;
     }
-    const selectedAccount = remote ? account : task.account;
+    if (selected && !selected.has(task.id)) {
+      if (previous) locations.set(task.id, previous.job);
+      continue;
+    }
+    const selectedAccount = overrides[task.id] || (remote ? account : task.account);
     const args = ['--parsable', '--account=' + selectedAccount, '--nodes=1', '--ntasks=1',
       '--cpus-per-task=1', '--mem=12G', gpu, '--time=' + task.time,
       '--signal=USR1@180', '--job-name=tgv13_' + task.id, '--chdir=' + root,
