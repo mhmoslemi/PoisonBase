@@ -437,30 +437,54 @@ Tiny ImageNet ($C=200$)
 \begin{table}[h!]
 \centering
 \label{tab:reb-tiny-gm-extra-pairs}
+% L40S timing, 100,000 images, batch 128, crop/flip augmentation (allocation 2222563).
+% VGG13BN: measured 5 epochs = 93.8 s; estimated 120 epochs per victim = about 38 min.
+% ResNet18BN (commented out): measured 5 epochs = 234.1 s; estimated 120 epochs per victim = about 1 h 34 min.
+% Training-time estimates exclude loading and poison crafting.
+% New VGG13BN runs: 5 fixed targets and 5 victims per target (25 trials per cell).
+% Surrogates: 150 epochs, LR drops at 90/120, no augmentation; 14 Ghaddar and 6 Lu.
+% Victims: 120 epochs, LR drops at 60/90, crop/flip augmentation; all Ghaddar.
 \vspace{-0.6em}
 \small
 \setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.1}
-\begin{tabular}{@{}lc cc cc@{}}
+\begin{tabular}{@{}lc
+% cc % ResNet18BN
+cc@{}}
 \toprule
 \multirow{2}{*}{\textbf{Class pair}}
 & \multirow{2}{*}{$\boldsymbol{\rho}$ (\%)}
-& \multicolumn{2}{c}{\textbf{ResNet18BN}}
-& \multicolumn{2}{c}{\textbf{VGG11BN}} \\
-\cmidrule(lr){3-4}\cmidrule(l){5-6}
-& & \textsc{Rand} & \textsc{Basis} & \textsc{Rand} & \textsc{Basis} \\
+% & \multicolumn{2}{c}{\textbf{ResNet18BN}}
+& \multicolumn{2}{c}{\textbf{VGG13BN}} \\
+% \cmidrule(lr){3-4}\cmidrule(l){5-6} % With ResNet18BN restored.
+\cmidrule(l){3-4}
+&
+% & \textsc{Rand} & \textsc{Basis} % ResNet18BN
+& \textsc{Rand} & \textsc{Basis} \\
 \midrule
 \multirow{2}{*}{American alligator$\rightarrow$tarantula}
-& 0.1  & \tbd & \tbd & \tbd & \tbd \\
-& 0.05 & \tbd & \tbd & \tbd & \tbd \\
+& 0.1
+% & \tbd & \tbd % ResNet18BN: Rand, Basis
+& \tbd & \tbd \\
+& 0.05
+% & \tbd & \tbd % ResNet18BN: Rand, Basis
+& \tbd & \tbd \\
 \midrule
 \multirow{2}{*}{Bullfrog$\rightarrow$dining table}
-& 0.1  & \tbd & \tbd & \tbd & \tbd \\
-& 0.05 & \tbd & \tbd & \tbd & \tbd \\
+& 0.1
+% & \tbd & \tbd % ResNet18BN: Rand, Basis
+& \tbd & \tbd \\
+& 0.05
+% & \tbd & \tbd % ResNet18BN: Rand, Basis
+& \tbd & \tbd \\
 \midrule
 \multirow{2}{*}{Bullfrog$\rightarrow$beach wagon}
-& 0.1  & \tbd & \tbd & \tbd & \tbd \\
-& 0.05 & \tbd & \tbd & \tbd & \tbd \\
+& 0.1
+% & \tbd & \tbd % ResNet18BN: Rand, Basis
+& \tbd & \tbd \\
+& 0.05
+% & \tbd & \tbd % ResNet18BN: Rand, Basis
+& \tbd & \tbd \\
 \bottomrule
 \end{tabular}
 \end{table}

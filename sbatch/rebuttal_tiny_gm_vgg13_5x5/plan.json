@@ -1,0 +1,6647 @@
+{
+  "purpose": "Only tab:reb-tiny-gm-extra-pairs: VGG13BN, GM, three new pairs, 0.1%/0.05%, five targets and five victims; individual Slurm jobs.",
+  "results": "rebuttal_tiny_gm_vgg13_5x5_result",
+  "resource": {
+    "account": "aip-bghaddar",
+    "time": "01:00:00",
+    "cpus": 1,
+    "memory": "12G",
+    "gres": "gpu:l40s:1"
+  },
+  "protocol": {
+    "model": "VGG13BN",
+    "input": [
+      3,
+      64,
+      64
+    ],
+    "global_average_pool": true,
+    "attack": "gradmatch",
+    "lambda": 1,
+    "selection_surrogates": 20,
+    "crafting_surrogates": 5,
+    "surrogate_epochs": 150,
+    "surrogate_decay": [
+      90,
+      120
+    ],
+    "surrogate_aug": false,
+    "victim_epochs": 120,
+    "victim_decay": [
+      60,
+      90
+    ],
+    "victim_aug": "standard",
+    "batch_size": 128,
+    "seed": 42,
+    "target_selection": "five uniformly drawn validation images per true class, seed 42; fixed across methods and budgets",
+    "random_draws": 1
+  },
+  "timing": {
+    "victim_seconds": 2251.5877311453223,
+    "craft_100_seconds": 982.3770377784967,
+    "craft_50_seconds": 324.18602611869574,
+    "craft_timing_source": "10-step timing with five randomly initialized VGG13BN surrogates; graph/memory check only"
+  },
+  "pairs": [
+    {
+      "id": "alligator_tarantula",
+      "poison_wnid": "n01698640",
+      "target_wnid": "n01774750",
+      "poison_class": 4,
+      "target_class": 9,
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ]
+    },
+    {
+      "id": "bullfrog_dining",
+      "poison_wnid": "n01641577",
+      "target_wnid": "n03201208",
+      "poison_class": 2,
+      "target_class": 98,
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ]
+    },
+    {
+      "id": "bullfrog_wagon",
+      "poison_wnid": "n01641577",
+      "target_wnid": "n02814533",
+      "poison_class": 2,
+      "target_class": 70,
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "id": "alligator_tarantula_b001_random",
+      "row": "alligator_tarantula_b001",
+      "component": "random",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "alligator_tarantula",
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "random",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.001,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01698640-n01774750",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 100,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "alligator_tarantula_b001_basis",
+      "row": "alligator_tarantula_b001",
+      "component": "BASIS",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "alligator_tarantula",
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "ours",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.001,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01698640-n01774750",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 100,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "alligator_tarantula_b0005_random",
+      "row": "alligator_tarantula_b0005",
+      "component": "random",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "alligator_tarantula",
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "random",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.0005,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01698640-n01774750",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 50,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "alligator_tarantula_b0005_basis",
+      "row": "alligator_tarantula_b0005",
+      "component": "BASIS",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "alligator_tarantula",
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "ours",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.0005,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01698640-n01774750",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 50,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_dining_b001_random",
+      "row": "bullfrog_dining_b001",
+      "component": "random",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_dining",
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "random",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.001,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n03201208",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 100,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_dining_b001_basis",
+      "row": "bullfrog_dining_b001",
+      "component": "BASIS",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_dining",
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "ours",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.001,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n03201208",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 100,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_dining_b0005_random",
+      "row": "bullfrog_dining_b0005",
+      "component": "random",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_dining",
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "random",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.0005,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n03201208",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 50,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_dining_b0005_basis",
+      "row": "bullfrog_dining_b0005",
+      "component": "BASIS",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_dining",
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "ours",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.0005,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n03201208",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 50,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_wagon_b001_random",
+      "row": "bullfrog_wagon_b001",
+      "component": "random",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_wagon",
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "random",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.001,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n02814533",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 100,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_wagon_b001_basis",
+      "row": "bullfrog_wagon_b001",
+      "component": "BASIS",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_wagon",
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "ours",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.001,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n02814533",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 100,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_wagon_b0005_random",
+      "row": "bullfrog_wagon_b0005",
+      "component": "random",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_wagon",
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "random",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.0005,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n02814533",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 50,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    },
+    {
+      "id": "bullfrog_wagon_b0005_basis",
+      "row": "bullfrog_wagon_b0005",
+      "component": "BASIS",
+      "site": "vulcan",
+      "pool": "surrogates",
+      "pair": "bullfrog_wagon",
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ],
+      "args": {
+        "FORCE": false,
+        "attack": "gradmatch",
+        "base": "ours",
+        "base_dist": "cosine",
+        "base_topr": null,
+        "budget": 0.0005,
+        "cache_dir": "/tmp/extra_data_if/cache",
+        "class_pair": "n01641577-n02814533",
+        "clean_baseline": true,
+        "craft_alpha": 0.00392156862745098,
+        "craft_aug": true,
+        "craft_batch": 256,
+        "craft_ensemble": 5,
+        "craft_lowmem": false,
+        "craft_schedule": false,
+        "craft_steps": 250,
+        "data_path": "/tmp/extra_data",
+        "dataset": "TinyImageNet",
+        "dsa_strategy": "color_crop_cutout_flip_scale_rotate",
+        "epsilon": 0.03137254901960784,
+        "fast_gradmatch": false,
+        "fc_mode": "sample",
+        "fc_restarts": 1,
+        "gpus": "all",
+        "jacobian_batch_size": 64,
+        "jacobian_weight": 1,
+        "lambda_margin": 1,
+        "model": "VGG13BN",
+        "no_resume": false,
+        "num_poisons": 50,
+        "num_surrogates": 20,
+        "num_targets": 5,
+        "num_victims": 5,
+        "out_dir": "/tmp/extra_data_if/extra_data_result",
+        "pair_order": "poison-target",
+        "parallel_pretrain": true,
+        "parallel_targets": true,
+        "precompute_id": null,
+        "precompute_only": false,
+        "precompute_part": "both",
+        "rank_on_victims": false,
+        "recompute_deltas": false,
+        "require_correct_target": false,
+        "restarts": 8,
+        "seed": 42,
+        "sel_K": 20,
+        "sel_alpha": 1,
+        "sel_criterion": null,
+        "sel_dpp": false,
+        "sel_filter": false,
+        "sel_mmr": false,
+        "sel_mode": null,
+        "sel_model": null,
+        "sel_mu": 1,
+        "sel_pca": false,
+        "sel_pool": 3,
+        "sharp_mode": "worst",
+        "sharp_samples": 20,
+        "sharp_sigma": 0.05,
+        "steal_timeout": 7200,
+        "surrogate_aug": false,
+        "surrogate_bs": 128,
+        "surrogate_decay": [
+          90,
+          120
+        ],
+        "surrogate_epochs": 150,
+        "surrogate_lr": 0.1,
+        "surrogate_wd": 0,
+        "target_idx_file": "/tmp/extra_data_if/target_sets/appx_tiny_ResNet18BN_n01443537-n01629819.json",
+        "target_select": "random",
+        "use_jacobian_score": false,
+        "victim_aug": "standard",
+        "victim_bs": 128,
+        "victim_decay": [
+          60,
+          90
+        ],
+        "victim_epochs": 120,
+        "victim_lr": 0.1,
+        "victim_wd": 0
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "surrogate_00",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        0
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_01",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        1
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_02",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        2
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_03",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        3
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_04",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        4
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_05",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        5
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_06",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        6
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_07",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        7
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_08",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        8
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_09",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        9
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_10",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        10
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_11",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        11
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_12",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        12
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_13",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        13
+      ],
+      "requires": [],
+      "account": "aip-bghaddar",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_14",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        14
+      ],
+      "requires": [],
+      "account": "aip-yiweilu",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_15",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        15
+      ],
+      "requires": [],
+      "account": "aip-yiweilu",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_16",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        16
+      ],
+      "requires": [],
+      "account": "aip-yiweilu",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_17",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        17
+      ],
+      "requires": [],
+      "account": "aip-yiweilu",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_18",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        18
+      ],
+      "requires": [],
+      "account": "aip-yiweilu",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "surrogate_19",
+      "stage": "surrogate",
+      "cell": "alligator_tarantula_b001_random",
+      "surrogates": [
+        19
+      ],
+      "requires": [],
+      "account": "aip-yiweilu",
+      "seconds": 5400,
+      "time": "01:30:00"
+    },
+    {
+      "id": "craft_alligator_tarantula_b001_random_0",
+      "stage": "craft",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        8820,
+        3271,
+        6824
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_alligator_tarantula_b001_random_1",
+      "stage": "craft",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        7813,
+        4531
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_alligator_tarantula_b001_basis_0",
+      "stage": "craft",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        8820,
+        3271,
+        6824
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_alligator_tarantula_b001_basis_1",
+      "stage": "craft",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        7813,
+        4531
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_alligator_tarantula_b0005_random_0",
+      "stage": "craft",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_alligator_tarantula_b0005_basis_0",
+      "stage": "craft",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        8820,
+        3271,
+        6824,
+        7813,
+        4531
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_dining_b001_random_0",
+      "stage": "craft",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        9010,
+        4692,
+        6942
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_dining_b001_random_1",
+      "stage": "craft",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        7803,
+        4951
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_dining_b001_basis_0",
+      "stage": "craft",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        9010,
+        4692,
+        6942
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_dining_b001_basis_1",
+      "stage": "craft",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        7803,
+        4951
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_dining_b0005_random_0",
+      "stage": "craft",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_dining_b0005_basis_0",
+      "stage": "craft",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        9010,
+        4692,
+        6942,
+        7803,
+        4951
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_wagon_b001_random_0",
+      "stage": "craft",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        8080,
+        3147,
+        4709
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_wagon_b001_random_1",
+      "stage": "craft",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        6655,
+        3547
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_wagon_b001_basis_0",
+      "stage": "craft",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        8080,
+        3147,
+        4709
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_wagon_b001_basis_1",
+      "stage": "craft",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        6655,
+        3547
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_wagon_b0005_random_0",
+      "stage": "craft",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "craft_bullfrog_wagon_b0005_basis_0",
+      "stage": "craft",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        8080,
+        3147,
+        4709,
+        6655,
+        3547
+      ],
+      "requires": [
+        "surrogate_00",
+        "surrogate_01",
+        "surrogate_02",
+        "surrogate_03",
+        "surrogate_04",
+        "surrogate_05",
+        "surrogate_06",
+        "surrogate_07",
+        "surrogate_08",
+        "surrogate_09",
+        "surrogate_10",
+        "surrogate_11",
+        "surrogate_12",
+        "surrogate_13",
+        "surrogate_14",
+        "surrogate_15",
+        "surrogate_16",
+        "surrogate_17",
+        "surrogate_18",
+        "surrogate_19"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t8820_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        8820
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t8820_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        8820
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t8820_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        8820
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t8820_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        8820
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t8820_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        8820
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t3271_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        3271
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t3271_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        3271
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t3271_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        3271
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t3271_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        3271
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t3271_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        3271
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t6824_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        6824
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t6824_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        6824
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t6824_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        6824
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t6824_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        6824
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t6824_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        6824
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t7813_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        7813
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t7813_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        7813
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t7813_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        7813
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t7813_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        7813
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t7813_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        7813
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t4531_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        4531
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t4531_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        4531
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t4531_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        4531
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t4531_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        4531
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_random_t4531_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_random",
+      "targets": [
+        4531
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t8820_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t8820_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t8820_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t8820_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t8820_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t3271_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t3271_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t3271_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t3271_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t3271_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t6824_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t6824_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t6824_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t6824_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t6824_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t7813_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t7813_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t7813_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t7813_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t7813_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t4531_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t4531_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t4531_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t4531_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b001_basis_t4531_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b001_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t8820_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        8820
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t8820_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        8820
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t8820_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        8820
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t8820_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        8820
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t8820_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        8820
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t3271_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        3271
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t3271_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        3271
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t3271_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        3271
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t3271_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        3271
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t3271_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        3271
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t6824_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        6824
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t6824_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        6824
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t6824_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        6824
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t6824_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        6824
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t6824_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        6824
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t7813_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        7813
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t7813_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        7813
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t7813_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        7813
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t7813_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        7813
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t7813_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        7813
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t4531_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        4531
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t4531_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        4531
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t4531_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        4531
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t4531_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        4531
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_random_t4531_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_random",
+      "targets": [
+        4531
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t8820_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t8820_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t8820_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t8820_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t8820_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        8820
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t3271_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t3271_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t3271_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t3271_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t3271_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        3271
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t6824_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t6824_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t6824_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t6824_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t6824_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        6824
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t7813_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t7813_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t7813_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t7813_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t7813_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        7813
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t4531_v0",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t4531_v1",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t4531_v2",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t4531_v3",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_alligator_tarantula_b0005_basis_t4531_v4",
+      "stage": "victim",
+      "cell": "alligator_tarantula_b0005_basis",
+      "targets": [
+        4531
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_alligator_tarantula_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t9010_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        9010
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t9010_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        9010
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t9010_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        9010
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t9010_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        9010
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t9010_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        9010
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4692_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4692
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4692_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4692
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4692_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4692
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4692_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4692
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4692_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4692
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t6942_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        6942
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t6942_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        6942
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t6942_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        6942
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t6942_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        6942
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t6942_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        6942
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t7803_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        7803
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t7803_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        7803
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t7803_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        7803
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t7803_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        7803
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t7803_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        7803
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4951_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4951
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4951_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4951
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4951_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4951
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4951_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4951
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_random_t4951_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_random",
+      "targets": [
+        4951
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t9010_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t9010_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t9010_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t9010_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t9010_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4692_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4692_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4692_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4692_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4692_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t6942_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t6942_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t6942_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t6942_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t6942_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t7803_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t7803_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t7803_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t7803_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t7803_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4951_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4951_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4951_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4951_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b001_basis_t4951_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b001_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t9010_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        9010
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t9010_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        9010
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t9010_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        9010
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t9010_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        9010
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t9010_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        9010
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4692_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4692
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4692_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4692
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4692_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4692
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4692_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4692
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4692_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4692
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t6942_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        6942
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t6942_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        6942
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t6942_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        6942
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t6942_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        6942
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t6942_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        6942
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t7803_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        7803
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t7803_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        7803
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t7803_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        7803
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t7803_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        7803
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t7803_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        7803
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4951_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4951
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4951_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4951
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4951_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4951
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4951_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4951
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_random_t4951_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_random",
+      "targets": [
+        4951
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t9010_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t9010_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t9010_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t9010_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t9010_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        9010
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4692_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4692_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4692_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4692_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4692_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4692
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t6942_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t6942_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t6942_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t6942_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t6942_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        6942
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t7803_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t7803_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t7803_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t7803_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t7803_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        7803
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4951_v0",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4951_v1",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4951_v2",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4951_v3",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_dining_b0005_basis_t4951_v4",
+      "stage": "victim",
+      "cell": "bullfrog_dining_b0005_basis",
+      "targets": [
+        4951
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_dining_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t8080_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        8080
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t8080_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        8080
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t8080_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        8080
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t8080_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        8080
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t8080_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        8080
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3147_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3147
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3147_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3147
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3147_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3147
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3147_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3147
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3147_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3147
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t4709_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        4709
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t4709_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        4709
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t4709_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        4709
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t4709_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        4709
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t4709_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        4709
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t6655_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        6655
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t6655_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        6655
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t6655_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        6655
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t6655_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        6655
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t6655_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        6655
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3547_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3547
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3547_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3547
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3547_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3547
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3547_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3547
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_random_t3547_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_random",
+      "targets": [
+        3547
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_random_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t8080_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t8080_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t8080_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t8080_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t8080_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3147_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3147_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3147_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3147_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3147_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t4709_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t4709_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t4709_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t4709_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t4709_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t6655_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t6655_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t6655_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t6655_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t6655_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3547_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3547_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3547_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3547_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b001_basis_t3547_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b001_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b001_basis_1"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t8080_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        8080
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t8080_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        8080
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t8080_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        8080
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t8080_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        8080
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t8080_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        8080
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3147_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3147
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3147_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3147
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3147_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3147
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3147_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3147
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3147_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3147
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t4709_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        4709
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t4709_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        4709
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t4709_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        4709
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t4709_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        4709
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t4709_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        4709
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t6655_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        6655
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t6655_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        6655
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t6655_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        6655
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t6655_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        6655
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t6655_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        6655
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3547_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3547
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3547_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3547
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3547_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3547
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3547_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3547
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_random_t3547_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_random",
+      "targets": [
+        3547
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_random_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t8080_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t8080_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t8080_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t8080_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t8080_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        8080
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3147_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3147_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3147_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3147_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3147_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3147
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t4709_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t4709_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t4709_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t4709_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t4709_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        4709
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t6655_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t6655_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t6655_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t6655_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t6655_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        6655
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3547_v0",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 0,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3547_v1",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 1,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3547_v2",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 2,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3547_v3",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 3,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    },
+    {
+      "id": "victim_bullfrog_wagon_b0005_basis_t3547_v4",
+      "stage": "victim",
+      "cell": "bullfrog_wagon_b0005_basis",
+      "targets": [
+        3547
+      ],
+      "victim": 4,
+      "requires": [
+        "craft_bullfrog_wagon_b0005_basis_0"
+      ],
+      "account": "aip-bghaddar",
+      "seconds": 3600,
+      "time": "01:00:00"
+    }
+  ],
+  "data_bytes": 1352565711
+}

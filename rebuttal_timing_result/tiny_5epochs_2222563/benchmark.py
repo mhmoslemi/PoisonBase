@@ -51,9 +51,9 @@ report = dict(job=os.environ['SLURM_JOB_ID'], node=socket.gethostname(),
               setup_seconds=time.monotonic() - started, models={})
 print('SETUP', json.dumps(report), flush=True)
 
-for name in ('ResNet18BN', 'VGG11BN'):
+for name in (sys.argv[1:] or ('ResNet18BN', 'VGG11BN')):
     net = fu.build_network(name, 3, 200, (64, 64), device, seed=42)
-    if name == 'VGG11BN':
+    if name in ('VGG11BN', 'VGG13BN'):
         # The repository VGG head expects 512 features; pool its 64x64 input to match.
         net.features[-1] = torch.nn.AdaptiveAvgPool2d(1)
     assert any(isinstance(m, torch.nn.BatchNorm2d) for m in net.modules())
@@ -84,7 +84,8 @@ for name in ('ResNet18BN', 'VGG11BN'):
                   peak_host_gib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2,
                   peak_gpu_gib=torch.cuda.max_memory_allocated() / 1024**3)
     report['models'][name] = result
-    (OUTPUT / 'timings.json').write_text(json.dumps(report, indent=2) + '\n')
+    filename = 'timings_' + '_'.join(sys.argv[1:]) + '.json' if sys.argv[1:] else 'timings.json'
+    (OUTPUT / filename).write_text(json.dumps(report, indent=2) + '\n')
     print('TIMING', name, json.dumps(result), flush=True)
     del net
     gc.collect()
