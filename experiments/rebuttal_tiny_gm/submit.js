@@ -18,6 +18,9 @@ function main(root, site = 'vulcan') {
   const gpu = site === 'fir' ? '--gpus-per-node=h100:1'
     : site === 'killarney' ? '--gres=gpu:1' : '--gres=gpu:l40s:1';
   const batch = path.join(root, 'sbatch/rebuttal_tiny_gm_vgg13_5x5');
+  assert(site !== 'vulcan' || !fs.existsSync(path.join(path.dirname(root),
+    'tiny_gm_vgg13_vulcan_runtime/moved_craft_from_fir_3225878.json')),
+    'Split crafting now uses sh submit_tiny_targets_vulcan_ghaddar.sh');
   assert(site !== 'fir' || !fs.existsSync(path.join(path.dirname(root), 'tiny_gm_vgg13_fir_runtime/finish_schedule.json')),
     'Fir downstream now uses nine-victim jobs: run sh submit_tiny_finish_fir_ghaddar.sh');
   assert(site !== 'fir' || !fs.existsSync(path.join(batch, 'fir_pairs.json')),

@@ -1,0 +1,117 @@
+\begin{wraptable}[12]{r}{0.47\textwidth}
+\centering
+\vspace{-1.22em} % Pulls table closer to text above it
+\caption{ASR ($\%$, $\uparrow$) for different sample selection methods. Column values $0.2$ and $0.5$ denote the poisoning budget $\rho$ in percent (\%).}
+\label{tab:selector-combined}
+\vspace{-0.6em}
+
+\setlength{\tabcolsep}{3.8pt} % Tightens columns to keep font size large
+\renewcommand{\arraystretch}{1.05}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}l cccc cccc@{}}
+\toprule
+& \multicolumn{4}{c}{\textbf{ConvNet}}
+& \multicolumn{4}{c}{\textbf{ResNet20}} \\
+\cmidrule(lr){2-5}
+\cmidrule(l){6-9}
+
+& \multicolumn{2}{c}{\textbf{GM}}
+& \multicolumn{2}{c}{\textbf{SAPA}}
+& \multicolumn{2}{c}{\textbf{GM}}
+& \multicolumn{2}{c}{\textbf{SAPA}} \\
+\cmidrule(lr){2-3}
+\cmidrule(lr){4-5}
+\cmidrule(lr){6-7}
+\cmidrule(l){8-9}
+
+
+
+\textbf{Method}
+& 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 & 0.2 & 0.5 \\
+\midrule
+
+\textsc{Rand}
+& 0.0 & 2.5 & 0.0 & 7.5 & 22.5 & 42.5 & 17.5 & 50.0 \\
+
+\textsc{Grad}
+& 10.0 & \underline{46.7} & 6.7 & \textbf{48.3}
+& \underline{53.3} & \underline{70.0} & 45.0 & \textbf{81.7} \\
+
+\textsc{Forget}
+& \underline{15.0} & 31.7 & \underline{21.7} & \underline{40.0}
+& 48.3 & 66.7 & \underline{46.7} & 51.7 \\
+
+FUS
+& 8.3 & 28.3 & 10.0 & 20.0 & 40.0 & {65.0} & 40.0 & {70.0} \\
+% \addlinespace[2pt] % Adds a slight visual break before your proposed method
+
+\textsc{Basis}
+& \textbf{28.3} & \textbf{73.3} & \textbf{26.7} & \textbf{48.3}
+& \textbf{56.7} & \textbf{76.7} & \textbf{53.3} & \underline{78.3} \\
+\bottomrule
+\end{tabular}%
+}
+\end{wraptable}
+
+
+
+
+\begin{table*}[h]
+\centering
+\caption{Ablation of the selection score across ConvNet, ResNet20, and VGG13. Entries report ASR ($\%$, $\uparrow$) over eight targets and five victims per target (40 trials per cell). The best and second-best results in each column are \textbf{bold} and \underline{underlined}, respectively.}
+\label{tab:selector-combined-tasks}
+\vspace{-0.6em}
+
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}l *{18}{c}@{}}
+\toprule
+
+& \multicolumn{8}{c}{ConvNet}
+& \multicolumn{6}{c}{ResNet20} 
+& \multicolumn{4}{c}{VGG13} \\
+\cmidrule(lr){2-9}\cmidrule(lr){10-15}\cmidrule(l){16-19}
+
+& \multicolumn{2}{c}{BP} & \multicolumn{3}{c}{GM} & \multicolumn{3}{c}{SAPA} 
+& \multicolumn{2}{c}{BP} & \multicolumn{2}{c}{GM} & \multicolumn{2}{c}{SAPA} 
+& \multicolumn{2}{c}{BP} & \multicolumn{2}{c}{GM} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}\cmidrule(lr){7-9} 
+\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15} 
+\cmidrule(lr){16-17}\cmidrule(l){18-19} 
+
+\textbf{Method}\,\,$\boldsymbol{\rho}$ {\fontsize{7}{8}\selectfont (\%)}
+&0.1 &0.2 &0.1 &0.2 & 0.5 &0.1 &0.2 &0.5 
+&0.1 &0.5 &0.1 &0.2 & 0.1 & 0.2 
+&0.1 &0.2 &0.1 &0.2 \\
+\midrule
+
+\textsc{Rand}
+& 0.0 & 2.5 & 0.0 & 0.0 & 2.5 & 0.0 & 0.0 & 7.5
+& 12.5 & 30.0 & 17.5 & 22.5 & 15.0 & 17.5
+& 20.0 & \textbf{45.0} & 20.0 & 27.5 \\
+\addlinespace[1pt]
+
+$R$
+& 2.5 & 22.5 & 7.5 & 15.0 & 20.0 & 5.0 & 15.0 & 25.0
+& 12.5 & 37.5 & \underline{37.5} & 2.5 & 32.5 & 7.5
+& 25.0 & 27.5 & \underline{55.0} & 57.5 \\
+
+$M$
+& \underline{35.0} & 45.0 & \underline{17.5} & 22.5 & 55.0 & 15.0 & 27.5 & \underline{62.5}
+& \textbf{17.5} & \textbf{45.0} & 32.5 & \underline{55.0} & 40.0 & \textbf{55.0}
+& \underline{27.5} & 25.0 & \textbf{67.5} & \underline{82.5} \\
+
+$\langle g_i,g_t\rangle$
+& \textbf{42.5} & \underline{47.5} & 15.0 & \underline{35.0} & \textbf{87.5} & \underline{20.0} & \textbf{40.0} & \textbf{82.5}
+& \underline{15.0} & 37.5 & 35.0 & \textbf{57.5} & \textbf{47.5} & \textbf{55.0}
+& \textbf{35.0} & 35.0 & \underline{55.0} & \textbf{87.5} \\
+\addlinespace[1pt]
+
+\textsc{Basis}
+& 32.5 & \textbf{70.0} & \textbf{20.0} & \textbf{40.0} & \underline{77.5} & \textbf{27.5} & \underline{30.0} & \underline{62.5}
+& \textbf{17.5} & \underline{40.0} & \textbf{40.0} & \textbf{57.5} & \underline{42.5} & \underline{52.5}
+& \underline{27.5} & \underline{40.0} & 52.5 & \underline{82.5} \\
+\bottomrule
+\end{tabular}%
+}
+% \vspace{0.8em}
+\end{table*}

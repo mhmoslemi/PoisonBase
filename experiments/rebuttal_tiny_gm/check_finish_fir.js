@@ -89,11 +89,69 @@ try {
   assert.equal(calls.length, 42);
   assert.deepEqual(calls.at(-1).args.slice(-2), firstCraft.tasks.slice(1));
   assert(updates.length > 0, 'Victim dependencies were not repaired after crafting resumed');
+  const latest = new Map(fs.readFileSync(path.join(runtime, 'finish_submissions.tsv'), 'utf8').trim().split('\n').map(l => l.split('\t').slice(0, 2)));
+  const victims = schedule.groups.filter(g => g.stage === 'victim');
+  for (const group of victims) queue.delete(latest.get(group.id));
+  schedule.groups = [...schedule.groups.filter(g => g.stage === 'craft'),
+    ...victims.flatMap(g => g.tasks).map((id, i) => ({ id: 'victim_single_' + String(i).padStart(3, '0'), stage: 'victim', tasks: [id], seconds: 1320 }))];
+  assert.equal(new Set(schedule.groups.filter(g => g.stage === 'victim').flatMap(g => g.tasks)).size, 300);
+  fs.writeFileSync(path.join(runtime, 'finish_schedule.json'), JSON.stringify(schedule));
+  context.main(project);
+  assert.equal(calls.length, 42 + 298, 'Split must skip the two completed victim trainings');
+  const splitLedger = new Map(fs.readFileSync(path.join(runtime, 'finish_submissions.tsv'), 'utf8').trim().split('\n').map(l => l.split('\t').slice(0, 2)));
+  for (const { args } of calls.slice(42)) {
+    assert(args.includes('--time=00:22:00'));
+    assert(args.includes('--signal=USR1@60'));
+    for (const flag of ['--account=def-bghaddar', '--mem=12G', '--cpus-per-task=1', '--gpus-per-node=h100:1']) assert(args.includes(flag));
+    const script = args.findIndex(a => a.endsWith('/paired_job.sh'));
+    assert.equal(args[script + 3], '1320');
+    assert.equal(args.slice(script + 4).length, 1);
+    const task = plan.tasks.find(t => t.id === args.at(-1));
+    assert.equal(task.stage, 'victim');
+    const craft = schedule.groups.find(g => g.tasks.includes(task.requires[0]));
+    const ready = fs.existsSync(path.join(project, plan.results, 'jobs', task.requires[0], '.done'));
+    assert.equal(args.find(a => a.startsWith('--dependency=')), ready ? undefined : '--dependency=afterok:' + splitLedger.get(craft.id));
+  }
+  context.main(project);
+  assert.equal(calls.length, 340, 'Repeat submission duplicated split jobs');
+  queue.delete(calls[42].job);
+  context.main(project);
+  assert.equal(calls.length, 341);
+  assert.equal(calls.at(-1).args.at(-1), calls[42].args.at(-1));
+  assert(calls.at(-1).args.includes('--time=00:22:00'), 'Split resume lost the short time limit');
+  const beforeCraftSplit = new Map(fs.readFileSync(path.join(runtime, 'finish_submissions.tsv'), 'utf8').trim().split('\n').map(l => l.split('\t').slice(0, 2)));
+  const oldCrafts = schedule.groups.filter(g => g.stage === 'craft');
+  for (const group of oldCrafts) queue.delete(beforeCraftSplit.get(group.id));
+  schedule.groups = [...oldCrafts.flatMap(g => g.tasks).map((id, i) => ({ id: 'craft_single_' + String(i).padStart(3, '0'), stage: 'craft', tasks: [id], seconds: 3900 })),
+    ...schedule.groups.filter(g => g.stage === 'victim')];
+  fs.writeFileSync(path.join(runtime, 'finish_schedule.json'), JSON.stringify(schedule));
+  const previousUpdates = updates.length;
+  context.main(project);
+  assert.equal(calls.length, 358, 'Crafting split must submit 17 unfinished tasks and retain the completed task');
+  for (const { args } of calls.slice(341)) {
+    assert(args.includes('--time=01:05:00'));
+    assert(args.includes('--signal=USR1@180'));
+    const script = args.findIndex(a => a.endsWith('/paired_job.sh'));
+    assert.equal(args[script + 3], '3900');
+    assert.equal(args.slice(script + 4).length, 1);
+    assert.equal(plan.tasks.find(t => t.id === args.at(-1)).stage, 'craft');
+  }
+  const afterCraftSplit = new Map(fs.readFileSync(path.join(runtime, 'finish_submissions.tsv'), 'utf8').trim().split('\n').map(l => l.split('\t').slice(0, 2)));
+  const rewired = new Map(updates.slice(previousUpdates).map(args => [args[1].slice('JobId='.length), args[2]]));
+  for (const group of schedule.groups.filter(g => g.stage === 'victim')) {
+    assert.equal(afterCraftSplit.get(group.id), beforeCraftSplit.get(group.id), 'Craft split replaced an existing victim job');
+    const task = plan.tasks.find(t => t.id === group.tasks[0]);
+    if (fs.existsSync(path.join(project, plan.results, 'jobs', task.id, '.done')) || fs.existsSync(path.join(project, plan.results, 'jobs', task.requires[0], '.done'))) continue;
+    const craft = schedule.groups.find(g => g.tasks.includes(task.requires[0]));
+    assert.equal(rewired.get(afterCraftSplit.get(group.id)), 'Dependency=afterok:' + afterCraftSplit.get(craft.id));
+  }
+  context.main(project);
+  assert.equal(calls.length, 358, 'Repeat submission duplicated split crafting jobs');
   const lastSurrogate = plan.tasks.filter(t => t.stage === 'surrogate').at(-1);
   queue.delete(source.get(lastSurrogate.id));
   assert.throws(() => context.main(project), /unfinished and has no queued\/running job/);
-  assert.equal(calls.length, 42, 'Missing surrogate caused unwanted submissions');
-  console.log('PASS: 6 crafting + 34 nine-victim jobs, 03:15/12G/H100/Ghaddar, full surrogate dependency gate, logs outside Git, duplicate skip and partial resume.');
+  assert.equal(calls.length, 358, 'Missing surrogate caused unwanted submissions');
+  console.log('PASS: individual 65-minute crafting and 22-minute victim jobs, exact dependency rewiring without replacing victims, completed-task skip, duplicate prevention and resume.');
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });
 }
