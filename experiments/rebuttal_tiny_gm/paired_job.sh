@@ -7,7 +7,8 @@ shift 3
 [ "$#" -ge 1 ] && [ "$#" -le 9 ]
 cd "$BATCH"
 sha256sum --check --quiet code.sha256
-export MR_DEADLINE=$(( $(date +%s) + SECONDS_REQUESTED - 180 ))
+CHECKPOINT_RESERVE=$(( SECONDS_REQUESTED < 1800 ? 60 : 180 ))
+export MR_DEADLINE=$(( $(date +%s) + SECONDS_REQUESTED - CHECKPOINT_RESERVE ))
 module load StdEnv/2023 gcc/12.3 python/3.11.5 cuda/12.6 cudnn/9.10.0.56
 source /home/mmoslem3/ENV/bin/activate
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1

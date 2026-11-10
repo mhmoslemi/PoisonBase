@@ -99,12 +99,17 @@ function main(root) {
       console.log('ACTIVE', group.id, previous.job);
       continue;
     }
+    const seconds = group.seconds ?? 11700;
+    assert(Number.isSafeInteger(seconds) && seconds >= 120, 'Invalid time limit: ' + group.id);
+    const time = [Math.floor(seconds / 3600), Math.floor(seconds % 3600 / 60), seconds % 60]
+      .map(n => String(n).padStart(2, '0')).join(':');
+    const reserve = seconds < 1800 ? 60 : 180;
     const args = ['--parsable', '--account=def-bghaddar', '--nodes=1', '--ntasks=1',
-      '--cpus-per-task=1', '--mem=12G', '--gpus-per-node=h100:1', '--time=03:15:00',
-      '--signal=USR1@180', '--job-name=tgv13f_' + group.id, '--chdir=' + root,
+      '--cpus-per-task=1', '--mem=12G', '--gpus-per-node=h100:1', '--time=' + time,
+      '--signal=USR1@' + reserve, '--job-name=tgv13f_' + group.id, '--chdir=' + root,
       '--output=' + path.join(runtime, 'logs/%x-%j.out')];
     if (dependency) args.push('--dependency=' + dependency);
-    const job = call('sbatch', [...args, path.join(root, 'experiments/rebuttal_tiny_gm/paired_job.sh'), root, batch, '11700', ...missing]).split(';')[0];
+    const job = call('sbatch', [...args, path.join(root, 'experiments/rebuttal_tiny_gm/paired_job.sh'), root, batch, String(seconds), ...missing]).split(';')[0];
     assert(/^\d+$/.test(job));
     fs.appendFileSync(ledger, [group.id, job, dependency || '-', new Date().toISOString()].join('\t') + '\n');
     for (const id of missing) locations.set(id, job);
@@ -112,7 +117,7 @@ function main(root) {
     console.log('SUBMITTED', group.id, job, missing.length, 'tasks');
   }
   console.log('Submitted', submitted, 'jobs; full schedule:', schedule.groups.filter(g => g.stage === 'craft').length,
-    'crafting +', schedule.groups.filter(g => g.stage === 'victim').length, 'victim jobs. All 03:15:00, 12G, def-bghaddar, 1 CPU, 1 H100.');
+    'crafting +', schedule.groups.filter(g => g.stage === 'victim').length, 'victim jobs. Time limits follow the saved schedule; all 12G, def-bghaddar, 1 CPU, 1 H100.');
   console.log('Logs:', path.join(runtime, 'logs'));
 }
 
