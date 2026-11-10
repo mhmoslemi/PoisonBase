@@ -18,6 +18,10 @@ function main(root, site = 'vulcan') {
   const gpu = site === 'fir' ? '--gpus-per-node=h100:1'
     : site === 'killarney' ? '--gres=gpu:1' : '--gres=gpu:l40s:1';
   const batch = path.join(root, 'sbatch/rebuttal_tiny_gm_vgg13_5x5');
+  assert(site !== 'fir' || !fs.existsSync(path.join(path.dirname(root), 'tiny_gm_vgg13_fir_runtime/finish_schedule.json')),
+    'Fir downstream now uses nine-victim jobs: run sh submit_tiny_finish_fir_ghaddar.sh');
+  assert(site !== 'fir' || !fs.existsSync(path.join(batch, 'fir_pairs.json')),
+    'Fir now uses paired jobs: run sh submit_tiny_pairs_fir_ghaddar.sh');
   const call = (name, args, options = {}) => cp.execFileSync(name, args,
     { encoding: 'utf8', cwd: batch, ...options }).trim();
   call('sha256sum', ['--check', '--quiet', 'code.sha256']);
@@ -64,9 +68,32 @@ function main(root, site = 'vulcan') {
     else fs.writeFileSync(identityFile, identity);
   }
   const latest = new Map();
+  const history = [];
   if (fs.existsSync(ledger)) for (const line of fs.readFileSync(ledger, 'utf8').trim().split('\n')) {
     const [task, job, dep] = line.split('\t');
     latest.set(task, { job, dep });
+    history.push({ task, job });
+  }
+  const overridesFile = path.join(batch, 'account_overrides_' + site + '.json');
+  const overrides = fs.existsSync(overridesFile) ? JSON.parse(fs.readFileSync(overridesFile)) : {};
+  let selected;
+  if (process.env.TINY_REPLACE_OLD_JOBS) {
+    assert.equal(site, 'fir');
+    assert.equal(process.env.TINY_REPLACE_ACCOUNT, 'def-yiweilu');
+    const oldJobs = new Set(process.env.TINY_REPLACE_OLD_JOBS.split(','));
+    assert.equal(oldJobs.size, 4, 'Exactly four old job IDs are required');
+    for (const job of oldJobs) {
+      assert(/^\d+$/.test(job));
+      assert(!active.has(job), 'Cancel job ' + job + ' before running this script');
+      assert(history.some(row => row.job === job), 'Job ' + job + ' is missing from the Fir submission ledger');
+    }
+    selected = new Set(history.filter(row => oldJobs.has(row.job)).map(row => row.task));
+    assert.equal(selected.size, 4);
+    for (const id of selected) {
+      assert.equal(tasks.get(id).stage, 'surrogate', 'Only the four surrogate jobs can be replaced');
+      overrides[id] = process.env.TINY_REPLACE_ACCOUNT;
+    }
+    fs.writeFileSync(overridesFile, JSON.stringify(overrides, null, 2) + '\n');
   }
   const finished = new Set(), locations = new Map();
   for (const task of plan.tasks) {
@@ -92,7 +119,11 @@ function main(root, site = 'vulcan') {
       console.log('ACTIVE', task.id, previous.job);
       continue;
     }
-    const selectedAccount = remote ? account : task.account;
+    if (selected && !selected.has(task.id)) {
+      if (previous) locations.set(task.id, previous.job);
+      continue;
+    }
+    const selectedAccount = overrides[task.id] || (remote ? account : task.account);
     const args = ['--parsable', '--account=' + selectedAccount, '--nodes=1', '--ntasks=1',
       '--cpus-per-task=1', '--mem=12G', gpu, '--time=' + task.time,
       '--signal=USR1@180', '--job-name=tgv13_' + task.id, '--chdir=' + root,
